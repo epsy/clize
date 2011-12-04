@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='clize',
-    version='0.1a',
+    version='1.0b',
     description='Function decorator to quickly turn functions '
                 'into CLIs as we know them',
     url='https://code.launchpad.net/~epsy/+junk/clize',
@@ -13,7 +13,7 @@ setup(
     py_modules=('clize',),
     keywords=[
         'CLI', 'options', 'arguments', 'getopts',
-        'flags',
+        'flags', 'decorator',
         ],
     classifiers = [
         "Development Status :: 4 - Beta",
@@ -28,8 +28,40 @@ setup(
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
         "Natural Language :: English",
+        "Operating System :: OS Independent",
         "Topic :: Software Development",
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: User Interfaces",
         ],
+    long_description =
+        """
+This decorator will turn your normal python functions into proper
+shell commands.
+
+For example, this code::
+
+    from clize import clize, run
+
+    @clize
+    def echo(reverse=False, *text):
+        # ...
+
+    if __name__ == '__main__':
+        run(echo)
+
+will yield the CLI described by this::
+
+    Usage: fn [OPTIONS] [text...]
+
+    Positional arguments:
+      text...  
+
+    Options:
+      --reverse   
+      -h, --help   Show this help
+
+The decorator can take a few parameters all described in the README file.
+
+"""
+        ,
 )

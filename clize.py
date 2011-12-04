@@ -246,7 +246,8 @@ def set_arg_value(val, option, key, params, name, command):
         return option.source(name=name, command=command,
                              val=val, params=params)
     else:
-        options[option.source] = coerce_option(val, option, key, name, command)
+        params[option.source] = coerce_option(
+            val, option, key, name, command)
 
 def get_following_arguments(i, option, input, key, command, name):
     if i + option.takes_argument >= len(input):
