@@ -306,16 +306,13 @@ Things that didn't fit in the echo example
 Keyword arguments to the clize decorator:
 
 help_names
-
     The different names the help function should take.  Set it to
     an empty tuple to disable the help screen.
 
 force_positional
-
     A list/tuple of keyword arguments that should be forced into
     being optional positional arguments.
 
 coerce
-
     A mapping from argument name to type coercion functions.
 
