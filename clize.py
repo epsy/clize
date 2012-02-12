@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf-8 -*
 
 from __future__ import print_function
@@ -428,7 +427,7 @@ def print_subcommand_help(commands, do_print=True):
         all subcommands
     """
     ret = ''
-    ret += '\n' + _('Usage: %s command [OPTIONS]') % sys.argv[0]
+    ret += '\n' + _('Usage: {0} command [OPTIONS]').format(sys.argv[0])
     ret += '\n\n' + _('Available commands:')
     arguments = []
     for name, func in commands.iteritems():
@@ -445,8 +444,8 @@ def print_subcommand_help(commands, do_print=True):
 
     ret += '\n' + print_arguments(arguments) + '\n'
 
-    ret += '\n' + _('Use "%s command --help" to get help '
-                      'about a command') % sys.argv[0] + '\n'
+    ret += '\n' + _('Use "{0} command --help" to get help '
+                      'about a command').format(sys.argv[0]) + '\n'
 
     if do_print:
         print(ret)
@@ -462,17 +461,26 @@ def run(fn, args=None):
     # if it's not a list, then we make it a list
     try:
         subcommands = dict((f.__name__, f) for f in fn)
-        cmd = args.pop(1)
-        if cmd == '--help':
+
+        # find the 1st arg that looks like a command name:
+        command_names = subcommands.keys()
+        cmd = None
+        for i, arg in enumerate(args):
+            if any(name == arg for name in command_names):
+                cmd = args.pop(i)
+                break
+
+        # no command, dump the command listing
+        if cmd is None:
             print_subcommand_help(subcommands)
             sys.exit()
-        assert not cmd.startswith('-')
+
     except TypeError: # fn is not iterable
         cmd = fn.__name__
         subcommands = {cmd: fn}
     except (IndexError, AssertionError): # args doesn't have arguments or it's an option
-        sys.exit(_('You must provide a subcommand. Available sub commands are: %s') % (
-                    ', '.join(subcommands)))
+        sys.exit(_('You must provide a subcommand. Available sub commands '
+                   'are: {0}').format(', '.join(subcommands)))
 
     # setup references accessible anywhere in the code
     # to be able to know if we are using subcommands
@@ -484,8 +492,8 @@ def run(fn, args=None):
     try:
         subcommands[cmd](*args)
     except KeyError:
-        sys.exit(_('The "%s" sub command is unknown. Available sub commands are: %s') % (
-                    cmd, ', '.join(subcommands)))
+        sys.exit(_('The "{0}" sub command is unknown. Available '
+                   'sub commands are: {1}').format(cmd, ', '.join(subcommands)))
     except ArgumentError as e:
          sys.exit(os.path.basename(args[0]) + ': ' + str(e))
 
