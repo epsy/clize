@@ -299,7 +299,6 @@ This gives::
 And this concludes this guide of sorts.  You can find the full example
 in examples/echo.py
 
-
 Things that didn't fit in the echo example
 ==========================================
 
@@ -316,3 +315,30 @@ force_positional
 coerce
     A mapping from argument name to type coercion functions.
 
+
+Sub commands
+============
+
+Clize has a basic support for sub commands. Instead of passing one command to run, just pass a tuple of commands::
+
+    @clize
+    def echo(reverse=False, *text):
+        text = ' '.join(text)
+        if reverse:
+            text = ''.join(reversed(text))
+        print(text)
+
+
+    @clize
+    def shout(*text):
+        print(' '.join(text).upper())
+
+    run((echo, shout))
+
+Then you can do::
+
+    script.py shout 'Hello' 
+    script.py echo 'Hello'
+    script.py echo 'Hello' --reverse
+
+The help message will be adapted weither you use a command or not, and which one.
