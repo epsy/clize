@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*
+
 from __future__ import print_function
 from functools import wraps, partial
 from collections import namedtuple
@@ -52,7 +54,7 @@ Command = namedtuple(
         'description',
         'footnotes',
         'posargs',
-        'options'
+        'options',
         )
     )
 
@@ -192,9 +194,11 @@ def print_arguments(arguments, width=None):
         ) for arg in arguments))
 
 def help(name, command, just_do_usage=False, do_print=True, **kwargs):
+
     ret = ""
-    ret += (_('Usage: {0}{1} {2}').format(
+    ret += (_('Usage: {0}{1}{2} {3}').format(
         name,
+        ' ' + run.subcommand if run.subcommand else '',
         command.options and _(' [OPTIONS]') or '',
         ' '.join(get_arg_name(arg) for arg in command.posargs),
         ))
@@ -274,13 +278,13 @@ def clize(
         force_positional=(),
         coerce={},
         require_excess=False,
-        extra=(),
+        extra=()
     ):
     def _wrapperer(fn):
         command = read_arguments(
             fn,
             alias, force_positional,
-            require_excess, coerce,
+            require_excess, coerce
             )
 
         if help_names:
@@ -416,13 +420,81 @@ def clize(
     else:
         return _wrapperer(fn)
 
-def run(fn, args=None):
-    if args == None:
-        args = sys.argv
 
-    import os.path
+def print_subcommand_help(commands, do_print=True):
+    """
+        Print a special help message with usage, listing
+        all subcommands
+    """
+    ret = ''
+    ret += '\n' + _('Usage: {0} command [OPTIONS]').format(sys.argv[0])
+    ret += '\n\n' + _('Available commands:')
+    arguments = []
+    for name, func in commands.iteritems():
+        arguments.append(Option(source=name,
+                                 help=func.__doc__ or '',
+                                 default=None,
+                                 optional=False,
+                                 positional=True,
+                                 names=(name,),
+                                 type=type(''),
+                                 takes_argument=True,
+                                 catchall=False
+                                ))
+
+    ret += '\n' + print_arguments(arguments) + '\n'
+
+    ret += '\n' + _('Use "{0} command --help" to get help '
+                      'about a command').format(sys.argv[0]) + '\n'
+
+    if do_print:
+        print(ret)
+
+    return ret
+
+
+def run(fn, args=None):
+
+    args = args if args is not None else sys.argv
+
+    # parse the function list
+    # if it's not a list, then we make it a list
     try:
-        fn(*sys.argv)
+        subcommands = dict((f.__name__, f) for f in fn)
+
+        # find the 1st arg that looks like a command name:
+        command_names = subcommands.keys()
+        cmd = None
+        for i, arg in enumerate(args):
+            if any(name == arg for name in command_names):
+                cmd = args.pop(i)
+                break
+
+        # no command, dump the command listing
+        if cmd is None:
+            print_subcommand_help(subcommands)
+            sys.exit()
+
+    except TypeError: # fn is not iterable
+        cmd = fn.__name__
+        subcommands = {cmd: fn}
+    except (IndexError, AssertionError): # args doesn't have arguments or it's an option
+        sys.exit(_('You must provide a subcommand. Available sub commands '
+                   'are: {0}').format(', '.join(subcommands)))
+
+    # setup references accessible anywhere in the code
+    # to be able to know if we are using subcommands
+    # or not, and if yes, which one among which ones
+    if len(subcommands) > 1:
+        run.subcommand = cmd
+
+    # actually run the selected function
+    try:
+        subcommands[cmd](*args)
+    except KeyError:
+        sys.exit(_('The "{0}" sub command is unknown. Available '
+                   'sub commands are: {1}').format(cmd, ', '.join(subcommands)))
     except ArgumentError as e:
-        print(os.path.basename(args[0]) + ': ' + str(e),
-              file=sys.stderr)
+         sys.exit(os.path.basename(args[0]) + ': ' + str(e))
+
+run.subcommand = None
