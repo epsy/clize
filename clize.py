@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*
 
 from __future__ import print_function
-from functools import wraps, partial
+from functools import wraps
 from collections import namedtuple
 import re
 from textwrap import TextWrapper
-from traceback import print_exc
 
 import sys
 import os
@@ -15,7 +14,7 @@ from gettext import gettext as _, ngettext as _n
 class ArgumentError(TypeError):
 
     def __str__(self):
-        return str(self.args[0] + '\n'
+        return str(((self.args[0] + '\n') if self.args[0] else '')
             + help(self.args[2], self.args[1],
                    just_do_usage=True, do_print=False))
 
@@ -58,11 +57,18 @@ Command = namedtuple(
         )
     )
 
+SuperCommand = namedtuple(
+    'SuperCommand',
+    (
+        'description',
+        'footnotes',
+        'subcommands',
+        )
+    )
+
 argdesc = re.compile('^(\w+): (.*)$', re.DOTALL)
 
-def read_arguments(fn, alias, force_positional, require_excess, coerce):
-    argspec = inspect.getargspec(fn)
-
+def read_docstring(fn):
     doc = inspect.getdoc(fn)
     description = []
     footnotes = []
@@ -80,6 +86,12 @@ def read_arguments(fn, alias, force_positional, require_excess, coerce):
                     footnotes.append(paragraph)
                 else:
                     description.append(paragraph)
+
+    return description, opts_help, footnotes
+
+def read_arguments(fn, alias, force_positional, require_excess, coerce):
+    argspec = inspect.getargspec(fn)
+    description, opts_help, footnotes = read_docstring(fn)
 
     posargs = []
     options = []
@@ -183,24 +195,31 @@ def print_arguments(arguments, width=None):
     return ('\n'.join(
         ' ' * 2 + '{0:<{width}}  {1}'.format(
             get_option_names(arg),
-            arg.help and help_wrapper.fill(
+            help_wrapper.fill(
                 arg.help +
                     (arg.default not in (None, False)
                         and _('(default: {0!r})').format(arg.default)
                     or '')
             )[width + 4:]
-                or '',
+                if arg.help else '',
             width=width,
         ) for arg in arguments))
 
 def help(name, command, just_do_usage=False, do_print=True, **kwargs):
 
     ret = ""
-    ret += (_('Usage: {0}{1}{2} {3}').format(
-        name,
-        ' ' + run.subcommand if run.subcommand else '',
-        command.options and _(' [OPTIONS]') or '',
-        ' '.join(get_arg_name(arg) for arg in command.posargs),
+    ret += (_('Usage: {name}{options} {args}').format(
+        name=name + (' command' if 'subcommands' in command._fields
+                     else ''),
+        options=(
+            _(' [OPTIONS]')
+                if 'options' not in command._fields
+                    or command.options
+            else ''),
+        args=(
+            ' '.join(get_arg_name(arg) for arg in command.posargs)
+                if 'posargs' in command._fields else ''
+            ),
         ))
 
     if just_do_usage:
@@ -214,12 +233,19 @@ def help(name, command, just_do_usage=False, do_print=True, **kwargs):
 
     ret += '\n\n'.join(
         tw.fill(p) for p in ('',) + command.description) + '\n'
-    if command.posargs:
+    if 'subcommands' in command._fields and command.subcommands:
+        ret += '\n' + _('Available commands:') + '\n'
+        ret += print_arguments(command.subcommands) + '\n'
+    if 'posargs' in command._fields and command.posargs:
         ret += '\n' + _('Positional arguments:') + '\n'
         ret += print_arguments(command.posargs) + '\n'
-    if command.options:
+    if 'options' in command._fields and command.options:
         ret += '\n' + _('Options:') + '\n'
         ret += print_arguments(command.options) + '\n'
+    if 'subcommands' in command._fields and command.subcommands:
+        ret += '\n' + tw.fill(_(
+            "See '{0} command --help' for more information "
+            "on a specific command.").format(name)) + '\n'
     if command.footnotes:
         ret += '\n' + '\n\n'.join(tw.fill(p) for p in command.footnotes)
         ret += '\n'
@@ -420,81 +446,82 @@ def clize(
     else:
         return _wrapperer(fn)
 
+def read_supercommand(fnlist, description, footnotes, help_names):
+    subcommands = dict((f.__name__, f) for f in fnlist)
+    supercommand = SuperCommand(
+        description=tuple(
+            x for x in inspect.cleandoc(description).split('\n\n') if x),
+        footnotes=tuple(
+            x for x in inspect.cleandoc(footnotes).split('\n\n') if x),
+        subcommands=[
+            Option(
+                source=name,
+                help=(read_docstring(subcommands[name])[0] or ('',))[0],
+                default=None,
+                optional=False,
+                positional=True,
+                names=(name,),
+                type=type(''),
+                takes_argument=False,
+                catchall=False
+            ) for name in subcommands]
+        )
+    return subcommands, supercommand
 
-def print_subcommand_help(commands, do_print=True):
-    """
-        Print a special help message with usage, listing
-        all subcommands
-    """
-    ret = ''
-    ret += '\n' + _('Usage: {0} command [OPTIONS]').format(sys.argv[0])
-    ret += '\n\n' + _('Available commands:')
-    arguments = []
-    for name, func in commands.iteritems():
-        arguments.append(Option(source=name,
-                                 help=func.__doc__ or '',
-                                 default=None,
-                                 optional=False,
-                                 positional=True,
-                                 names=(name,),
-                                 type=type(''),
-                                 takes_argument=True,
-                                 catchall=False
-                                ))
+def run_group(fnlist, args, description='', footnotes='', help_names=()):
+    subcommands, supercommand = read_supercommand(
+        fnlist, description, footnotes, help_names)
+    args = list(args)
+    # grab the first positional argument
+    for i, arg in enumerate(args[1:]):
+        if not arg.startswith('-'):
+            if arg not in subcommands:
+                raise ArgumentError(
+                    _("Unknown command '{0}'").format(arg),
+                    supercommand, args[0]
+                    )
+            # change the command name to be both argv[0] and the
+            # subcommand name
+            args[0] = args[0] + ' ' + arg
+            del args[i+1]
+            return subcommands[arg](*args)
+            break
+    else: # Either no arguments or only options
+        for arg in args[1:]:
+            if arg.lstrip('-') in help_names:
+                help(args[0], supercommand)
+                return
+        else: # no --help argument
+            if len(args) > 1:
+                raise ArgumentError(
+                    _('No command specified.'), supercommand, args[0])
+            else:
+                raise ArgumentError(None, supercommand, args[0])
 
-    ret += '\n' + print_arguments(arguments) + '\n'
+def run_single(fn, args):
+    fn(*args)
 
-    ret += '\n' + _('Use "{0} command --help" to get help '
-                      'about a command').format(sys.argv[0]) + '\n'
-
-    if do_print:
-        print(ret)
-
-    return ret
-
-
-def run(fn, args=None):
+def run(fn, args=None,
+        description="", footnotes="", 
+        help_names=('help', 'h')):
 
     args = args if args is not None else sys.argv
 
-    # parse the function list
-    # if it's not a list, then we make it a list
     try:
-        subcommands = dict((f.__name__, f) for f in fn)
-
-        # find the 1st arg that looks like a command name:
-        command_names = subcommands.keys()
-        cmd = None
-        for i, arg in enumerate(args):
-            if any(name == arg for name in command_names):
-                cmd = args.pop(i)
-                break
-
-        # no command, dump the command listing
-        if cmd is None:
-            print_subcommand_help(subcommands)
-            sys.exit()
-
-    except TypeError: # fn is not iterable
-        cmd = fn.__name__
-        subcommands = {cmd: fn}
-    except (IndexError, AssertionError): # args doesn't have arguments or it's an option
-        sys.exit(_('You must provide a subcommand. Available sub commands '
-                   'are: {0}').format(', '.join(subcommands)))
-
-    # setup references accessible anywhere in the code
-    # to be able to know if we are using subcommands
-    # or not, and if yes, which one among which ones
-    if len(subcommands) > 1:
-        run.subcommand = cmd
-
-    # actually run the selected function
-    try:
-        subcommands[cmd](*args)
-    except KeyError:
-        sys.exit(_('The "{0}" sub command is unknown. Available '
-                   'sub commands are: {1}').format(cmd, ', '.join(subcommands)))
+        try:
+            fn.__iter__
+        except AttributeError:
+            run_single(fn, args)
+        else:
+            run_group(fn, args, description, footnotes, help_names)
     except ArgumentError as e:
-         sys.exit(os.path.basename(args[0]) + ': ' + str(e))
-
-run.subcommand = None
+        if e.args[0]:
+            print(os.path.basename(args[0]) + ': '
+                    + str(e), file=sys.stderr)
+        else:
+            print(str(e) + '\n' +
+                _("Try '{0} --{1}' for more information.").format(
+                    args[0], help_names[0]
+                    ),
+                file=sys.stderr)
+            sys.exit(2)

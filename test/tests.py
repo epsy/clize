@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import unittest
-from clize import clize, ArgumentError, read_arguments, help
+from clize import clize, ArgumentError, read_arguments, help, run_group, read_supercommand
 
 class ParamTests(unittest.TestCase):
 
@@ -110,10 +110,72 @@ class ParamTests(unittest.TestCase):
             return one
         self.assertEqual(fn('fn', '0'), 0)
 
+    def test_unknown_option(self):
+        @clize
+        def fn(one=1):
+            return one
+        self.assertRaisesRegexp(
+            ArgumentError,
+            r"Unrecognized option --doesnotexist\nUsage: fn \[OPTIONS\] ",
+            fn, 'fn', '--doesnotexist'
+            )
+
     def test_coerce_fail(self):
-        @clize(alias=())
-        def fn():
-            pass
+        @clize
+        def fn(one=1):
+            return 1
+        self.assertRaisesRegexp(
+            ArgumentError,
+            r"--one needs an argument of type INT\nUsage: fn \[OPTIONS\] ",
+            fn, 'fn', '--one=nan'
+            )
+
+class SubcommandTests(unittest.TestCase):
+
+    def test_pos(self):
+        @clize
+        def fn1(one, two):
+            return one, two
+        self.assertEqual(
+            run_group((fn1,), ('group', 'fn1', 'one', 'two')),
+            ('one', 'two')
+            )
+
+    def test_opt(self):
+        @clize
+        def fn1(one='1', two='2'):
+            return one, two
+        self.assertEqual(
+            run_group((fn1,), ('group', 'fn1', '--one=one', '--two', 'two')),
+            ('one', 'two')
+            )
+
+    def test_unknown_command(self):
+        @clize
+        def fn1():
+            return
+        self.assertRaisesRegexp(
+            ArgumentError, r"Unknown command 'unknown'\nUsage: group command \[OPTIONS\] ",
+            run_group, (fn1,), ('group', 'unknown')
+            )
+
+    def test_no_command(self):
+        @clize
+        def fn1():
+            return
+        self.assertRaisesRegexp(
+            ArgumentError, r"Usage: group command \[OPTIONS\] ",
+            run_group, (fn1,), ('group',)
+            )
+
+    def test_opts_but_no_command(self):
+        @clize
+        def fn1():
+            return
+        self.assertRaisesRegexp(
+            ArgumentError, r"No command specified.\nUsage: group command \[OPTIONS\] ",
+            run_group, (fn1,), ('group', '--opt')
+            )
 
 class HelpTests(unittest.TestCase):
 
@@ -254,6 +316,33 @@ Footnotes
 """,
             force_positional=('two',),
             alias={'three':('t',), 'four': ('f',)})
+
+    def test_supercommand(self):
+        @clize
+        def fn1():
+            pass
+        @clize
+        def fn2():
+            pass
+        subcommands, supercommand = read_supercommand(
+            (fn1, fn2), "Description", "Footnotes", ('help', 'h')
+            )
+        self.assertEqual(
+            help('group', supercommand, do_print=False),
+            """\
+Usage: group command [OPTIONS] 
+
+Description
+
+Available commands:
+  fn2  
+  fn1  
+
+See 'group command --help' for more information on a specific command.
+
+Footnotes
+"""
+            )
 
 if __name__ == '__main__':
     unittest.main()

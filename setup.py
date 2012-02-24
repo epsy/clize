@@ -60,7 +60,7 @@ will yield the CLI described by this::
       --reverse   
       -h, --help   Show this help
 
-The decorator can take a few parameters all described in the README file.
+The decorator can take a few parameters all described in the README.rst file.
 
 """
         ,
