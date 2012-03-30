@@ -319,7 +319,8 @@ coerce
 Sub commands
 ============
 
-Clize has a basic support for sub commands. Instead of passing one command to run, just pass a tuple of commands::
+Clize has a basic support for sub commands. Instead of passing one
+command to run, just pass a tuple of commands::
 
     @clize
     def echo(reverse=False, *text):
@@ -337,8 +338,31 @@ Clize has a basic support for sub commands. Instead of passing one command to ru
 
 Then you can do::
 
-    script.py shout 'Hello' 
+    script.py shout 'Hello'
     script.py echo 'Hello'
     script.py echo 'Hello' --reverse
 
-The help message will be adapted weither you use a command or not, and which one.
+The help message will be adapted weither you use a command or not, and
+which one.
+
+Python 3 annotations
+====================
+
+If you do not worry about Python 2 compability, you can use annotations
+to describe an argument's properties::
+
+    @clize
+    def connect(
+        host,
+        port: clize.POSITIONAL = 400,
+        number: ('n', float) = 1.2,
+        negative: 'm' = False,
+        ):
+        print(
+            "I would connect to {0}:{1} and send {2} "
+            "but I'm just an example!"
+                .format(host, port, -number if negative else number)
+            )
+
+If the annotation is a sequence other than a string, it is converted
+into one.

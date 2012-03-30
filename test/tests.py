@@ -1,4 +1,7 @@
 #!/usr/bin/python
+# encoding: utf-8
+
+from __future__ import unicode_literals
 
 import unittest
 from clize import clize, ArgumentError, read_arguments, help, run_group, read_supercommand
@@ -304,7 +307,7 @@ Command description
 
 Positional arguments:
   one       First parameter
-  two       Second parameter(default: '2')
+  two       Second parameter(default: 2)
   more...   Catch-all parameter
 
 Options:
@@ -344,5 +347,26 @@ Footnotes
 """
             )
 
+class UnicodeTests(unittest.TestCase):
+
+    try:
+        unicode
+    except NameError:
+        def as_argv(self, string):
+            return string
+    else:
+        def as_argv(self, string):
+            return string.encode('utf8')
+
+    def test_unicode(self):
+        @clize
+        def fn(one):
+            return one
+        self.assertEqual(
+            fn('fn', self.as_argv('ಠ')),
+            'ಠ'
+            )
+
 if __name__ == '__main__':
     unittest.main()
+

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
+
 from functools import wraps
 from collections import namedtuple
 import re
@@ -10,6 +11,35 @@ import sys
 import os
 import inspect
 from gettext import gettext as _, ngettext as _n
+
+if not hasattr(inspect, 'FullArgSpec'):
+    FullArgSpec = namedtuple(
+        'FullArgSpec',
+        (
+            'args', 'varargs', 'varkw', 'defaults',
+            'kwonlyargs', 'kwonlydefaults', 'annotations'
+            )
+        )
+    def getfullargspec(func):
+        argspec = inspect.getargspec(func)
+        return FullArgSpec(
+            argspec.args,
+            argspec.varargs,
+            argspec.keywords,
+            argspec.defaults,
+            [], None, {}
+            )
+else:
+    getfullargspec = inspect.getfullargspec
+
+try:
+    basestring
+except NameError:
+    basestring = str
+    unicode = str
+    decode = lambda s: s
+else:
+    decode = lambda s: s.decode('utf8')
 
 class ArgumentError(TypeError):
 
@@ -89,28 +119,79 @@ def read_docstring(fn):
 
     return description, opts_help, footnotes
 
+def annotation_aliases(annotations):
+    return tuple(filter(lambda s: isinstance(s, str) and (' ' not in s),
+                  annotations))
+
+def read_annotations(annotations, source):
+    alias = []
+    flags = []
+    coerce = None
+
+    try:
+        iter(annotations)
+    except TypeError:
+        annotations = (annotations,)
+    else:
+        if isinstance(annotations, basestring):
+            annotations = (annotations,)
+
+    for i, annotation in enumerate(annotations):
+        if isinstance(annotation, int):
+            flags.append(annotation)
+        elif isinstance(annotation, basestring):
+            if ' ' not in annotation:
+                alias.append(annotation)
+            else:
+                raise ValueError(
+                    "Aliases may not contain spaces. "
+                    "Put argument descriptions in the docstring."
+                    )
+        elif callable(annotation):
+            if coerce is not None:
+                raise ValueError(
+                    "Coercion function already encountered before "
+                    "index {0} of annotation on {1}: {2!r}"
+                    .format(i, source, annotation)
+                    )
+            coerce = annotation
+        else:
+            raise ValueError(
+                "Don't know how to interpret index {0} of "
+                "annotation on {1}: {2!r}"
+                .format(i, source, annotation)
+                )
+
+    return tuple(alias), tuple(flags), coerce
+
 def read_arguments(fn, alias, force_positional, require_excess, coerce):
-    argspec = inspect.getargspec(fn)
+    argspec = getfullargspec(fn)
     description, opts_help, footnotes = read_docstring(fn)
 
     posargs = []
     options = []
 
     for i, argname in enumerate(argspec.args):
+        annotations = argspec.annotations.get(argname, ())
+        alias_, flags_, coerce_ = read_annotations(annotations, argname)
+        if not coerce_:
+            coerce_ = coerce.get(argname, coerce_)
+
         try:
             default = argspec.defaults[-len(argspec.args) + i]
         except (IndexError, TypeError):
             default = None
             optional = False
-            type_ = str
+            type_ = coerce_ or unicode
         else:
             optional = True
-            type_ = type(default)
-
-        type_ = coerce.get(argname, type_)
+            type_ = coerce_ or type(default)
 
         positional = not optional
-        if argname in force_positional:
+        if (
+                argname in force_positional
+                or clize.POSITIONAL in flags_
+                ):
             positional = True
 
         if positional and options and options[-1].optional:
@@ -118,7 +199,10 @@ def read_arguments(fn, alias, force_positional, require_excess, coerce):
 
         option = Option(
             source=argname,
-            names=(argname.replace('_', '-'),) + alias.get(argname, ()),
+            names=
+                (argname.replace('_', '-'),)
+                + alias.get(argname, ())
+                + alias_,
             default=default,
             type=type_,
             help=opts_help.get(argname, ''),
@@ -138,7 +222,7 @@ def read_arguments(fn, alias, force_positional, require_excess, coerce):
                 source=argspec.varargs,
                 names=(argspec.varargs.replace('_', '-'),),
                 default=None,
-                type=str,
+                type=unicode,
                 help=opts_help.get(argspec.varargs, ''),
                 optional=bool(not require_excess or posargs and posargs[-1].optional),
                 positional=True,
@@ -156,6 +240,13 @@ def get_arg_name(arg):
     return (arg.optional and '[' + name + ']'
             or name)
 
+def get_type_name(func):
+    return (
+            'STR' if func in (unicode, str)
+            else
+            func.__name__.upper()
+        )
+
 def get_option_names(option):
     shorts = []
     longs = []
@@ -169,8 +260,8 @@ def get_option_names(option):
             longs.append('--' + name)
 
     if ((not option.positional and option.type != bool)
-            or (option.positional and option.type != str)):
-        longs[-1] += '=' + option.type.__name__.upper()
+            or (option.positional and option.type != unicode)):
+        longs[-1] += '=' + get_type_name(option.type)
 
     if option.positional and option.catchall:
         longs[-1] += '...'
@@ -179,6 +270,12 @@ def get_option_names(option):
 
 def get_terminal_width():
     return 70 #fair terminal dice roll
+
+def get_default_for_printing(default):
+    ret = repr(default)
+    if isinstance(default, unicode) and ret[0] == 'u':
+        return ret[1:]
+    return ret
 
 def print_arguments(arguments, width=None):
     if width == None:
@@ -197,16 +294,16 @@ def print_arguments(arguments, width=None):
             get_option_names(arg),
             help_wrapper.fill(
                 arg.help +
-                    (arg.default not in (None, False)
-                        and _('(default: {0!r})').format(arg.default)
-                    or '')
+                    (_('(default: {0})').format(arg.default)
+                     if arg.default not in (None, False)
+                     else ''
+                    )
             )[width + 4:]
                 if arg.help else '',
             width=width,
         ) for arg in arguments))
 
 def help(name, command, just_do_usage=False, do_print=True, **kwargs):
-
     ret = ""
     ret += (_('Usage: {name}{options} {args}').format(
         name=name + (' command' if 'subcommands' in command._fields
@@ -337,6 +434,7 @@ def clize(
                     skip_next -= 1
                     continue
 
+                arg = decode(arg)
                 if arg.startswith('--'):
                     if len(arg) == 2:
                         args.extend(input[i+1:])
@@ -433,7 +531,7 @@ def clize(
                 if not callable(option.source):
                     kwargs.setdefault(option.source, option.default)
 
-            fn_args = inspect.getargspec(fn).args
+            fn_args = getfullargspec(fn).args
             for i, key in enumerate(fn_args):
                 if key in kwargs:
                     args.insert(i, kwargs[key])
@@ -445,6 +543,7 @@ def clize(
         return _wrapperer
     else:
         return _wrapperer(fn)
+clize.POSITIONAL = 1
 
 def read_supercommand(fnlist, description, footnotes, help_names):
     subcommands = dict((f.__name__, f) for f in fnlist)
@@ -502,7 +601,7 @@ def run_single(fn, args):
     fn(*args)
 
 def run(fn, args=None,
-        description="", footnotes="", 
+        description="", footnotes="",
         help_names=('help', 'h')):
 
     args = args if args is not None else sys.argv
@@ -517,9 +616,9 @@ def run(fn, args=None,
     except ArgumentError as e:
         if e.args[0]:
             print(os.path.basename(args[0]) + ': '
-                    + str(e), file=sys.stderr)
+                    + unicode(e), file=sys.stderr)
         else:
-            print(str(e) + '\n' +
+            print(unicode(e) + '\n' +
                 _("Try '{0} --{1}' for more information.").format(
                     args[0], help_names[0]
                     ),
