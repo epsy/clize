@@ -5,7 +5,6 @@ from clize import clize
 
 
 class AnnotationParams(unittest.TestCase):
-
     def test_alias(self):
         @clize
         def fn(one: 'o' = 1):
@@ -78,6 +77,8 @@ class AnnotationFailures(unittest.TestCase):
             def fn(one: 1.0):
                 return one
 
+class KwoargsParams(unittest.TestCase):
+    pass
 
 if __name__ == '__main__':
     unittest.main()

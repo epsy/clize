@@ -7,7 +7,6 @@ import unittest
 from clize import clize, ArgumentError, read_arguments, help, run_group, read_supercommand
 
 class ParamTests(unittest.TestCase):
-
     def test_pos(self):
         @clize
         def fn(one, two, three):
@@ -134,7 +133,6 @@ class ParamTests(unittest.TestCase):
             )
 
 class SubcommandTests(unittest.TestCase):
-
     def test_pos(self):
         @clize
         def fn1(one, two):
@@ -181,7 +179,6 @@ class SubcommandTests(unittest.TestCase):
             )
 
 class HelpTests(unittest.TestCase):
-
     def assertHelpEquals(
             self, fn, help_str,
             alias={}, force_positional=(),
