@@ -1,4 +1,24 @@
-# clize - See COPYING for copyright info.
+# clize - function decorator for creating commands
+# Copyright (C) 2011, 2012 by Yann Kaiser <kaiser.yann@gmail.com>
+# Copyright (C) 2012 by Kevin Samuel <kevin@yeleman.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 # -*- coding: utf-8 -*
 
 from __future__ import print_function, unicode_literals
@@ -456,6 +476,11 @@ def clize(
         extra=(),
         use_kwoargs=None
     ):
+    """Wraps a function and maps arguments to command-line
+    parameters.
+
+    See the README.rst file included with clize for more
+    information"""
     def _wrapperer(fn):
         @wraps(fn)
         def _getopts(*input):
@@ -669,6 +694,14 @@ def run_single(fn, args):
 def run(fn, args=None,
         description="", footnotes="",
         help_names=('help', 'h')):
+    """Runs a clize-wrapped function with iterable ``args`` as
+    arguments and prints any ``ArgumentErrors`` nicely. If ``args``
+    is not given, uses ``sys.argv``.
+
+    If you replace ``fn`` with an iterable with multiple
+    clize-wrapped functions, this will act as a multi-command
+    dispatcher. ``description`` and ``footnotes`` then fill the help
+    message. They are otherwise completely ignored."""
 
     args = args if args is not None else sys.argv
 
