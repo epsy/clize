@@ -627,3 +627,5 @@ def run(fn, args=None,
                     ),
                 file=sys.stderr)
             sys.exit(2)
+
+__all__ = ['run', 'clize']
