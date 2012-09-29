@@ -405,24 +405,24 @@ def clize(
         extra=()
     ):
     def _wrapperer(fn):
-        command = read_arguments(
-            fn,
-            alias, force_positional,
-            require_excess, coerce
-            )
-
-        if help_names:
-            help_option = make_flag(
-                source=help,
-                names=help_names,
-                help=_("Show this help"),
-                )
-            command.options.append(help_option)
-
-        command.options.extend(extra)
-
         @wraps(fn)
         def _getopts(*input):
+            command = read_arguments(
+                fn,
+                alias, force_positional,
+                require_excess, coerce
+                )
+
+            if help_names:
+                help_option = make_flag(
+                    source=help,
+                    names=help_names,
+                    help=_("Show this help"),
+                    )
+                command.options.append(help_option)
+
+            command.options.extend(extra)
+
             name = input[0]
             input = input[1:]
 
