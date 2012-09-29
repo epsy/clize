@@ -1,12 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 from clize import clize, run
 
 @clize
 def connect(
         host,
-        port: clize.POSITIONAL = 400,
-        number: ('n', float) = 1.2,
-        negative: 'm' = False,
+        port=400,
+        *,
+        number: 'n' = 1.2,
+        negative: 'm' = False
         ):
     """
     If this thing did anything it would connect to host and

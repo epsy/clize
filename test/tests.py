@@ -118,7 +118,7 @@ class ParamTests(unittest.TestCase):
             return one
         self.assertRaisesRegexp(
             ArgumentError,
-            r"Unrecognized option --doesnotexist\nUsage: fn \[OPTIONS\] ",
+            r"Unknown option --doesnotexist.\nUsage: fn \[OPTIONS\] ",
             fn, 'fn', '--doesnotexist'
             )
 
@@ -178,7 +178,7 @@ class SubcommandTests(unittest.TestCase):
             run_group, (fn1,), ('group', '--opt')
             )
 
-class HelpTests(unittest.TestCase):
+class HelpTester(unittest.TestCase):
     def assertHelpEquals(
             self, fn, help_str,
             alias={}, force_positional=(),
@@ -187,11 +187,12 @@ class HelpTests(unittest.TestCase):
         return self.assertEqual(
             help('fn',
                 read_arguments(fn, alias, force_positional,
-                               require_excess, coerce),
+                               require_excess, coerce)[0],
                 do_print=False),
             help_str
             )
 
+class HelpTests(HelpTester):
     def test_pos(self):
         def fn(one, two, three, *more):
             pass

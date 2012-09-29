@@ -3,7 +3,7 @@
 
 from __future__ import print_function, unicode_literals
 
-from functools import wraps
+from functools import wraps, partial
 from collections import namedtuple
 import re
 from textwrap import TextWrapper
@@ -14,6 +14,8 @@ import inspect
 from gettext import gettext as _, ngettext as _n
 
 if not hasattr(inspect, 'FullArgSpec'):
+    # we are on python2, make functions to emulate python3 ran on
+    # a py2-style function
     FullArgSpec = namedtuple(
         'FullArgSpec',
         (
@@ -165,59 +167,99 @@ def read_annotations(annotations, source):
 
     return tuple(alias), tuple(flags), coerce
 
-def read_arguments(fn, alias, force_positional, require_excess, coerce):
+def read_argument(
+        i, argname, argspec, opts_help,
+        alias, force_positional,
+        coerce, use_kwoargs
+        ):
+    annotations = argspec.annotations.get(argname, ())
+    alias_, flags_, coerce_ = read_annotations(annotations, argname)
+    if not coerce_:
+        coerce_ = coerce.get(argname, coerce_)
+
+    try:
+        if i is None:
+            default = argspec.kwonlydefaults[argname]
+        else:
+            default = argspec.defaults[-len(argspec.args) + i]
+    except (KeyError, IndexError, TypeError):
+        default = None
+        optional = False
+        type_ = coerce_ or unicode
+    else:
+        optional = True
+        type_ = coerce_ or type(default)
+
+    positional = i is not None if use_kwoargs else not optional
+    if (
+            argname in force_positional
+            or clize.POSITIONAL in flags_
+            ):
+        if use_kwoargs:
+            raise ValueError("Cannot use clize.POSITIONAL along with keyword-only arguments.")
+        positional = True
+
+    option = Option(
+        source=argname,
+        names=
+            (argname.replace('_', '-'),)
+            + alias.get(argname, ())
+            + alias_,
+        default=default,
+        type=type_,
+        help=opts_help.get(argname, ''),
+        optional=optional,
+        positional=positional,
+        takes_argument=int(type_ != bool),
+        catchall=False,
+        )
+
+    return option
+
+def read_arguments(fn, alias, force_positional, require_excess, coerce, use_kwoargs=None):
     argspec = getfullargspec(fn)
     description, opts_help, footnotes = read_docstring(fn)
+
+    if use_kwoargs is None:
+        if argspec.kwonlyargs:
+            use_kwoargs = True
+        else:
+            use_kwoargs = False
 
     posargs = []
     options = []
 
+    if force_positional and use_kwoargs:
+        raise ValueError("Cannot use force_positional along with keyword-only arguments.")
+
     for i, argname in enumerate(argspec.args):
-        annotations = argspec.annotations.get(argname, ())
-        alias_, flags_, coerce_ = read_annotations(annotations, argname)
-        if not coerce_:
-            coerce_ = coerce.get(argname, coerce_)
+        option = read_argument(
+            i, argname, argspec, opts_help,
+            alias, force_positional,
+            coerce, use_kwoargs)
 
-        try:
-            default = argspec.defaults[-len(argspec.args) + i]
-        except (IndexError, TypeError):
-            default = None
-            optional = False
-            type_ = coerce_ or unicode
-        else:
-            optional = True
-            type_ = coerce_ or type(default)
-
-        positional = not optional
-        if (
-                argname in force_positional
-                or clize.POSITIONAL in flags_
-                ):
-            positional = True
-
-        if positional and options and options[-1].optional:
-            optional = True
-
-        option = Option(
-            source=argname,
-            names=
-                (argname.replace('_', '-'),)
-                + alias.get(argname, ())
-                + alias_,
-            default=default,
-            type=type_,
-            help=opts_help.get(argname, ''),
-            optional=optional,
-            positional=positional,
-            takes_argument=int(optional and type_ != bool),
-            catchall=False,
-            )
-        if positional:
+        if option.positional:
+            if not option.optional and posargs and posargs[-1].optional:
+                raise ValueError(
+                    "Cannot have required argument \"{0}\" after an optional argument."
+                    .format(argname)
+                    )
             posargs.append(option)
         else:
             options.append(option)
 
+    for argname in argspec.kwonlyargs:
+        option = read_argument(
+            None, argname, argspec, opts_help,
+            alias, force_positional,
+            coerce, use_kwoargs)
+
+        options.append(option)
+
+
     if argspec.varargs:
+        if require_excess and posargs and posargs[-1].optional:
+            raise ValueError("Cannot require excess arguments with optional arguments.")
         posargs.append(
             Option(
                 source=argspec.varargs,
@@ -225,16 +267,19 @@ def read_arguments(fn, alias, force_positional, require_excess, coerce):
                 default=None,
                 type=unicode,
                 help=opts_help.get(argspec.varargs, ''),
-                optional=bool(not require_excess or posargs and posargs[-1].optional),
+                optional=not require_excess,
                 positional=True,
                 takes_argument=False,
                 catchall=True,
             )
         )
 
-    return Command(
-        description=tuple(description), footnotes=tuple(footnotes),
-        posargs=posargs, options=options)
+    return (
+        Command(
+            description=tuple(description), footnotes=tuple(footnotes),
+            posargs=posargs, options=options),
+        argspec
+        )
 
 def get_arg_name(arg):
     name = arg.names[0] + (arg.catchall and '...' or '')
@@ -297,9 +342,13 @@ def print_arguments(arguments, width=None):
             get_option_names(arg),
             help_wrapper.fill(
                 arg.help +
-                    (_('(default: {0})').format(arg.default)
-                     if arg.default not in (None, False)
-                     else ''
+                    (
+                    _('(default: {0})').format(arg.default)
+                        if arg.default not in (None, False)
+                    else _('(required)')
+                        if not (arg.optional or arg.positional)
+                    else ''
+
                     )
             )[width + 4:]
                 if arg.help else '',
@@ -404,15 +453,17 @@ def clize(
         force_positional=(),
         coerce={},
         require_excess=False,
-        extra=()
+        extra=(),
+        use_kwoargs=None
     ):
     def _wrapperer(fn):
         @wraps(fn)
         def _getopts(*input):
-            command = read_arguments(
+            command, argspec = read_arguments(
                 fn,
                 alias, force_positional,
-                require_excess, coerce
+                require_excess, coerce,
+                use_kwoargs,
                 )
 
             if help_names:
@@ -448,7 +499,7 @@ def clize(
                         option = get_option(keyarg[0], command.options)
                     except KeyError:
                         raise ArgumentError(
-                            _("Unrecognized option {0}").format(arg),
+                            _("Unknown option --{0}.").format(keyarg[0]),
                             command,
                             name
                             )
@@ -464,6 +515,10 @@ def clize(
                                     )
                         else:
                             key = keyarg[0]
+                            if not option.takes_argument and len(keyarg) > 1:
+                                raise ArgumentError(
+                                    _("Option --{0} does not take an argument.".format(key)),
+                                    command, name)
                             val = True
                         if set_arg_value(
                                 val, option, key,
@@ -532,14 +587,21 @@ def clize(
 
             for option in command.options:
                 if not callable(option.source):
-                    kwargs.setdefault(option.source, option.default)
+                    if option.optional:
+                        kwargs.setdefault(option.source, option.default)
+                    elif option.source not in kwargs:
+                        raise ArgumentError(
+                            _("Missing required option --{0}.".format(option.names[0])),
+                            command, name)
 
-            fn_args = getfullargspec(fn).args
-            for i, key in enumerate(fn_args):
-                if key in kwargs:
-                    args.insert(i, kwargs[key])
-
-            return fn(*args)
+            if use_kwoargs is not False and argspec.kwonlyargs:
+                return fn(*args, **kwargs)
+            else:
+                fn_args = getfullargspec(fn).args
+                for i, key in enumerate(fn_args):
+                    if key in kwargs:
+                        args.insert(i, kwargs[key])
+                return fn(*args)
         return _getopts
 
     if fn == None:
@@ -547,6 +609,7 @@ def clize(
     else:
         return _wrapperer(fn)
 clize.POSITIONAL = 1
+clize.kwo = partial(clize, use_kwoargs=True)
 
 def read_supercommand(fnlist, description, footnotes, help_names):
     subcommands = dict((f.__name__, f) for f in fnlist)
@@ -628,4 +691,4 @@ def run(fn, args=None,
                 file=sys.stderr)
             sys.exit(2)
 
-__all__ = ['run', 'clize']
+__all__ = ['run', 'clize', 'ArgumentError']
