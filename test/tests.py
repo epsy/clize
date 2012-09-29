@@ -344,8 +344,20 @@ Footnotes
 """
             )
 
-class UnicodeTests(unittest.TestCase):
+    def test_nolongs(self):
+        def fn(a):
+            pass
 
+        self.assertHelpEquals(
+            fn, """\
+Usage: fn a
+
+Positional arguments:
+  a  
+"""
+            )
+
+class UnicodeTests(unittest.TestCase):
     try:
         unicode
     except NameError:

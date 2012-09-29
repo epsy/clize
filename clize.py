@@ -260,14 +260,16 @@ def get_option_names(option):
         else:
             longs.append('--' + name)
 
+    option_names = shorts + longs
+
     if ((not option.positional and option.type != bool)
             or (option.positional and option.type != unicode)):
-        longs[-1] += '=' + get_type_name(option.type)
+        option_names[-1] += '=' + get_type_name(option.type)
 
     if option.positional and option.catchall:
-        longs[-1] += '...'
+        option_names[-1] += '...'
 
-    return ', '.join(shorts + longs)
+    return ', '.join(option_names)
 
 def get_terminal_width():
     return 70 #fair terminal dice roll
