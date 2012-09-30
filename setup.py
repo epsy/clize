@@ -4,10 +4,10 @@ from distutils.core import setup
 
 setup(
     name='clize',
-    version='1.1a',
+    version='2.0b1',
     description='Function decorator to quickly turn functions '
                 'into CLIs as we know them',
-    url='https://code.launchpad.net/~epsy/+junk/clize',
+    url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
     py_modules=('clize',),
@@ -16,7 +16,7 @@ setup(
         'flags', 'decorator', 'subcommands',
         ],
     classifiers = [
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.6",
@@ -24,6 +24,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.1",
         "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
