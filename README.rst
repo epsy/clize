@@ -1,7 +1,6 @@
-clize is a Python module that consists of a function decorator which
-Python programmers can use to quickly turn Python functions into
-usable command-line applications.  It is compatible with Python 2.6,
-2.7, 3.1 and forwards.
+clize is a Python module that consists of a function decorator which Python
+programmers can use to quickly turn Python functions into usable command-line
+applications.  It is compatible with Python 2.6, 2.7, 3.1 and forwards.
 
 
 Installing
@@ -22,17 +21,17 @@ Write your program as a function with the appropriate parameters::
             text = ''.join(reversed(text))
         print(text)
 
-There we have a simple printing function that allows you via an
-optional parameter to reverse the output.  We can play around with it
-in an interactive session::
+There we have a simple printing function that allows you via an optional
+parameter to reverse the output.  We can play around with it in an interactive
+session::
 
     >>> echo("Hello world!")
     Hello world!
     >>> echo("Hello world!", reverse=True)
     !dlrow olleH
 
-To CLIze your function, import the clize decorator from the clize
-module and apply it to your function::
+To CLIze your function, import the clize decorator from the clize module and
+apply it to your function::
 
     #!/usr/bin/env python
 
@@ -44,8 +43,7 @@ module and apply it to your function::
             text = ''.join(reversed(text))
         print(text)
 
-Then, add the usual code to run your function with command-line
-arguments::
+Then, add the usual code to run your function with command-line arguments::
 
     if __name__ == '__main__':
         import sys
@@ -63,9 +61,8 @@ Make sure your script is executable, and run its help::
       --reverse   
       -h, --help   Show this help
 
-Well there's something! clize already auto-generated ``--help`` for
-you!  It has blanks to be filled, but that looks pretty much like what
-we wanted.
+Well there's something! clize already auto-generated ``--help`` for you!  It has
+blanks to be filled, but that looks pretty much like what we wanted.
 
 ::
 
@@ -90,10 +87,9 @@ Why the quotes, you might ask.  Good question. Let's try without.
     Usage: ./echo.py [OPTIONS] text
 
 Uff! What happened here?  The shell split "Hello" and "world!" into two
-different parameters, and therefore were interpreted to be two
-different python arguments.  Before we fix this however, let's make
-sure a potential user of the program doesn't see this traceback, but
-just the error message.
+different parameters, and therefore were interpreted to be two different python
+arguments.  Before we fix this however, let's make sure a potential user of the
+program doesn't see this traceback, but just the error message.
 
 Change the last part to catch ArgumentError exceptions::
 
@@ -116,16 +112,25 @@ Much better::
     echo.py: Too many arguments.
     Usage: ./echo.py [OPTIONS] text
 
-Back to our little problem.  We essentially want ``text`` to
-recuperate all arguments.  Python functions have a syntax for that,
-but you'll have to shift ``text`` to the end of the parameter list::
+That's mostly what the ``run`` function does, so do use that instead::
+
+    from clize import clize, run
+
+    ...
+
+    if __name__ == '__main__':
+        run(program)
+
+Back to our little problem.  We essentially want ``text`` to recuperate all
+arguments.  Python functions have a syntax for that, but you'll have to shift
+``text`` to the end of the parameter list::
 
     @clize
     def echo(reverse=False, *text):
         ...
 
-It is still a list of arguments, just put in one tuple.  You simply
-have to join it::
+It is still a list of arguments, just put in one tuple.  You simply have to join
+it::
 
     @clize
     def echo(reverse=False, *text):
@@ -139,11 +144,10 @@ In the shell::
     $ ./echo.py Hello world!
     Hello world!
 
-It will change the documentation to show ``[text...]`` instead of just
-``text``.  But... doesn't that mean ``text`` is optional?  Yes, and
-most programs want excess arguments to be optional.  But we don't.
-It's pointless to run this without text! The decorator has a parameter
-for this::
+It will change the documentation to show ``[text...]`` instead of just ``text``.
+But... doesn't that mean ``text`` is optional?  Yes, and most programs want
+excess arguments to be optional.  But we don't.  It's pointless to run this
+without text! The decorator has a parameter for this::
 
     @clize(require_excess=True)
     def echo(reverse=False, *text):
@@ -168,8 +172,8 @@ Now, let's document it proper, with a docstring.
             text = ''.join(reversed(text))
         print(text)
 
-If you look at the help output, you will see that you added a
-description for your command.
+If you look at the help output, you will see that you added a description for
+your command.
 
 Document each parameter as it appears in your function like this::
 
@@ -187,8 +191,8 @@ Document each parameter as it appears in your function like this::
             text = ''.join(reversed(text))
         print(text)
 
-Should you want to add additional info after the arguments, just do so
-in the docstring::
+Should you want to add additional info after the arguments, just do so in the
+docstring::
 
     @clize(require_excess=True)
     def echo(reverse=False, *text):
@@ -224,9 +228,9 @@ This gives us this help string::
     Beware! There is no warranty this program will not reverse your
     internets!
 
-Finally, you might want to have a shorter name for ``--reverse``.
-This can be achieved with the ``alias`` keyword argument of clize,
-which is a mapping from source names to a list of additional aliases::
+Finally, you might want to have a shorter name for ``--reverse``.  This can be
+achieved with the ``alias`` keyword argument of clize, which is a mapping from
+source names to a list of additional aliases::
 
     @clize(require_excess=True,
            alias={
@@ -236,40 +240,40 @@ which is a mapping from source names to a list of additional aliases::
     def echo(reverse=False, *text):
         ...
 
-You can now use ``-r`` instead of ``--reverse``.  This will be
-reflected in the help text too.
+You can now use ``-r`` instead of ``--reverse``.  This will be reflected in the
+help text too.
 
 Let's add a --version switch, for good measure.
 
-You can add extra flags with the ``extra`` keyword argument. It takes
-a sequence of Option objects, but we'll just use the ``make_flag``
-helper function here, since it is sufficient.
+You can add extra flags with the ``extra`` keyword argument. It takes a sequence
+of Option objects, but we'll just use the ``make_flag`` helper function here,
+since it is sufficient.
 
 ``make_flag`` takes at least two parameters: ``source`` and ``names``.
 
-* ``source`` is usually the name of the argument from the function
-assigned to the option,
-* ``names`` is a sequence of names the option will take.  ``help`` is
-optional and is the help text assigned to the flag.
+* ``source`` is usually the name of the argument from the function assigned to
+the option,
 
-When ``source`` is callable, it is called with four keyword parameters,
-most of which you can ignore:
+* ``names`` is a sequence of names the option will take.  ``help`` is optional
+and is the help text assigned to the flag.
+
+When ``source`` is callable, it is called with four keyword parameters, most of
+which you can ignore:
 
 * ``name`` corresponds to ``sys.argv[0]`` when called with ``sys.argv``.
 
-* ``command`` is the command object used internally to represent the
-  command subject to clize-ation.
+* ``command`` is the command object used internally to represent the command
+subject to clize-ation.
 
 * ``val`` is the value passed to the option.
 
-* ``params`` is the mapping of keyword arguments that will be passed
-  to the function subject to clize-ation.
+* ``params`` is the mapping of keyword arguments that will be passed to the
+function subject to clize-ation.
 
-If this function returns something true, the command will stop being
-processed.
+If this function returns something true, the command will stop being processed.
 
-In our case we want the command name and we want the command to stop
-once we printed the version::
+In our case we want the command name and we want the command to stop once we
+printed the version::
 
     def show_version(name, **kwargs):
         print("{0} version 1.0".format(os.path.basename(name)))
@@ -296,31 +300,33 @@ This gives::
     $ examples/echo.py --version
     echo.py version 1.0
 
-And this concludes this guide of sorts.  You can find the full example
-in examples/echo.py
+And this concludes this guide of sorts.  You can find the full example in
+examples/echo.py
 
 Things that didn't fit in the echo example
 ==========================================
 
 Keyword arguments to the clize decorator:
-
 help_names
-    The different names the help function should take.  Set it to
-    an empty tuple to disable the help screen.
+    The different names the help function should take.  Set it to an empty tuple
+    to disable the help screen.
 
 force_positional
-    A list/tuple of keyword arguments that should be forced into
-    being optional positional arguments.
+    A list/tuple of keyword arguments that should be forced into being optional
+    positional arguments.
 
 coerce
     A mapping from argument name to type coercion functions.
 
 
-Sub commands
-============
+Subcommands
+===========
 
-Clize has a basic support for sub commands. Instead of passing one
-command to run, just pass a tuple of commands::
+Clize can also run as a subcommand dispatcher.  Pass a tuple of functions to
+``run`` and it will accept a function name as first argument. Here's an example
+where two subcommands, ``echo`` and ``shout`` are put together::
+
+    from clize import clize, run
 
     @clize
     def echo(reverse=False, *text):
@@ -334,35 +340,86 @@ command to run, just pass a tuple of commands::
     def shout(*text):
         print(' '.join(text).upper())
 
-    run((echo, shout))
+    if __name__ == '__main__':
+        run((echo, shout))
 
-Then you can do::
+This will let you do the following::
 
     script.py shout 'Hello'
     script.py echo 'Hello'
     script.py echo 'Hello' --reverse
 
-The help message will be adapted weither you use a command or not, and
-which one.
+A help message is generated when the script is called with no subcommands and a
+``--help`` argument, listing each subcommand.  You can use run's ``description``
+and ``footnotes`` arguments to specify the respective sections of the help
+message.
 
-Python 3 annotations
-====================
+Python 3 annotations and keyword arguments
+==========================================
 
-If you do not worry about Python 2 compability, you can use annotations
-to describe an argument's properties::
+If you do not worry about Python 2 compability, you can use annotations and
+keyword-only arguments:
+
+If keyword-only arguments are found, all of them become options, and all other
+arguments become positional::
+
+    @clize
+    def func(one, two=2, *, three=3, four=4):
+        ...
+
+Here would be the corresponding help message::
+
+    Usage: test.py [OPTIONS] one [two]
+
+    Positional arguments:
+      one      
+      two=INT  
+
+    Options:
+      --three=INT  
+      --four=INT   
+      -h, --help    Show this help
+
+You can force this behaviour without using keyword-only arguments by using
+``@clize.kwo`` instead of ``@clize``.  You can technically make required options
+with this, but I would recommend against it as it is counter-intuitive as far as
+CLIs go.
+
+With annotations you can specify aliases and type coercion functions. For
+instance if you want the parameter abc to be a float and be aliased to A, you
+can use::
+
+    @clize
+    def func(
+            *,
+            abc: ('A', float)
+            ):
+        ...
+
+Of course, don't do this. It would be a required option :-)  You can omit the
+tuple if you only have one thing to specify.
+
+Here's a full example of annotations and keyword-only arguments::
+
+    from clize import clize, run
 
     @clize
     def connect(
-        host,
-        port: clize.POSITIONAL = 400,
-        number: ('n', float) = 1.2,
-        negative: 'm' = False,
-        ):
+            host,
+            port=400,
+            *,
+            number: 'n' = 1.2,
+            negative: 'm' = False
+            ):
         print(
-            "I would connect to {0}:{1} and send {2} "
-            "but I'm just an example!"
+            "I would connect to {0}:{1} and send {2} but I'm just an example!"
                 .format(host, port, -number if negative else number)
             )
 
-If the annotation is a sequence other than a string, it is converted
-into one.
+    if __name__ == '__main__':
+        run(connect)
+
+You can find all the examples from here in the ``examples/`` folder.
+
+..
+    vim: textwidth=80 sts=4 ts=4 sw=4 et
