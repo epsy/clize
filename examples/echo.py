@@ -35,7 +35,7 @@ def echo(reverse=False, *text):
 
     text = ' '.join(text)
     if reverse:
-        text = ''.join(reversed(text))
+        text = text[::-1]
     print(text)
 
 if __name__ == '__main__':

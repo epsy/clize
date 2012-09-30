@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from clize import clize, run
 
-@clize
+@clize(require_excess=False)
 def echo(reverse=False, *text):
     """Echoes text back
 
@@ -10,11 +10,11 @@ def echo(reverse=False, *text):
     text: the text to echo back"""
     text = ' '.join(text)
     if reverse:
-        text = ''.join(reversed(text))
+        text = text[::-1]
     print(text)
 
 
-@clize
+@clize(require_excess=False)
 def shout(*text):
     """Echoes text back, but louder.
 

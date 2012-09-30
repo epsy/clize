@@ -18,7 +18,7 @@ Write your program as a function with the appropriate parameters::
 
     def echo(text, reverse=False):
         if reverse:
-            text = ''.join(reversed(text))
+            text = text[::-1]
         print(text)
 
 There we have a simple printing function that allows you via an optional
@@ -40,7 +40,7 @@ apply it to your function::
     @clize
     def echo(text, reverse=False):
         if reverse:
-            text = ''.join(reversed(text))
+            text = text[::-1]
         print(text)
 
 Then, add the usual code to run your function with command-line arguments::
@@ -136,7 +136,7 @@ it::
     def echo(reverse=False, *text):
         text = ' '.join(text)
         if reverse:
-            text = ''.join(reversed(text))
+            text = text[::-1]
         print(text)
 
 In the shell::
@@ -153,7 +153,7 @@ without text! The decorator has a parameter for this::
     def echo(reverse=False, *text):
         text = ' '.join(text)
         if reverse:
-            text = ''.join(reversed(text))
+            text = text[::-1]
         print(text)
 
 And now text is mandatory.
@@ -169,7 +169,7 @@ Now, let's document it proper, with a docstring.
         """
         text = ' '.join(text)
         if reverse:
-            text = ''.join(reversed(text))
+            text = text[::-1]
         print(text)
 
 If you look at the help output, you will see that you added a description for
@@ -188,7 +188,7 @@ Document each parameter as it appears in your function like this::
         """
         text = ' '.join(text)
         if reverse:
-            text = ''.join(reversed(text))
+            text = text[::-1]
         print(text)
 
 Should you want to add additional info after the arguments, just do so in the
@@ -208,7 +208,7 @@ docstring::
         """
         text = ' '.join(text)
         if reverse:
-            text = ''.join(reversed(text))
+            text = text[::-1]
         print(text)
 
 This gives us this help string::
@@ -328,15 +328,15 @@ where two subcommands, ``echo`` and ``shout`` are put together::
 
     from clize import clize, run
 
-    @clize
+    @clize(require_excess=True)
     def echo(reverse=False, *text):
         text = ' '.join(text)
         if reverse:
-            text = ''.join(reversed(text))
+            text = text[::-1]
         print(text)
 
 
-    @clize
+    @clize(require_excess=True)
     def shout(*text):
         print(' '.join(text).upper())
 
