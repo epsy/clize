@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='clize',
-    version='2.0b1',
+    version='2.0',
     description='Function decorator to quickly turn functions '
                 'into CLIs as we know them',
     url='https://github.com/epsy/clize',
@@ -16,7 +16,7 @@ setup(
         'flags', 'decorator', 'subcommands',
         ],
     classifiers = [
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 2.6",
@@ -61,7 +61,7 @@ will yield the CLI described by this::
       --reverse   
       -h, --help   Show this help
 
-The decorator can take a few parameters all described in the README.rst file.
+More features, such as flag aliases, subcommands and python 3 syntax support are described in the README.rst file.
 
 """
         ,
