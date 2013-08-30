@@ -4,7 +4,10 @@
 from __future__ import unicode_literals
 
 import unittest
+import clize as mclize
 from clize import clize, ArgumentError, read_arguments, help, run_group, read_supercommand
+
+mclize.terminal_width = 70
 
 class ParamTests(unittest.TestCase):
     def test_pos(self):
@@ -336,8 +339,8 @@ Usage: group command [OPTIONS]
 Description
 
 Available commands:
-  fn2  
   fn1  
+  fn2  
 
 See 'group command --help' for more information on a specific command.
 

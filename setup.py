@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
+from inspect import getdoc
+
+import clize as module
 
 setup(
     name='clize',
-    version='2.0',
+    version=module.__version__,
     description='Function decorator to quickly turn functions '
                 'into CLIs as we know them',
     url='https://github.com/epsy/clize',
@@ -15,7 +18,7 @@ setup(
         'CLI', 'options', 'arguments', 'getopts',
         'flags', 'decorator', 'subcommands',
         ],
-    classifiers = [
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 2",
@@ -34,35 +37,5 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: User Interfaces",
         ],
-    long_description =
-        """
-This decorator will turn your normal python functions into proper
-shell commands.
-
-For example, this code::
-
-    from clize import clize, run
-
-    @clize
-    def echo(reverse=False, *text):
-        # ...
-
-    if __name__ == '__main__':
-        run(echo)
-
-will yield the CLI described by this::
-
-    Usage: fn [OPTIONS] [text...]
-
-    Positional arguments:
-      text...  
-
-    Options:
-      --reverse   
-      -h, --help   Show this help
-
-More features, such as flag aliases, subcommands and python 3 syntax support are described in the README.rst file.
-
-"""
-        ,
+    long_description=getdoc(module),
 )

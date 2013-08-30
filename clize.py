@@ -21,10 +21,40 @@
 # THE SOFTWARE.
 # -*- coding: utf-8 -*
 
+"""
+This decorator will turn your normal python functions into proper
+shell commands.
+
+For example, this code::
+
+    from clize import clize, run
+
+    @clize
+    def echo(reverse=False, *text):
+        # ...
+
+    if __name__ == '__main__':
+        run(echo)
+
+will yield the CLI described by this::
+
+    Usage: fn [OPTIONS] [text...]
+
+    Positional arguments:
+      text...  
+
+    Options:
+      --reverse   
+      -h, --help   Show this help
+
+More features, such as flag aliases, subcommands and python 3 syntax support are described in the README.rst file.
+
+"""
+
 from __future__ import print_function, unicode_literals
 
 from functools import wraps, partial
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 import re
 from textwrap import TextWrapper
 
@@ -32,6 +62,9 @@ import sys
 import os
 import inspect
 from gettext import gettext as _, ngettext as _n
+
+__version__ = '2.1'
+__all__ = ['run', 'clize', 'ArgumentError']
 
 if not hasattr(inspect, 'FullArgSpec'):
     # we are on python2, make functions to emulate python3 ran on
@@ -160,7 +193,10 @@ def read_annotations(annotations, source):
             annotations = (annotations,)
 
     for i, annotation in enumerate(annotations):
-        if isinstance(annotation, int):
+        if (
+                isinstance(annotation, type)
+                and issubclass(annotation, AnnotationFlag)
+            ):
             flags.append(annotation)
         elif isinstance(annotation, basestring):
             if ' ' not in annotation:
@@ -208,7 +244,10 @@ def read_argument(
         type_ = coerce_ or unicode
     else:
         optional = True
-        type_ = coerce_ or type(default)
+        if not coerce_:
+            type_ = unicode if default is None else type(default)
+        else:
+            type_ = coerce_
 
     positional = i is not None if use_kwoargs else not optional
     if (
@@ -336,8 +375,10 @@ def get_option_names(option):
 
     return ', '.join(option_names)
 
-def get_terminal_width():
-    return 70 #fair terminal dice roll
+try:
+    terminal_width = max(50, os.get_terminal_size().columns - 1)
+except AttributeError:
+    terminal_width = 70 #fair terminal dice roll
 
 def get_default_for_printing(default):
     ret = repr(default)
@@ -352,7 +393,7 @@ def print_arguments(arguments, width=None):
             width = max(width, len(get_option_names(arg)))
 
     help_wrapper = TextWrapper(
-        width=get_terminal_width(),
+        width=terminal_width,
         initial_indent=' ' * (width + 5),
         subsequent_indent=' ' * (width + 5),
         )
@@ -375,6 +416,9 @@ def print_arguments(arguments, width=None):
             width=width,
         ) for arg in arguments))
 
+def format_p(tw, p):
+    return p if p.startswith(' ') else tw.fill(p)
+
 def help(name, command, just_do_usage=False, do_print=True, **kwargs):
     ret = ""
     ret += (_('Usage: {name}{options} {args}').format(
@@ -396,12 +440,10 @@ def help(name, command, just_do_usage=False, do_print=True, **kwargs):
             print(ret)
         return ret
 
-    tw = TextWrapper(
-        width=get_terminal_width()
-        )
+    tw = TextWrapper(width=terminal_width)
 
     ret += '\n\n'.join(
-        tw.fill(p) for p in ('',) + command.description) + '\n'
+        format_p(tw, p) for p in ('',) + command.description) + '\n'
     if 'subcommands' in command._fields and command.subcommands:
         ret += '\n' + _('Available commands:') + '\n'
         ret += print_arguments(command.subcommands) + '\n'
@@ -416,7 +458,7 @@ def help(name, command, just_do_usage=False, do_print=True, **kwargs):
             "See '{0} command --help' for more information "
             "on a specific command.").format(name)) + '\n'
     if command.footnotes:
-        ret += '\n' + '\n\n'.join(tw.fill(p) for p in command.footnotes)
+        ret += '\n' + '\n\n'.join(format_p(tw, p) for p in command.footnotes)
         ret += '\n'
 
     if do_print:
@@ -633,11 +675,20 @@ def clize(
         return _wrapperer
     else:
         return _wrapperer(fn)
-clize.POSITIONAL = 1
+
+class AnnotationFlag(object):
+    def __new__(self):
+        raise NotImplementedError
+
+class _PosArg(AnnotationFlag):
+    """Treat this argument as being positional"""
+clize.POSITIONAL = clize.P = _PosArg
+del _PosArg
+
 clize.kwo = partial(clize, use_kwoargs=True)
 
 def read_supercommand(fnlist, description, footnotes, help_names):
-    subcommands = dict((f.__name__, f) for f in fnlist)
+    subcommands = OrderedDict((f.__name__, f) for f in fnlist)
     supercommand = SuperCommand(
         description=tuple(
             x for x in inspect.cleandoc(description).split('\n\n') if x),
@@ -646,7 +697,7 @@ def read_supercommand(fnlist, description, footnotes, help_names):
         subcommands=[
             Option(
                 source=name,
-                help=(read_docstring(subcommands[name])[0] or ('',))[0],
+                help=(read_docstring(command)[0] or ('',))[0],
                 default=None,
                 optional=False,
                 positional=True,
@@ -654,7 +705,7 @@ def read_supercommand(fnlist, description, footnotes, help_names):
                 type=type(''),
                 takes_argument=False,
                 catchall=False
-            ) for name in subcommands]
+            ) for name, command in subcommands.items()]
         )
     return subcommands, supercommand
 
@@ -707,11 +758,15 @@ def run(fn, args=None,
 
     try:
         try:
-            fn.__iter__
-        except AttributeError:
-            run_single(fn, args)
+            iter(fn)
+        except TypeError:
+            iterable = False
         else:
+            iterable = True
+        if iterable:
             run_group(fn, args, description, footnotes, help_names)
+        else:
+            run_single(fn, args)
     except ArgumentError as e:
         if e.args[0]:
             print(os.path.basename(args[0]) + ': '
@@ -724,4 +779,3 @@ def run(fn, args=None,
                 file=sys.stderr)
             sys.exit(2)
 
-__all__ = ['run', 'clize', 'ArgumentError']
