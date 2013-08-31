@@ -21,36 +21,6 @@
 # THE SOFTWARE.
 # -*- coding: utf-8 -*
 
-"""
-This decorator will turn your normal python functions into proper
-shell commands.
-
-For example, this code::
-
-    from clize import clize, run
-
-    @clize
-    def echo(reverse=False, *text):
-        # ...
-
-    if __name__ == '__main__':
-        run(echo)
-
-will yield the CLI described by this::
-
-    Usage: fn [OPTIONS] [text...]
-
-    Positional arguments:
-      text...  
-
-    Options:
-      --reverse   
-      -h, --help   Show this help
-
-More features, such as flag aliases, subcommands and python 3 syntax support are described in the README.rst file.
-
-"""
-
 from __future__ import print_function, unicode_literals
 
 from functools import wraps, partial
@@ -377,7 +347,7 @@ def get_option_names(option):
 
 try:
     terminal_width = max(50, os.get_terminal_size().columns - 1)
-except AttributeError:
+except (AttributeError, OSError):
     terminal_width = 70 #fair terminal dice roll
 
 def get_default_for_printing(default):
