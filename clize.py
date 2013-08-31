@@ -33,7 +33,7 @@ import os
 import inspect
 from gettext import gettext as _, ngettext as _n
 
-__version__ = '2.1'
+__version__ = '2.3'
 __all__ = ['run', 'clize', 'ArgumentError']
 
 if not hasattr(inspect, 'FullArgSpec'):
