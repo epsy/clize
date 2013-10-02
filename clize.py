@@ -24,7 +24,12 @@
 from __future__ import print_function, unicode_literals
 
 from functools import wraps, partial
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
+try:
+    from collections import OrderedDict
+except ImportError:
+    # python 2.6 or earlier, use backport
+    from ordereddict import OrderedDict
 import re
 from textwrap import TextWrapper
 
