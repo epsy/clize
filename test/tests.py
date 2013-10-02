@@ -3,13 +3,29 @@
 
 from __future__ import unicode_literals
 
+import re
 import unittest
 import clize as mclize
 from clize import clize, ArgumentError, read_arguments, help, run_group, read_supercommand
 
 mclize.terminal_width = 70
 
-class ParamTests(unittest.TestCase):
+class TestsBase(unittest.TestCase):
+    pass
+
+try:
+    getattr(TestsBase, 'assertRaisesRegexp')
+except AttributeError:
+    def assertRaisesRegexp(self, exc, pat, func, *args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except exc as e:
+            self.assertTrue(re.search(pat, str(e)))
+        else:
+            self.fail('{0.__name__} not raised by {0}()'.format(exc, func))
+    TestsBase.assertRaisesRegexp = assertRaisesRegexp
+
+class ParamTests(TestsBase):
     def test_pos(self):
         @clize
         def fn(one, two, three):
@@ -135,7 +151,7 @@ class ParamTests(unittest.TestCase):
             fn, 'fn', '--one=nan'
             )
 
-class SubcommandTests(unittest.TestCase):
+class SubcommandTests(TestsBase):
     def test_pos(self):
         @clize
         def fn1(one, two):
@@ -181,7 +197,7 @@ class SubcommandTests(unittest.TestCase):
             run_group, (fn1,), ('group', '--opt')
             )
 
-class HelpTester(unittest.TestCase):
+class HelpTester(TestsBase):
     def assertHelpEquals(
             self, fn, help_str,
             alias={}, force_positional=(),
