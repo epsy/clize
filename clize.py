@@ -24,7 +24,7 @@
 from __future__ import print_function, unicode_literals
 
 from functools import wraps, partial
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 import re
 from textwrap import TextWrapper
 
@@ -658,7 +658,7 @@ del _PosArg
 clize.kwo = partial(clize, use_kwoargs=True)
 
 def read_supercommand(fnlist, description, footnotes, help_names):
-    subcommands = OrderedDict((f.__name__, f) for f in fnlist)
+    subcommands = list((f.__name__, f) for f in fnlist)
     supercommand = SuperCommand(
         description=tuple(
             x for x in inspect.cleandoc(description).split('\n\n') if x),
@@ -675,9 +675,9 @@ def read_supercommand(fnlist, description, footnotes, help_names):
                 type=type(''),
                 takes_argument=False,
                 catchall=False
-            ) for name, command in subcommands.items()]
+            ) for name, command in subcommands]
         )
-    return subcommands, supercommand
+    return dict(subcommands), supercommand
 
 def run_group(fnlist, args, description='', footnotes='', help_names=()):
     subcommands, supercommand = read_supercommand(
