@@ -4,7 +4,7 @@ from distutils.core import setup
 
 setup(
     name='clize',
-    version='2.3',
+    version='2.4',
     description='Function decorator to quickly turn functions '
                 'into CLIs as we know them',
     url='https://github.com/epsy/clize',
