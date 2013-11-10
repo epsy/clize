@@ -1,22 +1,21 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
-from inspect import getdoc
-
-import clize as module
+from setuptools import setup
 
 setup(
     name='clize',
-    version=module.__version__,
+    version='3.0a',
     description='Function decorator to quickly turn functions '
                 'into CLIs as we know them',
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
-    py_modules=('clize',),
+    install_requires=['sigtools', 'six'],
+    packages=('clize',),
+    test_suite='clize.tests',
     keywords=[
         'CLI', 'options', 'arguments', 'getopts',
-        'flags', 'decorator', 'subcommands',
+        'introspection', 'flags', 'decorator', 'subcommands',
         ],
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -37,5 +36,4 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: User Interfaces",
         ],
-    long_description=getdoc(module),
 )

@@ -1,7 +1,9 @@
-#!/usr/bin/python
-from clize import clize, run
+#!/usr/bin/env python
+from sigtools.modifiers import kwoargs, annotate
+from clize import Parameter, run
 
-@clize(require_excess=False)
+@annotate(text=Parameter.R)
+@kwoargs('reverse')
 def echo(reverse=False, *text):
     """Echoes text back
 
@@ -14,7 +16,7 @@ def echo(reverse=False, *text):
     print(text)
 
 
-@clize(require_excess=False)
+@annotate(text=Parameter.R)
 def shout(*text):
     """Echoes text back, but louder.
 
@@ -27,8 +29,4 @@ def shout(*text):
 if __name__ == '__main__':
     run(
         (echo, shout),
-        description="""\
-        A collection of commands for eching text back""",
-        footnotes="""\
-        Now you know how to echo text back""",
         )

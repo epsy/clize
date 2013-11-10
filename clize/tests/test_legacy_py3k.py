@@ -2,9 +2,9 @@
 
 import unittest
 
-from clize import clize, ArgumentError
+from clize import clize, errors
 
-from tests import HelpTester
+#from tests import HelpTester
 
 class AnnotationParams(unittest.TestCase):
     def test_alias(self):
@@ -61,26 +61,26 @@ class AnnotationParams(unittest.TestCase):
             )
 
 class AnnotationFailures(unittest.TestCase):
-    def test_coerce(self):
+    def test_coerce_twice(self):
         with self.assertRaises(ValueError):
             @clize
             def fn(one: (float, int)):
                 return one
-            fn()
+            fn.signature
 
-    def test_alias(self):
+    def test_alias_space(self):
         with self.assertRaises(ValueError):
             @clize
-            def fn(one: 'a b'):
+            def fn(one: 'a b'=1):
                 return one
-            fn()
+            fn.signature
 
     def test_unknown(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             @clize
             def fn(one: 1.0):
                 return one
-            fn()
+            fn.signature
 
 class KwoargsParams(unittest.TestCase):
     def test_kwoparam(self):
@@ -98,25 +98,22 @@ class KwoargsParams(unittest.TestCase):
         def fn(*, one):
             return one
 
-        self.assertRaisesRegexp(
-            ArgumentError,
-            r"Missing required option --one.\nUsage: fn \[OPTIONS\] ",
-            fn, 'fn'
-            )
+        with self.assertRaises(errors.MissingRequiredArguments):
+            fn('fn')
 
     def test_kwoparam_optional(self):
         @clize
         def fn(*, one=1):
             return one
-        self.assertEquals(
+        self.assertEqual(
             fn('fn'),
             1
             )
-        self.assertEquals(
+        self.assertEqual(
             fn('fn', '--one', '2'),
             2
             )
-        self.assertEquals(
+        self.assertEqual(
             fn('fn', '--one=2'),
             2
             )
@@ -125,16 +122,16 @@ class KwoargsParams(unittest.TestCase):
         @clize.kwo
         def fn(one, two=2):
             return one, two
-        self.assertEquals(
+        self.assertEqual(
             fn('fn', '1'),
             ('1', 2)
             )
-        self.assertEquals(
+        self.assertEqual(
             fn('fn', '1', '3'),
             ('1', 3)
             )
 
-class KwoargsHelpTests(HelpTester):
+class KwoargsHelpTests(object):
     def test_kwoparam(self):
         def fn(*, one='1'):
             """
@@ -163,6 +160,3 @@ Usage: fn [OPTIONS]
 Options:
   --one=STR   one!(required)
 """) # ಠ_ಠ
-
-if __name__ == '__main__':
-    unittest.main()

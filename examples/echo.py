@@ -1,42 +1,38 @@
 #!/usr/bin/env python
+from sigtools.modifiers import annotate, autokwoargs
+from clize import ArgumentError, Parameter, run
 
-import os.path
+@annotate(text=Parameter.REQUIRED,
+          prefix='p', suffix='s', reverse='r', repeat='n')
+@autokwoargs
+def echo(prefix='', suffix='', reverse=False, repeat=1, *text):
+    """Echoes text back
 
-from clize import clize, run, make_flag
+    text: The text to echo back
 
-def show_version(name, **kwargs):
-    print("{0} version 1.0".format(os.path.basename(name)))
-    return True
+    reverse: Reverse text before processing
 
-@clize(
-    require_excess=True,
-    alias={
-            'reverse': ('r',),
-        },
-    extra=(
-            make_flag(
-                source=show_version,
-                names=('version', 'v'),
-                help="Show the version",
-            ),
-        )
-    )
-def echo(reverse=False, *text):
+    repeat: Amount of times to repeat text
+
+    prefix: Prepend this to each line in word
+
+    suffix: Append this to each line in word
+
     """
-    Echoes text back
-
-    text: The text to be echoed
-
-    reverse: Reverse text before echoing
-
-    Beware! There is no warranty this program will not reverse
-    your internets!
-    """
-
     text = ' '.join(text)
+    if 'spam' in text:
+        raise ArgumentError("I don't want any spam!")
     if reverse:
         text = text[::-1]
-    print(text)
+    text = text * repeat
+    if prefix or suffix:
+        return '\n'.join(prefix + line + suffix
+                         for line in text.split('\n'))
+    return text
+
+def version():
+    """Show the version"""
+    return 'echo version 0.2'
 
 if __name__ == '__main__':
-    run(echo)
+    run(echo, alt=version)

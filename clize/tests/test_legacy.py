@@ -4,12 +4,23 @@
 from __future__ import unicode_literals
 
 import unittest
+import warnings
+
 import clize as mclize
-from clize import clize, ArgumentError, read_arguments, help, run_group, read_supercommand
+# from clize import clize, ArgumentError, read_arguments, help, run_group, read_supercommand
+from clize import clize, errors, runner
 
-mclize.terminal_width = 70
+class OldInterfaceTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(self):
+        warnings.filterwarnings('ignore', 'Use clize\.Clize',
+                                DeprecationWarning)
 
-class ParamTests(unittest.TestCase):
+    @classmethod
+    def tearDownClass(self):
+        warnings.filters.pop(0)
+
+class ParamTests(OldInterfaceTests):
     def test_pos(self):
         @clize
         def fn(one, two, three):
@@ -68,31 +79,19 @@ class ParamTests(unittest.TestCase):
         @clize
         def fn(one, two):
             pass
-        self.assertRaisesRegexp(
-            ArgumentError,
-            r"Not enough arguments.\nUsage: fn \[OPTIONS\] one two",
-            fn, 'fn', 'one',
-            )
+        self.assertRaises(errors.MissingRequiredArguments, fn, 'fn', 'one')
 
     def test_too_long(self):
         @clize
         def fn(one, two):
             pass
-        self.assertRaisesRegexp(
-            ArgumentError,
-            r"Too many arguments.\nUsage: fn \[OPTIONS\] one two",
-            fn, 'fn', 'one', 'two', 'three'
-            )
+        self.assertRaises(errors.TooManyArguments, fn, 'fn', 'one', 'two', 'three')
 
     def test_missing_arg(self):
         @clize
         def fn(one='1', two='2'):
             pass
-        self.assertRaisesRegexp(
-            ArgumentError,
-            r"--one needs an argument.\nUsage: fn \[OPTIONS\]",
-            fn, 'fn', '--one'
-            )
+        self.assertRaises(errors.MissingValue, fn, 'fn', '--one')
 
     def test_short_param(self):
         @clize(alias={'one': ('o',)})
@@ -119,23 +118,20 @@ class ParamTests(unittest.TestCase):
         @clize
         def fn(one=1):
             return one
-        self.assertRaisesRegexp(
-            ArgumentError,
-            r"Unknown option --doesnotexist.\nUsage: fn \[OPTIONS\] ",
-            fn, 'fn', '--doesnotexist'
-            )
+        self.assertRaises(errors.UnknownOption, fn, 'fn', '--doesnotexist')
 
     def test_coerce_fail(self):
         @clize
         def fn(one=1):
             return 1
-        self.assertRaisesRegexp(
-            ArgumentError,
-            r"--one needs an argument of type INT\nUsage: fn \[OPTIONS\] ",
-            fn, 'fn', '--one=nan'
-            )
+        self.assertRaises(errors.BadArgumentFormat, fn, 'fn', '--one=nan')
 
-class SubcommandTests(unittest.TestCase):
+def run_group(functions, args):
+    disp = runner.SubcommandDispatcher(functions)
+    return disp.cli(*args)
+
+class SubcommandTests(OldInterfaceTests):
+
     def test_pos(self):
         @clize
         def fn1(one, two):
@@ -158,8 +154,8 @@ class SubcommandTests(unittest.TestCase):
         @clize
         def fn1():
             return
-        self.assertRaisesRegexp(
-            ArgumentError, r"Unknown command 'unknown'\nUsage: group command \[OPTIONS\] ",
+        self.assertRaises(
+            errors.ArgumentError,
             run_group, (fn1,), ('group', 'unknown')
             )
 
@@ -167,8 +163,8 @@ class SubcommandTests(unittest.TestCase):
         @clize
         def fn1():
             return
-        self.assertRaisesRegexp(
-            ArgumentError, r"Usage: group command \[OPTIONS\] ",
+        self.assertRaises(
+            errors.ArgumentError,
             run_group, (fn1,), ('group',)
             )
 
@@ -176,12 +172,12 @@ class SubcommandTests(unittest.TestCase):
         @clize
         def fn1():
             return
-        self.assertRaisesRegexp(
-            ArgumentError, r"No command specified.\nUsage: group command \[OPTIONS\] ",
+        self.assertRaises(
+            errors.ArgumentError,
             run_group, (fn1,), ('group', '--opt')
             )
 
-class HelpTester(unittest.TestCase):
+class HelpTester(object):
     def assertHelpEquals(
             self, fn, help_str,
             alias={}, force_positional=(),
@@ -361,7 +357,7 @@ Positional arguments:
 """
             )
 
-class UnicodeTests(unittest.TestCase):
+class UnicodeTests(OldInterfaceTests):
     try:
         unicode
     except NameError:
@@ -379,7 +375,3 @@ class UnicodeTests(unittest.TestCase):
             fn('fn', self.as_argv('ಠ')),
             'ಠ'
             )
-
-if __name__ == '__main__':
-    unittest.main()
-
