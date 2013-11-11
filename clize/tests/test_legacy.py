@@ -6,8 +6,6 @@ from __future__ import unicode_literals
 import unittest
 import warnings
 
-import clize as mclize
-# from clize import clize, ArgumentError, read_arguments, help, run_group, read_supercommand
 from clize import clize, errors, runner
 
 class OldInterfaceTests(unittest.TestCase):
@@ -74,6 +72,22 @@ class ParamTests(OldInterfaceTests):
             fn('fn', '1', '2'),
             (1, 2)
             )
+
+    def test_extra(self):
+        @clize
+        def fn(*args):
+            return args
+        self.assertEqual(fn('fn'), ())
+        self.assertEqual(fn('fn', '1'), ('1',))
+        self.assertEqual(fn('fn', '1', '2'), ('1', '2'))
+
+    def test_extra_required(self):
+        @clize(require_excess=True)
+        def fn(*args):
+            return args
+        self.assertRaises(errors.MissingRequiredArguments, fn, 'fn')
+        self.assertEqual(fn('fn', '1'), ('1',))
+        self.assertEqual(fn('fn', '1', '2'), ('1', '2'))
 
     def test_too_short(self):
         @clize
