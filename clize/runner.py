@@ -1,3 +1,7 @@
+# clize -- A command-line argument parser for Python
+# Copyright (C) 2013 by Yann Kaiser <kaiser.yann@gmail.com>
+# See COPYING for details.
+
 import sys
 from functools import partial, update_wrapper
 from collections import OrderedDict

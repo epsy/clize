@@ -1,6 +1,6 @@
-Copyright (C) 2011, 2012 by Yann Kaiser <kaiser.yann@gmail.com>
+clize -- A command-line argument parser for Python
+Copyright (C) 2011, 2012, 2013 by Yann Kaiser <kaiser.yann@gmail.com>
 Copyright (C) 2012 by Kevin Samuel <kevin@yeleman.com>
-
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
