@@ -76,7 +76,7 @@ class AnnotationFailures(unittest.TestCase):
             fn.signature
 
     def test_unknown(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             @clize
             def fn(one: 1.0):
                 return one
