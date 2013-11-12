@@ -139,6 +139,12 @@ class SigTests(object):
         '*, one:"a"=1, two:"b"="s"', '[--one=INT] [--two=STR]',
         ('-a15bham',), [], {'one': 15, 'two': 'ham'})
 
+    double_dash = (
+        'one, two, three', 'one two three',
+        ('first', '--', '--second', 'third'),
+        ['first', '--second', 'third'], {}
+        )
+
 @testfunc
 def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
     sig = test.s(sig_str)
