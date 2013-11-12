@@ -122,14 +122,14 @@ class SetErrorContext(object):
     """Context manager that sets attributes on exceptions that are raised
     past it"""
 
-    def __init__(self, exc_type, **kwargs):
+    def __init__(self, exc_type, **attributes):
         """
         :param exc_type: The exception type to operate on.
         :param attributes: The attributes to set on the matching exceptions.
             They will only be set if yet unset on the exception.
         """
         self.exc_type = exc_type
-        self.values = kwargs
+        self.values = attributes
 
     def __enter__(self):
         return self
