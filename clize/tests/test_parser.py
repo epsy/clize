@@ -4,6 +4,7 @@ import inspect
 from clize import parser, errors, util
 from clize.tests.util import testfunc
 
+
 @testfunc
 def fromsigtests(self, sig_str, typ, str_rep, attrs):
     sig = test.s(sig_str, pre='from clize import Parameter')
@@ -81,28 +82,6 @@ class FromSigTests(object):
         cparam = parser.Parameter.from_parameter(sparam)
         self.assertTrue(cparam is param)
 
-    def test_alias_raise(self):
-        sig = test.s('one: "a"')
-        param = list(sig.parameters.values())[0]
-        try:
-            parser.Parameter.from_parameter(param)
-        except ValueError:
-            pass
-        else:
-            self.fail('ValueError not raised')
-
-    def test_unknown_annotation(self):
-        class UnknownAnnotation(object):
-            pass
-        sig = test.s('one: ua', locals={'ua': UnknownAnnotation()})
-        param = list(sig.parameters.values())[0]
-        try:
-            parser.Parameter.from_parameter(param)
-        except TypeError:
-            pass
-        else:
-            self.fail('TypeError not raised')
-
 @testfunc
 def signaturetests(self, sig_str, str_rep, args, posargs, kwargs):
     sig = test.s(sig_str)
@@ -161,6 +140,48 @@ class SigTests(object):
         ('-a15bham',), [], {'one': 15, 'two': 'ham'})
 
 @testfunc
+def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
+    sig = test.s(sig_str)
+    csig = parser.CliSignature.from_signature(sig, extra=extra)
+    ba = csig.read_arguments(args)
+    self.assertEqual(ba.args, posargs)
+    self.assertEqual(ba.kwargs, kwargs)
+    self.assertEqual(ba.func, func)
+
+
+@extraparamstests
+class ExtraParamsTests(object):
+    _func = test.f('')
+    alt_cmd = (
+        '', [parser.AlternateCommandParameter(func=_func, aliases=['--alt'])],
+        ('--alt', 'a', 'b'), ['a', 'b'], {}, _func
+        )
+    flb_cmd_start = (
+        '', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
+        ('--alt', 'a', 'b'), ['a', 'b'], {}, _func
+        )
+    flb_cmd_valid = (
+        '*a', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
+        ('a', '--alt', 'b', 'c'), [], {}, _func
+        )
+    flb_cmd_invalid = (
+        '', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
+        ('a', '--alt', 'a', 'b'), [], {}, _func
+        )
+
+    def test_alt_middle(self):
+        _func = test.f('')
+        self.assertRaises(
+            errors.ArgsBeforeAlternateCommand,
+            self._test_func,
+            '*a', [
+                parser.AlternateCommandParameter(
+                    func=_func, aliases=['--alt'])],
+            ('a', '--alt', 'a', 'b'), ['a', 'b'], {}, _func
+        )
+
+
+@testfunc
 def sigerrortests(self, sig_str, args, exc_typ):
     sig = test.s(sig_str)
     csig = parser.CliSignature.from_signature(sig)
@@ -199,3 +220,26 @@ class SigErrorTests(object):
             raise
         else:
             self.fail('MissingRequiredArguments not raised') # pragma: no cover
+
+@testfunc
+def badparam(self, sig_str, locals=None):
+    if locals is None:
+        locals = {}
+    sig = test.s(sig_str, pre='from clize import Parameter', locals=locals)
+    param = list(sig.parameters.values())[0]
+    try:
+        cparam = parser.Parameter.from_parameter(param)
+    except ValueError:
+        pass
+    else:
+        self.fail('ValueError not raised')
+
+class UnknownAnnotation(object):
+    pass
+
+@badparam
+class BadParamTests(object):
+    alias_superfluous = 'one: "a"',
+    alias_spaces = '*, one: "a b"',
+    unknown_annotation = 'one: ua', {'ua': UnknownAnnotation()}
+    coerce_twice = 'one: co', {'co': (str, int)}
