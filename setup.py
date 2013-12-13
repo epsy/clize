@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 
+import sys
+
 from setuptools import setup
+
+deps = ['sigtools', 'six']
+
+if sys.version_info < (2, 7):
+    deps.append('ordereddict')
 
 setup(
     name='clize',
@@ -10,7 +17,7 @@ setup(
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
-    install_requires=['sigtools', 'six'],
+    install_requires=deps,
     packages=('clize',),
     test_suite='clize.tests',
     keywords=[

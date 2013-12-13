@@ -5,7 +5,6 @@
 """various"""
 
 import os
-from collections import OrderedDict
 from functools import update_wrapper
 
 import inspect
@@ -15,6 +14,11 @@ except AttributeError:
     import funcsigs
 else:
     funcsigs = inspect
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    from ordereddict import OrderedDict
 
 import six
 from sigtools.wrappers import wrapper_decorator

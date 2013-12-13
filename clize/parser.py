@@ -162,7 +162,10 @@ class ParameterWithValue(Parameter):
             raise exc
 
     def format_type(self):
-        if self.typ is not util.identity and self.typ not in six.string_types:
+        if (
+                self.typ is not util.identity
+                and not issubclass(self.typ, six.string_types)
+            ):
             return '=' + util.name_type2cli(self.typ)
         return ''
 
@@ -261,11 +264,11 @@ class IntOptionParameter(OptionParameter):
             raise errors.DuplicateNamedArgument()
         arg = args[i]
         if arg.startswith('--'):
-            return super().read_argument(args, i, ba)
+            return super(IntOptionParameter, self).read_argument(args, i, ba)
 
         arg = arg.lstrip('-')[1:]
         if not arg:
-            return super().read_argument(args, i, ba)
+            return super(IntOptionParameter, self).read_argument(args, i, ba)
 
         val, rest = split_int_rest(arg)
         ba.kwargs[self.argument_name] = self.coerce_value(val)

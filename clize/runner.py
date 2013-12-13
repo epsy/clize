@@ -2,9 +2,11 @@
 # Copyright (C) 2013 by Yann Kaiser <kaiser.yann@gmail.com>
 # See COPYING for details.
 
+from __future__ import print_function
+
 import sys
 from functools import partial, update_wrapper
-from collections import OrderedDict
+import operator
 
 import six
 from sigtools.modifiers import annotate, autokwoargs
@@ -26,7 +28,7 @@ class _CliWrapper(object):
 RequireInspect = partial(util.DefinedBy, lambda s: s.inspect())
 
 def cli_commands(obj, namef, clizer):
-    cmds = OrderedDict()
+    cmds = util.OrderedDict()
     cmd_by_name = {}
     for key, val in util.dict_from_names(obj).items():
         if not key:
@@ -225,7 +227,8 @@ class SubcommandDispatcher(object):
             commands, namef=util.name_py2cli, clizer=self.clizer)
 
     @Clize(pass_name=True, helper_class=make_dispatcher_helper)
-    @annotate(command=(str.lower, parser.Parameter.LAST_OPTION),
+    @annotate(command=(operator.methodcaller('lower'),
+                       parser.Parameter.LAST_OPTION),
               args=parser.Parameter.EAT_REST)
     def cli(self, name, command, *args):
         try:

@@ -9,7 +9,6 @@ import itertools
 from functools import partial
 import inspect
 import re
-from collections import OrderedDict
 
 import six
 from sigtools.modifiers import annotate, kwoargs
@@ -115,7 +114,7 @@ class ClizeHelp(Help):
     argdoc_re = re.compile('^([a-zA-Z_]+): ?(.+)$')
     def parse_docstring(self, s):
         header = []
-        arghelp = OrderedDict()
+        arghelp = util.OrderedDict()
         before = {}
         after = {}
         last_arghelp = None

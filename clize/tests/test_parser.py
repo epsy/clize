@@ -1,5 +1,5 @@
 from sigtools import test, modifiers
-import inspect
+from clize.util import funcsigs
 
 from clize import parser, errors, util
 from clize.tests.util import testfunc
@@ -174,6 +174,11 @@ class ExtraParamsTests(object):
         '', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
         ('a', '--alt', 'a', 'b'), [], {}, _func
         )
+    flb_cmd_invalid_valid = (
+        'a: int, b',
+        [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
+        ('xyz', 'abc', '--alt', 'def'), [], {}, _func
+        )
 
     def test_alt_middle(self):
         _func = test.f('')
@@ -217,7 +222,7 @@ class SigErrorTests(object):
         @modifiers.annotate(args=parser.Parameter.REQUIRED)
         def func(*args):
             raise NotImplementedError
-        csig = parser.CliSignature.from_signature(inspect.signature(func))
+        csig = parser.CliSignature.from_signature(funcsigs.signature(func))
         try:
             csig.read_arguments(())
         except errors.MissingRequiredArguments:

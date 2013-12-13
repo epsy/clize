@@ -2,6 +2,7 @@
 
 import unittest
 
+from sigtools import modifiers
 from clize import clize, errors
 
 #from tests import HelpTester
@@ -9,7 +10,8 @@ from clize import clize, errors
 class AnnotationParams(unittest.TestCase):
     def test_alias(self):
         @clize
-        def fn(one: 'o' = 1):
+        @modifiers.annotate(one='o')
+        def fn(one=1):
             return one
         self.assertEqual(
             fn('fn', '-o', '2'),
@@ -18,7 +20,8 @@ class AnnotationParams(unittest.TestCase):
 
     def test_position(self):
         @clize
-        def fn(one: clize.POSITIONAL = 1):
+        @modifiers.annotate(one=clize.POSITIONAL)
+        def fn(one=1):
             return one
         self.assertEqual(
             fn('fn', '2'),
@@ -27,7 +30,8 @@ class AnnotationParams(unittest.TestCase):
 
     def test_coerce(self):
         @clize
-        def fn(one: float):
+        @modifiers.annotate(one=float)
+        def fn(one):
             return one
         self.assertEqual(
             fn('fn', '2.1'),
@@ -36,7 +40,8 @@ class AnnotationParams(unittest.TestCase):
 
     def test_coerce_and_default(self):
         @clize
-        def fn(one: float = 1):
+        @modifiers.annotate(one=float)
+        def fn(one=1):
             return one
         self.assertEqual(
             fn('fn'),
@@ -49,7 +54,8 @@ class AnnotationParams(unittest.TestCase):
 
     def test_multiple(self):
         @clize
-        def fn(one: (float, clize.POSITIONAL) = 1):
+        @modifiers.annotate(one=(float, clize.POSITIONAL))
+        def fn(one=1):
             return one
         self.assertEqual(
             fn('fn', '2.1'),
@@ -62,30 +68,37 @@ class AnnotationParams(unittest.TestCase):
 
 class AnnotationFailures(unittest.TestCase):
     def test_coerce_twice(self):
-        with self.assertRaises(ValueError):
+        def test():
             @clize
-            def fn(one: (float, int)):
+            @modifiers.annotate(one=(float, int))
+            def fn(one):
                 return one
             fn.signature
+        self.assertRaises(ValueError, test)
 
     def test_alias_space(self):
-        with self.assertRaises(ValueError):
+        def test():
             @clize
-            def fn(one: 'a b'=1):
+            @modifiers.annotate(one='a b')
+            def fn(one=1):
                 return one
             fn.signature
+        self.assertRaises(ValueError, test)
 
     def test_unknown(self):
-        with self.assertRaises(ValueError):
+        def test():
             @clize
-            def fn(one: 1.0):
+            @modifiers.annotate(one=1.0)
+            def fn(one):
                 return one
             fn.signature
+        self.assertRaises(ValueError, test)
 
 class KwoargsParams(unittest.TestCase):
     def test_kwoparam(self):
         @clize
-        def fn(*, one):
+        @modifiers.kwoargs('one')
+        def fn(one):
             return one
 
         self.assertEqual(
@@ -95,15 +108,16 @@ class KwoargsParams(unittest.TestCase):
 
     def test_kwoparam_required(self):
         @clize
-        def fn(*, one):
+        @modifiers.kwoargs('one')
+        def fn(one):
             return one
 
-        with self.assertRaises(errors.MissingRequiredArguments):
-            fn('fn')
+        self.assertRaises(errors.MissingRequiredArguments, fn, 'fn')
 
     def test_kwoparam_optional(self):
         @clize
-        def fn(*, one=1):
+        @modifiers.kwoargs('one')
+        def fn(one=1):
             return one
         self.assertEqual(
             fn('fn'),
@@ -133,7 +147,8 @@ class KwoargsParams(unittest.TestCase):
 
 class KwoargsHelpTests(object):
     def test_kwoparam(self):
-        def fn(*, one='1'):
+        @modifiers.kwoargs('one')
+        def fn(one='1'):
             """
 
             one: one!
@@ -148,7 +163,8 @@ Options:
 """)
 
     def test_kwoparam_required(self):
-        def fn(*, one):
+        @modifiers.kwoargs('one')
+        def fn(one):
             """
             one: one!
             """
@@ -159,4 +175,4 @@ Usage: fn [OPTIONS]
 
 Options:
   --one=STR   one!(required)
-""") # ಠ_ಠ
+""")
