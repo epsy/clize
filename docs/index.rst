@@ -1,5 +1,6 @@
+*********************************
 Welcome to clize's documentation!
-=================================
+*********************************
 
 Clize procedurally turns your functions into convenient command-line
 interfaces.
@@ -58,7 +59,8 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   quickstart
+   basics
+   multicommands
    compositing
    api
    upgrade
