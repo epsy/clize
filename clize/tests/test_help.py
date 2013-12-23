@@ -1,4 +1,4 @@
-from sigtools.test import f
+from sigtools.support import f
 from clize import runner, help
 from clize.tests.util import testfunc
 

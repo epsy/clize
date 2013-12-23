@@ -1,4 +1,4 @@
-from sigtools import test, modifiers
+from sigtools import support, modifiers
 from clize.util import funcsigs
 
 from clize import parser, errors, util
@@ -7,7 +7,7 @@ from clize.tests.util import testfunc
 
 @testfunc
 def fromsigtests(self, sig_str, typ, str_rep, attrs):
-    sig = test.s(sig_str, pre='from clize import Parameter')
+    sig = support.s(sig_str, pre='from clize import Parameter')
     param = list(sig.parameters.values())[0]
     cparam = parser.Parameter.from_parameter(param)
     self.assertEqual(type(cparam), typ)
@@ -77,14 +77,14 @@ class FromSigTests(object):
 
     def test_param_inst(self):
         param = parser.Parameter('abc')
-        sig = test.s('xyz: p', locals={'p': param})
+        sig = support.s('xyz: p', locals={'p': param})
         sparam = list(sig.parameters.values())[0]
         cparam = parser.Parameter.from_parameter(sparam)
         self.assertTrue(cparam is param)
 
 @testfunc
 def signaturetests(self, sig_str, str_rep, args, posargs, kwargs):
-    sig = test.s(sig_str)
+    sig = support.s(sig_str)
     csig = parser.CliSignature.from_signature(sig)
     ba = csig.read_arguments(args)
     self.assertEqual(str(csig), str_rep)
@@ -147,7 +147,7 @@ class SigTests(object):
 
 @testfunc
 def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
-    sig = test.s(sig_str)
+    sig = support.s(sig_str)
     csig = parser.CliSignature.from_signature(sig, extra=extra)
     ba = csig.read_arguments(args)
     self.assertEqual(ba.args, posargs)
@@ -157,7 +157,7 @@ def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
 
 @extraparamstests
 class ExtraParamsTests(object):
-    _func = test.f('')
+    _func = support.f('')
     alt_cmd = (
         '', [parser.AlternateCommandParameter(func=_func, aliases=['--alt'])],
         ('--alt', 'a', 'b'), ['a', 'b'], {}, _func
@@ -181,7 +181,7 @@ class ExtraParamsTests(object):
         )
 
     def test_alt_middle(self):
-        _func = test.f('')
+        _func = support.f('')
         self.assertRaises(
             errors.ArgsBeforeAlternateCommand,
             self._test_func,
@@ -194,7 +194,7 @@ class ExtraParamsTests(object):
 
 @testfunc
 def sigerrortests(self, sig_str, args, exc_typ):
-    sig = test.s(sig_str)
+    sig = support.s(sig_str)
     csig = parser.CliSignature.from_signature(sig)
     try:
         csig.read_arguments(args)
@@ -236,7 +236,7 @@ class SigErrorTests(object):
 def badparam(self, sig_str, locals=None):
     if locals is None:
         locals = {}
-    sig = test.s(sig_str, pre='from clize import Parameter', locals=locals)
+    sig = support.s(sig_str, pre='from clize import Parameter', locals=locals)
     param = list(sig.parameters.values())[0]
     try:
         cparam = parser.Parameter.from_parameter(param)
