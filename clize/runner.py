@@ -138,7 +138,7 @@ class Clize(six.with_metaclass(util.give_attr_name, object)):
                 except TypeError:
                     raise TypeError("Don't know how to build a cli for "
                                     + repr(obj))
-                cli = SubcommandDispatcher(obj).cli
+                cli = SubcommandDispatcher(obj, **kwargs).cli
         return cli
 
     @property
@@ -222,9 +222,11 @@ def make_dispatcher_helper(*args, **kwargs):
 class SubcommandDispatcher(object):
     clizer = Clize
 
-    def __init__(self, commands=()):
+    def __init__(self, commands=(), description=None, footnotes=None):
         self.cmds, self.cmds_by_name = cli_commands(
             commands, namef=util.name_py2cli, clizer=self.clizer)
+        self.description = description
+        self.footnotes = footnotes
 
     @Clize(pass_name=True, helper_class=make_dispatcher_helper)
     @annotate(command=(operator.methodcaller('lower'),

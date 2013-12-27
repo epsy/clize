@@ -62,6 +62,24 @@ def update_new(target, other):
         if key not in target:
             target[key] = val
 
+def split_docstring(s):
+    if not s:
+        return
+    code_coming = False
+    code = False
+    for p in p_delim.split(s):
+        if code_coming or code and p.startswith(' '):
+            yield p
+            code_coming = False
+            code = True
+        else:
+            item = ' '.join(p.split())
+            if item.endswith(':'):
+                code_coming = True
+            code = False
+            yield item
+
+
 class ClizeHelp(Help):
     @property
     def signature(self):
@@ -93,23 +111,8 @@ class ClizeHelp(Help):
             self.parse_help()
         self.order = list(self.arghelp.keys())
 
-    @classmethod
-    def split_docstring(cls, s):
-        if not s:
-            return
-        code_coming = False
-        code = False
-        for p in p_delim.split(s):
-            if code_coming or code and p.startswith(' '):
-                yield p
-                code_coming = False
-                code = True
-            else:
-                item = ' '.join(p.split())
-                if item.endswith(':'):
-                    code_coming = True
-                code = False
-                yield item
+    def parse_func_help(self, obj):
+        return self.parse_docstring(inspect.getdoc(obj))
 
     argdoc_re = re.compile('^([a-zA-Z_]+): ?(.+)$')
     def parse_docstring(self, s):
@@ -119,7 +122,7 @@ class ClizeHelp(Help):
         after = {}
         last_arghelp = None
         cur_after = []
-        for p in self.split_docstring(s):
+        for p in split_docstring(s):
             argdoc = self.argdoc_re.match(p)
             if argdoc:
                 argname, text = argdoc.groups()
@@ -147,9 +150,6 @@ class ClizeHelp(Help):
             lines_to_paragraphs(header), arghelp, before, after,
             lines_to_paragraphs(footer)
             )
-
-    def parse_func_help(self, obj):
-        return self.parse_docstring(inspect.getdoc(obj))
 
     def parse_help(self):
         header, arghelp, before, after, footer = \
@@ -267,11 +267,22 @@ class DispatcherHelper(Help):
                     cols.append(', '.join(names), command.helper.description)
         return f
 
+    def prepare_notes(self, doc):
+        if doc is None:
+            return ()
+        else:
+            return lines_to_paragraphs(split_docstring(inspect.cleandoc(doc)))
+
+    def do_prepare(self):
+        self.header = self.prepare_notes(self.owner.description)
+        self.footer = self.prepare_notes(self.owner.footnotes)
+
     def show(self, name):
         f = util.Formatter()
-        f.extend(self.show_usage(name))
-        f.new_paragraph()
-        f.extend(self.show_commands())
+        for text in (self.show_usage(name), self.header,
+                     self.show_commands(), self.footer):
+            f.extend(text)
+            f.new_paragraph()
         return f
 
     def show_usage(self, name):
