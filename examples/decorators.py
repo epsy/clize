@@ -1,40 +1,35 @@
 #!/usr/bin/env python
-import json
 
 from sigtools.modifiers import autokwoargs
 from sigtools.wrappers import wrapper_decorator
 from clize import run
 
+
 @wrapper_decorator
 @autokwoargs
-def json_output(func, json_output=False, *args, **kwargs):
-    """Decorator that adds the following options:
-
+def with_uppercase(wrapped, uppercase=False, *args, **kwargs):
+    """
     Formatting options:
 
-    json_output: Format the output as json
+    uppercase: Print output in capitals
     """
-    ret = func(*args, **kwargs)
-    if json_output:
-        return json.dumps(ret)
+    ret = wrapped(*args, **kwargs)
+    if uppercase:
+        return str(ret).upper()
     else:
         return ret
 
-@json_output
-def return_dict(key, val):
-    """Returns a dict with {key: val}, and an extra pair 
 
-    key: the key
+@with_uppercase
+def hello_world(name=None):
+    """Says hello world
 
-    val: the value
+    name: Who to say hello to
     """
-    return {key: val, 'none': None}
-
-@json_output
-def return_list(first, second):
-    """Return a list with [first, second, None]"""
-    return [first, second, None]
+    if name is not None:
+        return 'Hello ' + name
+    else:
+        return 'Hello world!'
 
 if __name__ == '__main__':
-    run(return_dict, return_list)
-
+    run(hello_world)

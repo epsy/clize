@@ -13,87 +13,50 @@ We will look at a few different way of using composite callables with Clize.
 Decorators
 ----------
 
-Let's say you want to decorate these two functions so that their return
-value could be serialised as json::
+Creating decorators is useful if you want to share behaviour across multiple
+functions passed to `run`, such as extra parameters or input/output formatting.
 
-    @json_output
-    def return_dict(key, val):
-        """Returns a dict with {key: val}, and an extra pair"""
-        return {key: val, 'none': None}
+Let's create a decorator that transforms the output of the wrapped function
+when passed a specific flag:
 
-    @json_output
-    def return_list(first, second):
-        """Return a list with [first, second, None]"""
-        return [first, second, None]
+.. literalinclude:: /../examples/decorators.py
+    :lines: 3-4,7-20
 
-You could implement ``json_output`` like this::
+`wrapper_decorator<sigtools.wrappers.wrapper_decorator>` lets our
+``with_uppercase`` function decorate other functions. Each time the function
+you decorate is run, ``with_uppercase`` will be run with the wrapped function
+as first argument. It also lets introspection tools see the correct call
+signature as well as the list of wrappers.
 
-    from functools import partial, update_wrapper
+.. literalinclude:: /../examples/decorators.py
+    :lines: 5,22-35
 
-    def decorate(wrapper):
-        return partial(do_decorate, wrapper)
+::
 
-    def do_decorate(wrapper, wrapped):
-        ret = partial(wrapper, wrapped)
-        update_wrapper(ret, wrapped)
-        return ret
+    $ python examples/decorators.py --uppercase
+    HELLO WORLD!
+    $ python examples/decorators.py john
+    Hello john
+    $ python examples/decorators.py john --uppercase
+    HELLO JOHN
 
-    @decorate
-    @autokwoargs
-    def json_output(func, json_output=False, *args, **kwargs):
-        """Decorator to add the following options:
+`clize.ClizeHelp` will also pick up the fact that the function is decorated,
+and will read parameter descriptions from the wrapper's docstring and append it
+to the decorated function::
 
-        Formatting options:
+    $ python decorators.py --help
+    Usage: decorators.py [OPTIONS] [name]
 
-        json_output: Format the output as json
-        """
-        ret = func(*args, **kwargs)
-        if json_output:
-            return json.dumps(ret)
-        else:
-            return ret
+    Says hello world
 
-However, trying to pass the functions to :func:`run` presents an incomplete
-version of the function: ``--json-output`` is missing.
+    Positional arguments:
+      name          Who to say hello to
 
-To palliate the problem, you can use `sigtools.wrappers.wrapper_decorator`
-instead of the ``decorate`` function we had defined::
+    Formatting options:
+      --uppercase   Print output in capitals
 
-    import json
-
-    from sigtools.wrappers import wrapper_decorator
-    from clize import run
-
-    @wrapper_decorator
-    def json_output(func, json_output=False, *args, **kwargs):
-        """Decorator to add the following options:
-
-        Formatting options:
-
-        json_output: Format the output as json
-        """
-        ret = func(*args, **kwargs)
-        if json_output:
-            return json.dumps(ret)
-        else:
-            return ret
-
-    @json_output
-    def return_dict(key, val):
-        """Returns a dict with {key: val}, and an extra pair"""
-        return {key: val, 'none': None}
-
-    @json_output
-    def return_list(first, second):
-        """Return a list with [first, second, None]"""
-        return [first, second, None]
-
-    if __name__ == '__main__':
-        run([return_dict, return_list])
-
-`clize.ClizeHelp` will pick up the fact that the function is decorated, and
-will read parameter descriptions from the wrapper's docstring and append it to
-the decorated function.
+    Other actions:
+      -h, --help    Show the help
 
 Class-based command
 -------------------
