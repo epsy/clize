@@ -14,16 +14,9 @@ A minimal application
 ---------------------
 
 A minimal command-line application written with clize consists of writing
-a function and passing it to :func:`run`::
+a function and passing it to :func:`run`:
 
-    #!/usr/bin/env python
-    from clize import run
-
-    def hello_world():
-        return "Hello world!"
-
-    if __name__ == '__main__':
-        run(hello_world)
+.. literalinclude:: /../examples/helloworld.py
 
 If you save this as *helloworld.py* and run it, the function will be run::
 
@@ -192,9 +185,9 @@ that it should receive at least one argument, you will have to tell Clize that
 
     #!/usr/bin/env python
     from sigtools.modifiers import annotate, autokwoargs
-    from clize import Clize, run
+    from clize import Parameter, run
 
-    @annotate(text=Clize.REQUIRED)
+    @annotate(text=Parameter.REQUIRED)
     @autokwoargs
     def echo(prefix='', suffix='', *text):
         """Echoes text back
@@ -220,7 +213,7 @@ Accepting flags
 Parameters which default to ``False`` are treated as flags. Let's add a flag
 to reverse the input::
 
-    @annotate(text=Clize.REQUIRED)
+    @annotate(text=Parameter.REQUIRED)
     @autokwoargs
     def echo(prefix='', suffix='', reverse=False, *text):
         """Echoes text back
@@ -254,7 +247,7 @@ Clize automatically tries to convert arguments to the type of the receiving
 parameter's default value. So if you specify an inteteger as default value,
 Clize will always give you an integer::
 
-    @annotate(text=Clize.REQUIRED)
+    @annotate(text=Parameter.REQUIRED)
     @autokwoargs
     def echo(prefix='', suffix='', reverse=False, repeat=1, *text):
         """Echoes text back
@@ -291,7 +284,7 @@ Now what we have a bunch of options, it would be helpful to have shorter names
 for them. You can specify aliases for them by annotating the corresponding
 parameter::
 
-    @annotate(text=Clize.REQUIRED,
+    @annotate(text=Parameter.REQUIRED,
               prefix='p', suffix='s', reverse='r', repeat='n')
     @autokwoargs
     def echo(prefix='', suffix='', reverse=False, repeat=1, *text):
@@ -320,19 +313,10 @@ Arbitrary requirements
 ----------------------
 
 Let's say we want to give an error if the word *spam* is in the text. To do so,
-one option is to raise an :class:`ArgumentError` from within your function::
+one option is to raise an :class:`ArgumentError` from within your function:
 
-    from clize import ArgumentError, Clize, run
-
-    @annotate(text=Clize.REQUIRED,
-              prefix='p', suffix='s', reverse='r', repeat='n')
-    @autokwoargs
-    def echo(prefix='', suffix='', reverse=False, repeat=1, *text):
-        # ...
-        text = ' '.join(text)
-        if 'spam' in text:
-            raise ArgumentError("I don't want any spam!")
-        # ...
+.. literalinclude:: /../examples/echo.py
+   :emphasize-lines: 23-24
 
 ::
 
