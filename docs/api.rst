@@ -4,6 +4,8 @@ API Reference
 Running functions
 -----------------
 
+.. module:: clize.runner
+
 .. autofunction:: clize.run
 
 
@@ -14,6 +16,8 @@ Running functions
 Help
 ----
 
+.. module:: clize.help
+
 .. autoclass:: clize.help.Help
 
 .. autoclass:: clize.help.ClizeHelp
@@ -22,6 +26,8 @@ Help
 
 Parser
 ------
+
+.. module:: clize.parser
 
 .. autoclass:: clize.parser.CliSignature
 
@@ -36,6 +42,8 @@ Exceptions
 
 Compability with older clize releases
 -------------------------------------
+
+.. module:: clize.legacy
 
 .. autofunction:: clize.clize
 
