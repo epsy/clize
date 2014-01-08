@@ -6,5 +6,5 @@
 
 from clize.parser import Parameter
 from clize.runner import Clize, SubcommandDispatcher, run
-from clize.legacy import clize
+from clize.legacy import clize, make_flag
 from clize.errors import UserError, ArgumentError

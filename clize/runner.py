@@ -7,6 +7,7 @@ from __future__ import print_function
 import sys
 from functools import partial, update_wrapper
 import operator
+import itertools
 
 import six
 from sigtools.modifiers import annotate, autokwoargs
@@ -51,8 +52,7 @@ class Clize(six.with_metaclass(util.give_attr_name, object)):
         else:
             return super(Clize, cls).__new__(cls)
 
-    def __init__(self, fn, owner=None, alt=(),
-                 pass_name=False,
+    def __init__(self, fn, owner=None, alt=(), extra=(), pass_name=False,
                  help_names=('help', 'h'), helper_class=None, hide_help=False):
         """
         :param sequence alt: Alternate actions the CLI will handle.
@@ -70,6 +70,7 @@ class Clize(six.with_metaclass(util.give_attr_name, object)):
         self.func = fn
         self.owner = owner
         self.alt = util.maybe_iter(alt)
+        self.extra = extra
         self.pass_name = pass_name
         self.help_names = help_names
         self.help_aliases = [util.name_py2cli(s, kw=True) for s in help_names]
@@ -176,7 +177,7 @@ class Clize(six.with_metaclass(util.give_attr_name, object)):
         """The `.parser.CliSignature` object used to parse arguments."""
         return parser.CliSignature.from_signature(
             mask(util.funcsigs.signature(self.func), self.pass_name),
-            extra=self._process_alt(self.alt))
+            extra=itertools.chain(self._process_alt(self.alt), self.extra))
 
     def _process_alt(self, alt):
         if self.help_names:
@@ -204,7 +205,7 @@ class Clize(six.with_metaclass(util.give_attr_name, object)):
 
         :raises: `.ArgumentError`
         """
-        func, post, posargs, kwargs = self.signature.read_arguments(args[1:])
+        func, post, posargs, kwargs = self.signature.read_arguments(args)
         name = ' '.join([args[0]] + post)
         if func or self.pass_name:
             posargs.insert(0, name)

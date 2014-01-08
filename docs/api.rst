@@ -47,3 +47,4 @@ Compability with older clize releases
 
 .. autofunction:: clize.clize
 
+.. autofunction:: clize.make_flag

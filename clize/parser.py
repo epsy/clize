@@ -467,7 +467,8 @@ class SeekFallbackCommand(object):
 class CliBoundArguments(object):
     def __init__(self, sig, args):
         self.sig = sig
-        self.in_args = args
+        self.name = args[0]
+        self.in_args = args[1:]
         self._read_arguments()
 
     def _read_arguments(self):
@@ -513,8 +514,8 @@ class CliBoundArguments(object):
                                 exc.__cause__ = None
                                 raise exc
                     with errors.SetArgumentErrorContext(param=param):
-                        skip, sticky_, posarg_only_, func = param.read_argument(
-                            self.in_args, i, self)
+                        arg = param.read_argument(self.in_args, i, self)
+                        skip, sticky_, posarg_only_, func = arg
                         if sticky_ is not None:
                             sticky = sticky_
                         posarg_only = (posarg_only

@@ -40,7 +40,7 @@ def _clize(fn, alias={}, force_positional=(), coerce={},
     if not use_kwoargs:
         fn = autokwoargs(
             exceptions=chain(ann_positional, force_positional))(fn)
-    return runner.Clize(fn)
+    return runner.Clize(fn, extra=extra)
 
 
 @forwards_to(_clize, 1)
@@ -58,3 +58,53 @@ def clize(fn=None, **kwargs):
 clize.kwo = partial(clize, use_kwoargs=True)
 clize.POSITIONAL = clize.P = parser.ParameterFlag('POSITIONAL',
                                                   'clize.legacy.clize')
+
+
+class MakeflagParameter(parser.NamedParameter):
+    """Parameter class that imitates those returned by Clize 2's `make_flag`
+    when passed a callable for source. See :ref:`porting-2`."""
+    def __init__(self, func, **kwargs):
+        super(MakeflagParameter, self).__init__(**kwargs)
+        self.func = func
+
+    def noop(self, *args, **kwargs):
+        pass
+
+    def read_argument(self, args, i, ba):
+        try:
+            val = args[i + 1]
+            skip = 1
+        except IndexError:
+            val = True
+            skip = 0
+        ret = self.func(name=ba.name, command=ba.sig,
+                        val=val, params=ba.kwargs)
+        if ret:
+            func = self.noop
+        else:
+            func = None
+        return skip, None, None, func
+
+
+
+def make_flag(source, names, default=False, type=bool,
+              help='', takes_argument=0):
+    """Compatibility with clize<3.0 releases. Creates a parameter instance.
+    See :ref:`porting-2`."""
+    warnings.warn('Compatibility with clize<3.0 releases. Helper function to '
+                  'create alternate actions. See :ref:`porting-2`.',
+                  DeprecationWarning, stacklevel=1)
+    kwargs = {}
+    kwargs['aliases'] = [util.name_py2cli(alias, kw=True)
+                         for alias in names]
+    if callable(source):
+        return MakeflagParameter(source, **kwargs)
+    cls = parser.OptionParameter
+    kwargs['argument_name'] = source
+    kwargs['default'] = default
+    if not takes_argument:
+        return parser.FlagParameter(value=True, **kwargs)
+    kwargs['typ'] = type
+    if type is int:
+        cls = parser.IntOptionParameter
+    return cls(**kwargs)
