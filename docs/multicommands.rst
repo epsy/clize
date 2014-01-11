@@ -12,6 +12,8 @@ Multiple commands
     the program.
 
 
+.. _alt-actions:
+
 Alternate actions
 -----------------
 

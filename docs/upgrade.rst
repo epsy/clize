@@ -116,3 +116,17 @@ Indicating that an ``*args``-like parameter is required is now done by annotatin
 
     if __name__ == '__main__':
         run(func)
+
+``extra`` and ``make_flag``
+___________________________
+
+Alternate actions as shown in Clize 2's tutorial are now done by passing the
+function directly to `.run` :ref:`as shown in the tutorial <alt-actions>`.
+Unlike previously, the alternate command function is passed to the clizer just
+like the main one.
+
+For other use cases, you should find the appropriate parameter class from
+`clize.parser` or subclass one, instantiate it and pass it in a sequence as the
+``extra`` parameter of `.Clize` or `.run`. If the parameter matches one
+actually present on the source function, annotate that parameter with your
+`.Parameter` instance instead of passing it to ``extra``.
