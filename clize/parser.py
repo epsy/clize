@@ -428,8 +428,8 @@ class CliSignature(object):
                     for param in sig.parameters.values()
                 ), extra))
 
-    def read_arguments(self, args):
-        return CliBoundArguments(self, args)
+    def read_arguments(self, args, name='unnamed'):
+        return CliBoundArguments(self, args, name)
 
     def __str__(self):
         return ' '.join(
@@ -465,10 +465,10 @@ class SeekFallbackCommand(object):
 
 
 class CliBoundArguments(object):
-    def __init__(self, sig, args):
+    def __init__(self, sig, args, name):
         self.sig = sig
-        self.name = args[0]
-        self.in_args = args[1:]
+        self.name = name
+        self.in_args = args
         self._read_arguments()
 
     def _read_arguments(self):

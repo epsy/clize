@@ -205,7 +205,8 @@ class Clize(six.with_metaclass(util.give_attr_name, object)):
 
         :raises: `.ArgumentError`
         """
-        func, post, posargs, kwargs = self.signature.read_arguments(args)
+        ba = self.signature.read_arguments(args[1:], args[0])
+        func, post, posargs, kwargs = ba
         name = ' '.join([args[0]] + post)
         if func or self.pass_name:
             posargs.insert(0, name)
