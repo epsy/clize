@@ -94,7 +94,7 @@ class Parameter(object):
                 util.name_py2cli(alias, named)
                 for alias in aliases]
             if default is False and typ is bool:
-                return FlagParameter(value=True, **kwargs)
+                return FlagParameter(value=True, false_value=False, **kwargs)
             else:
                 kwargs['default'] = default
                 kwargs['typ'] = typ
@@ -111,12 +111,12 @@ class Parameter(object):
             else:
                 return PositionalParameter(default=default, typ=typ, **kwargs)
 
-    def read_one_argument(self, arg, ba):
+    def read_argument(self, ba, i):
         raise NotImplementedError
 
-    def read_argument(self, args, i, ba):
-        self.read_one_argument(args[i], ba)
-        return 0, None, self.last_option, None
+    def apply_generic_flags(self, ba):
+        if self.last_option:
+            ba.posarg_only = True
 
     def format_type(self):
         return ''
@@ -182,8 +182,8 @@ class ParameterWithValue(Parameter):
 
 class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent,
                           PositionalBindingParameter):
-    def read_one_argument(self, arg, ba):
-        val = self.coerce_value(arg)
+    def read_argument(self, ba, i):
+        val = self.coerce_value(ba.in_args[i])
         ba.args.append(val)
 
 
@@ -206,15 +206,49 @@ class NamedParameter(Parameter):
     def __str__(self):
         return '[{0}]'.format(self.display_name)
 
+    def redispatch_short_arg(self, rest, ba, i):
+        if not rest:
+            return
+        try:
+            nparam = ba.sig.aliases['-' + rest[0]]
+        except KeyError as e:
+            raise errors.UnknownOption(e.args[0])
+        orig_args = ba.in_args
+        ba.in_args = ba.in_args[:i] + ('-' + rest,) + ba.in_args[i + 1:]
+        try:
+            nparam.read_argument(ba, i)
+        finally:
+            ba.in_args = orig_args
+        ba.unsatisfied.discard(nparam)
+
 
 class FlagParameter(NamedParameter, ParameterWithSourceEquivalent,
                     KeywordBindingParameter):
-    def __init__(self, value, **kwargs):
+    def __init__(self, value, false_value, **kwargs):
         super(FlagParameter, self).__init__(**kwargs)
         self.value = value
+        self.false_value = false_value
 
-    def read_one_argument(self, arg, ba):
-        ba.kwargs[self.argument_name] = self.value
+    def read_argument(self, ba, i):
+        arg = ba.in_args[i]
+        if arg[1] == '-':
+            ba.kwargs[self.argument_name] = (
+                self.value if self.is_flag_activation(arg)
+                else self.false_value
+                )
+        else:
+            ba.kwargs[self.argument_name] = self.value
+            self.redispatch_short_arg(arg[2:], ba, i)
+
+
+    def is_flag_activation(self, arg):
+        if arg[1] != '-':
+            return True
+        arg, sep, val = arg.partition('=')
+        return (
+            not sep or
+            val and val.lower() not in ('0', 'n', 'no', 'f', 'false')
+            )
 
     def format_type(self):
         return ''
@@ -222,10 +256,10 @@ class FlagParameter(NamedParameter, ParameterWithSourceEquivalent,
 
 class OptionParameter(NamedParameter, ParameterWithValue,
                       ParameterWithSourceEquivalent, KeywordBindingParameter):
-    def read_argument(self, args, i, ba):
+    def read_argument(self, ba, i):
         if self.argument_name in ba.kwargs:
             raise errors.DuplicateNamedArgument()
-        arg = args[i]
+        arg = ba.in_args[i]
         if arg.startswith('--'):
             name, glued, val = arg.partition('=')
         else:
@@ -237,11 +271,11 @@ class OptionParameter(NamedParameter, ParameterWithValue,
                 glued = False
         if not glued:
             try:
-                val = args[i+1]
+                val = ba.in_args[i+1]
             except IndexError:
                 raise errors.MissingValue
         ba.kwargs[self.argument_name] = self.coerce_value(val)
-        return int(not glued), None, None, None
+        ba.skip = not glued
 
     def format_type(self):
         return '=' + util.name_type2cli(self.typ)
@@ -259,28 +293,23 @@ def split_int_rest(s):
             return s[:i], s[i:]
 
 class IntOptionParameter(OptionParameter):
-    def read_argument(self, args, i, ba):
+    def read_argument(self, ba, i):
         if self.argument_name in ba.kwargs:
             raise errors.DuplicateNamedArgument()
-        arg = args[i]
+        arg = ba.in_args[i]
         if arg.startswith('--'):
-            return super(IntOptionParameter, self).read_argument(args, i, ba)
+            super(IntOptionParameter, self).read_argument(ba, i)
+            return
 
         arg = arg.lstrip('-')[1:]
         if not arg:
-            return super(IntOptionParameter, self).read_argument(args, i, ba)
+            super(IntOptionParameter, self).read_argument(ba, i)
+            return
 
         val, rest = split_int_rest(arg)
         ba.kwargs[self.argument_name] = self.coerce_value(val)
 
-        if not rest:
-            return 0, None, None, None
-
-        nparam = ba.sig.aliases['-' + rest[0]]
-        fake_args = args[:i] + ('-' + rest,) + args[i + 1:]
-        ret = nparam.read_argument(fake_args, i, ba)
-        ba.unsatisfied.discard(nparam)
-        return ret
+        self.redispatch_short_arg(rest, ba, i)
 
 
 class MultiParameter(ParameterWithValue):
@@ -290,8 +319,8 @@ class MultiParameter(ParameterWithValue):
     def get_collection(self, ba):
         raise NotImplementedError
 
-    def read_argument(self, args, i, ba):
-        val = self.coerce_value(args[i])
+    def read_argument(self, ba, i):
+        val = self.coerce_value(ba.in_args[i])
         self.get_collection(ba).append(val)
         return 0, None, None, None
 
@@ -314,15 +343,13 @@ class EatAllOptionParameterArguments(EatAllPositionalParameter):
             display_name='...', undocumented=False, **kwargs)
         self.param = param
 
-    def read_argument(self, args, i, ba):
-        skip, _, posarg_only, _ = super(
-            EatAllOptionParameterArguments, self).read_argument(args, i, ba)
-        return skip, self, posarg_only, getattr(self.param, 'func', None)
+    def read_argument(self, ba, i):
+        super(EatAllOptionParameterArguments, self).read_argument(ba, i)
 
 
 class IgnoreAllOptionParameterArguments(EatAllOptionParameterArguments):
-    def read_argument(self, args, i, ba):
-        return 0, self, True, getattr(self.param, 'func', None)
+    def read_argument(self, ba, i):
+        pass
 
 
 class EatAllOptionParameter(MultiOptionParameter):
@@ -330,13 +357,13 @@ class EatAllOptionParameter(MultiOptionParameter):
 
     def __init__(self, **kwargs):
         super(EatAllOptionParameter, self).__init__(**kwargs)
-        self.args = self.extra_type(self)
+        self.args_param = self.extra_type(self)
 
-    def read_argument(self, args, i, ba):
-        skip, _, _, func = super(EatAllOptionParameter, self).read_argument(
-            args, i, ba)
-        ba.post_name.append(args[i])
-        return skip, self.args, True, func
+    def read_argument(self, ba, i):
+        super(EatAllOptionParameter, self).read_argument(ba, i)
+        ba.post_name.append(ba.in_args[i])
+        ba.posarg_only = True
+        ba.sticky = self.args_param
 
 
 class FallbackCommandParameter(EatAllOptionParameter):
@@ -355,20 +382,20 @@ class FallbackCommandParameter(EatAllOptionParameter):
     def get_collection(self, ba):
         return []
 
-    def read_argument(self, args, i, ba):
+    def read_argument(self, ba, i):
         ba.args[:] = []
         ba.kwargs.clear()
-        skip, sticky, posarg_only, _ = super(
-            FallbackCommandParameter, self).read_argument(args, i, ba)
-        return skip, self.ignore_all if i else sticky, posarg_only, self.func
+        super(FallbackCommandParameter, self).read_argument(ba, i)
+        ba.func = self.func
+        if i:
+            ba.sticky = self.ignore_all
 
 
 class AlternateCommandParameter(FallbackCommandParameter):
-    def read_argument(self, args, i, ba):
+    def read_argument(self, ba, i):
         if i:
             raise errors.ArgsBeforeAlternateCommand(self)
-        return super(AlternateCommandParameter, self).read_argument(
-            args, i, ba)
+        return super(AlternateCommandParameter, self).read_argument(ba, i)
 
 
 class ExtraPosArgsParameter(PositionalParameter):
@@ -378,10 +405,9 @@ class ExtraPosArgsParameter(PositionalParameter):
         super(ExtraPosArgsParameter, self).__init__(**kwargs)
         self.required = required
 
-    def read_argument(self, args, i, ba):
-        skip, _, posarg_only, func = super(
-            ExtraPosArgsParameter, self).read_argument(args, i, ba)
-        return skip, self, posarg_only, func
+    def read_argument(self, ba, i):
+        super(ExtraPosArgsParameter, self).read_argument(ba, i)
+        ba.sticky = self
 
     def __str__(self):
         if self.required:
@@ -456,10 +482,9 @@ class SeekFallbackCommand(object):
             param = ba.sig.aliases.get(arg, None)
             if param in ba.sig.alternate:
                 try:
-                    _, _, _, func = param.read_argument(ba.in_args, i, ba)
+                    param.read_argument(ba, i)
                 except errors.ArgumentError:
                     continue
-                ba.func = func
                 ba.unsatisfied.clear()
                 return True
 
@@ -477,24 +502,33 @@ class CliBoundArguments(object):
         self.args = []
         self.kwargs = {}
 
-        posparam = iter(self.sig.positional)
+        self.sticky = None
+        self.posarg_only = False
+        self.skip = 0
+        self.unsatisfied = set(self.sig.required)
 
-        func = None
-        sticky = None
-        posarg_only = False
-        skip = 0
-        unsatisfied = self.unsatisfied = set(self.sig.required)
+        posparam = iter(self.sig.positional)
 
         with SeekFallbackCommand():
             for i, arg in enumerate(self.in_args):
-                if skip > 0:
-                    skip -= 1
+                if self.skip > 0:
+                    self.skip -= 1
                     continue
                 with errors.SetArgumentErrorContext(pos=i, val=arg, ba=self):
-                    if not posarg_only and arg == '--':
-                        posarg_only = True
+                    if self.posarg_only or arg[0] != '-' or len(arg) < 2:
+                        if self.sticky is not None:
+                            param = self.sticky
+                        else:
+                            try:
+                                param = next(posparam)
+                            except StopIteration:
+                                exc = errors.TooManyArguments(self.in_args[i:])
+                                exc.__cause__ = None
+                                raise exc
+                    elif arg == '--':
+                        self.posarg_only = True
                         continue
-                    elif not posarg_only and arg.startswith('-') and len(arg) >= 2:
+                    else:
                         if arg.startswith('--'):
                             name = arg.partition('=')[0]
                         else:
@@ -503,29 +537,15 @@ class CliBoundArguments(object):
                             param = self.sig.aliases[name]
                         except KeyError:
                             raise errors.UnknownOption(name)
-                    else:
-                        if sticky:
-                            param = sticky
-                        else:
-                            try:
-                                param = next(posparam)
-                            except StopIteration:
-                                exc = errors.TooManyArguments(self.in_args[i:])
-                                exc.__cause__ = None
-                                raise exc
                     with errors.SetArgumentErrorContext(param=param):
-                        arg = param.read_argument(self.in_args, i, self)
-                        skip, sticky_, posarg_only_, func = arg
-                        if sticky_ is not None:
-                            sticky = sticky_
-                        posarg_only = (posarg_only
-                                       if posarg_only_ is None else posarg_only_)
-                        unsatisfied.discard(param)
+                        param.read_argument(self, i)
+                        self.unsatisfied.discard(param)
+                        param.apply_generic_flags(self)
 
-        if func:
-            self.func = func
-        elif unsatisfied:
-            raise errors.MissingRequiredArguments(unsatisfied)
+        if self.unsatisfied and not self.func:
+            raise errors.MissingRequiredArguments(self.unsatisfied)
+
+        del self.sticky, self.posarg_only, self.skip, self.unsatisfied
 
     def __iter__(self):
         yield self.func

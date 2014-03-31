@@ -84,7 +84,7 @@ class FromSigTests(object):
 
 @testfunc
 def signaturetests(self, sig_str, str_rep, args, posargs, kwargs):
-    sig = support.s(sig_str)
+    sig = support.s(sig_str, locals={'P': parser.Parameter})
     csig = parser.CliSignature.from_signature(sig)
     ba = csig.read_arguments(args)
     self.assertEqual(str(csig), str_rep)
@@ -124,6 +124,17 @@ class SigTests(object):
 
     flag = '*, one=False', '[--one]', ('--one',), [], {'one': True}
     flag_absent = '*, one=False', '[--one]', (), [], {}
+    flag_glued = (
+        '*, a=False, b=False, c=False', '[-a] [-b] [-c]',
+        ('-ac',), [], {'a': True, 'c': True}
+        )
+
+    _one_flag = '*, one:"a"=False'
+    _one_flag_u = '[--one]'
+    flag_false = _one_flag, _one_flag_u, ('--one=',), [], {'one': False}
+    flag_false_0 = _one_flag, _one_flag_u, ('--one=0',), [], {'one': False}
+    flag_false_n = _one_flag, _one_flag_u, ('--one=no',), [], {'one': False}
+    flag_false_f = _one_flag, _one_flag_u, ('--one=false',), [], {'one': False}
 
     collect_pos = '*args', '[args...]', ('1', '2', '3'), ['1', '2', '3'], {}
     pos_and_collect = (
@@ -145,6 +156,17 @@ class SigTests(object):
         ['first', '--second', 'third'], {}
         )
 
+    pos_last_option = (
+        'one, two:P.L, *r, three', '--three=STR one two [r...]',
+        ('1', '--three=3', '2', '--four', '4'),
+        ['1', '2', '--four', '4'], {'three': '3'}
+        )
+    kw_last_option = (
+        'one, two, *r, three:P.L', '--three=STR one two [r...]',
+        ('1', '--three=3', '2', '--four', '4'),
+        ['1', '2', '--four', '4'], {'three': '3'}
+        )
+
 @testfunc
 def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
     sig = support.s(sig_str)
@@ -160,24 +182,28 @@ class ExtraParamsTests(object):
     _func = support.f('')
     alt_cmd = (
         '', [parser.AlternateCommandParameter(func=_func, aliases=['--alt'])],
-        ('--alt', 'a', 'b'), ['a', 'b'], {}, _func
+        ('--alt', 'a', '-b', '--third'), ['a', '-b', '--third'], {}, _func
+        )
+    alt_cmd2 = (
+        '', [parser.AlternateCommandParameter(func=_func, aliases=['--alt'])],
+        ('--alt', '--alpha', '-b'), ['--alpha', '-b'], {}, _func
         )
     flb_cmd_start = (
         '', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
-        ('--alt', 'a', 'b'), ['a', 'b'], {}, _func
+        ('--alt', '-a', 'b', '--third'), ['-a', 'b', '--third'], {}, _func
         )
     flb_cmd_valid = (
         '*a', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
-        ('a', '--alt', 'b', 'c'), [], {}, _func
+        ('a', '--alt', 'b', '-c', '--fourth'), [], {}, _func
         )
     flb_cmd_invalid = (
         '', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
-        ('a', '--alt', 'a', 'b'), [], {}, _func
+        ('a', '--alt', 'a', '-b'), [], {}, _func
         )
     flb_cmd_invalid_valid = (
         'a: int, b',
         [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
-        ('xyz', 'abc', '--alt', 'def'), [], {}, _func
+        ('xyz', 'abc', '--alt', 'def', '-g', '--hij'), [], {}, _func
         )
 
     def test_alt_middle(self):
@@ -214,6 +240,7 @@ class SigErrorTests(object):
     duplicate_kw = (
         '*, one', ['--one', '1', '--one=1'], errors.DuplicateNamedArgument)
     unknown_kw = '', ['--one'], errors.UnknownOption
+    unknown_kw_after_short_flag = '*, o=False', ['-oa'], errors.UnknownOption
     missing_value = '*, one', ['--one'], errors.MissingValue
 
     bad_format = 'one=1', ['a'], errors.BadArgumentFormat
