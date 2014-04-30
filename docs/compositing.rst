@@ -61,4 +61,3 @@ to the decorated function::
 Class-based command
 -------------------
 
-

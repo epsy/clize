@@ -5,6 +5,7 @@
 from __future__ import print_function
 
 import sys
+import os
 from functools import partial, update_wrapper
 import operator
 import itertools
@@ -238,6 +239,27 @@ class SubcommandDispatcher(object):
             raise errors.ArgumentError('Unknwon command "{0}"'.format(command))
         return func('{0} {1}'.format(name, command), *args)
 
+
+def fix_argv(argv, path):
+    """Properly display ``python -m`` invocations"""
+    if not path[0]:
+        argv = argv[:]
+        import __main__
+        argv[0] = '{0} -m {1}'.format(
+            os.path.basename(sys.executable) if sys.executable else 'python',
+            main_module_name(__main__))
+    return argv
+
+
+def main_module_name(module):
+    if module.__file__.endswith('/__main__.py'):
+        return module.__package__
+    return (
+        module.__package__ + '.' +
+        os.path.splitext(os.path.basename(module.__file__))[0]
+        )
+
+
 @autokwoargs
 def run(args=None, catch=(), exit=True, out=None, err=None, *fn, **kwargs):
     """Runs a function or :ref:`CLI object<cli-object>` with ``args``, prints
@@ -263,7 +285,7 @@ def run(args=None, catch=(), exit=True, out=None, err=None, *fn, **kwargs):
     cli = Clize.get_cli(fn, **kwargs)
 
     if args is None:
-        args = sys.argv
+        args = fix_argv(sys.argv, sys.path)
     if out is None:
         out = sys.stdout
     if err is None:
