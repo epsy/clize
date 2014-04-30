@@ -82,7 +82,7 @@ class UnknownOption(ArgumentError):
 
     @property
     def message(self):
-        return "Unkown option {0!r}".format(self.name)
+        return "Unknown option {0!r}".format(self.name)
 
 
 class MissingValue(ArgumentError):
