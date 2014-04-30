@@ -232,8 +232,7 @@ class SubcommandDispatcher(object):
 
     @Clize(pass_name=True, helper_class=make_dispatcher_helper)
     @annotate(command=(operator.methodcaller('lower'),
-                       parser.Parameter.LAST_OPTION),
-              args=parser.Parameter.EAT_REST)
+                       parser.Parameter.LAST_OPTION))
     def cli(self, name, command, *args):
         try:
             func = self.cmds_by_name[command]
