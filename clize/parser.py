@@ -171,14 +171,6 @@ class ParameterWithSourceEquivalent(Parameter):
         self.argument_name = argument_name
 
 
-class PositionalBindingParameter(Parameter):
-    pass
-
-
-class KeywordBindingParameter(Parameter):
-    pass
-
-
 class ParameterWithValue(Parameter):
     """A parameter that stores a value, with possible default and/or
     conversion.
@@ -229,8 +221,7 @@ class ParameterWithValue(Parameter):
             return '[{0}]'.format(self.full_name)
 
 
-class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent,
-                          PositionalBindingParameter):
+class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
     """Equivalent of a positional-only parameter in python."""
     def read_argument(self, ba, i):
         val = self.coerce_value(ba.in_args[i])
@@ -282,8 +273,7 @@ class NamedParameter(Parameter):
         ba.unsatisfied.discard(nparam)
 
 
-class FlagParameter(NamedParameter, ParameterWithSourceEquivalent,
-                    KeywordBindingParameter):
+class FlagParameter(NamedParameter, ParameterWithSourceEquivalent):
     """A named parameter that takes no argument.
 
     :param value: The value when the argument is present.
@@ -325,7 +315,7 @@ class FlagParameter(NamedParameter, ParameterWithSourceEquivalent,
 
 
 class OptionParameter(NamedParameter, ParameterWithValue,
-                      ParameterWithSourceEquivalent, KeywordBindingParameter):
+                      ParameterWithSourceEquivalent):
     """A named parameter that takes an argument."""
 
     def read_argument(self, ba, i):
