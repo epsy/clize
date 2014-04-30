@@ -16,30 +16,24 @@ from sigtools.wrappers import wrappers
 
 from clize import runner, parser, util
 
-NeedPrepare = partial(util.DefinedBy, lambda s: s.prepare_once())
-
 def lines_to_paragraphs(L):
     return list(itertools.chain.from_iterable((x, '') for x in L))
 
 p_delim = re.compile(r'\n\s*\n')
 
-class Help(six.with_metaclass(util.give_attr_name, object)):
-    header = footer = NeedPrepare()
+class Help(object):
+
     def __init__(self, subject, owner):
         self.subject = subject
         self.owner = owner
-        self.prepared = False
+
+    @util.property_once
+    def header(self):
+        self.prepare()
+        return self.__dict__['header']
 
     def prepare(self):
-        self.do_prepare()
-        self.prepared = True
-
-    def do_prepare(self):
         """Override for stuff to be done once per subject"""
-
-    def prepare_once(self):
-        if not self.prepared:
-            self.prepare()
 
     @runner.Clize(pass_name=True, hide_help=True)
     @kwoargs('usage')
@@ -101,7 +95,7 @@ class ClizeHelp(Help):
             if not param.undocumented:
                 yield param
 
-    def do_prepare(self):
+    def prepare(self):
         self.arguments = {
             'pos': list(self.filter_undocumented(self.signature.positional)),
             'opt': list(self.filter_undocumented(self.signature.named)),
@@ -273,7 +267,7 @@ class DispatcherHelper(Help):
         else:
             return lines_to_paragraphs(split_docstring(inspect.cleandoc(doc)))
 
-    def do_prepare(self):
+    def prepare(self):
         self.header = self.prepare_notes(self.owner.description)
         self.footer = self.prepare_notes(self.owner.footnotes)
 

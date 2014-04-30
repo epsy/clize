@@ -85,7 +85,7 @@ class property_once(object):
         self.func = func
         self.key = func.__name__
 
-    def __get__(self, obj, owner=None):
+    def __get__(self, obj, owner):
         if obj is None:
             return self
         try:
@@ -98,34 +98,6 @@ class property_once(object):
     def __repr__(self):
         return '<property_once from {0!r}>'.format(self.func)
 
-class give_attr_name(type):
-    def __new__(cls, name, bases, members):
-        for key, value in members.items():
-            try:
-                value.add_attribute_name
-            except AttributeError:
-                pass
-            else:
-                members[key] = value.add_attribute_name(key)
-        return super(give_attr_name, cls).__new__(cls, name, bases, members)
-
-class DefinedBy(object):
-    def __init__(self, func, name=None):
-        self.func = func
-        self.name = name
-
-    def add_attribute_name(self, name):
-        return type(self)(self.func, name)
-
-    def __get__(self, obj, owner=None):
-        if obj is None:
-            return self
-        if self.name is None:
-            raise TypeError('DefinedBy expects its name attribute set or '
-                            'the class it is set on to be of metaclass '
-                            'clize.util.give_attr_name')
-        self.func(obj)
-        return obj.__dict__[self.name]
 
 class _FormatterRow(object):
     def __init__(self, columns, cells):

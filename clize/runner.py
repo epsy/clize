@@ -26,8 +26,6 @@ class _CliWrapper(object):
     def cli(self):
         return self.obj
 
-RequireInspect = partial(util.DefinedBy, lambda s: s.inspect())
-
 def cli_commands(obj, namef, clizer):
     cmds = util.OrderedDict()
     cmd_by_name = {}
@@ -41,7 +39,7 @@ def cli_commands(obj, namef, clizer):
             cmd_by_name[name] = cli
     return cmds, cmd_by_name
 
-class Clize(six.with_metaclass(util.give_attr_name, object)):
+class Clize(object):
     """Wraps a function into a CLI object that accepts command-line arguments
     and translates them to match the wrapped function's parameters."""
 
