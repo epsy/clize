@@ -42,12 +42,6 @@ Parser
 .. autoclass:: ParameterWithSourceEquivalent
    :show-inheritance:
 
-.. autoclass:: PositionalBindingParameter
-   :show-inheritance:
-
-.. autoclass:: KeywordBindingParameter
-   :show-inheritance:
-
 .. autoclass:: ParameterWithValue
    :show-inheritance:
 
