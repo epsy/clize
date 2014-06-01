@@ -24,6 +24,77 @@ class ParameterFlag(object):
         return '{0.prefix}.{0.name}'.format(self)
 
 
+def parameter_converter(obj):
+    obj._clize__parameter_converter = True
+    return obj
+
+
+def default_converter(param, annotations):
+    named = param.kind in (param.KEYWORD_ONLY, param.VAR_KEYWORD)
+    aliases = [param.name]
+    default = util.UNSET
+    typ = util.identity
+
+    kwargs = {
+        'argument_name': param.name,
+        'undocumented': Parameter.UNDOCUMENTED in annotations,
+        }
+
+    if param.default is not param.empty:
+        if Parameter.REQUIRED not in annotations:
+            default = param.default
+        if default is not None:
+            typ = type(param.default)
+
+    if Parameter.LAST_OPTION in annotations:
+        kwargs['last_option'] = True
+
+    set_coerce = False
+    for thing in annotations:
+        if isinstance(thing, Parameter):
+            return thing
+        elif callable(thing):
+            if set_coerce:
+                raise ValueError(
+                    "Coercion function specified twice in annotation: "
+                    "{0.__name__} {1.__name__}".format(typ, thing))
+            typ = thing
+            set_coerce = True
+        elif isinstance(thing, six.string_types):
+            if not named:
+                raise ValueError("Cannot give aliases for a positional "
+                                 "parameter.")
+            if len(thing.split()) > 1:
+                raise ValueError("Cannot have whitespace in aliases.")
+            aliases.append(thing)
+        elif isinstance(thing, ParameterFlag):
+            pass
+        else:
+            raise ValueError(thing)
+
+    if named:
+        kwargs['aliases'] = [
+            util.name_py2cli(alias, named)
+            for alias in aliases]
+        if default is False and typ is bool:
+            return FlagParameter(value=True, false_value=False, **kwargs)
+        else:
+            kwargs['default'] = default
+            kwargs['typ'] = typ
+            if typ is int:
+                return IntOptionParameter(**kwargs)
+            else:
+                return OptionParameter(**kwargs)
+    else:
+        kwargs['display_name'] = util.name_py2cli(param.name)
+        if param.kind == param.VAR_POSITIONAL:
+            return ExtraPosArgsParameter(
+                required=Parameter.REQUIRED in annotations,
+                typ=typ, **kwargs)
+        else:
+            return PositionalParameter(default=default, typ=typ, **kwargs)
+
+
 class Parameter(object):
     """Represents a CLI parameter.
 
@@ -34,6 +105,7 @@ class Parameter(object):
     """
 
     required = False
+    converter = default_converter
 
     def __init__(self, display_name, undocumented=False, last_option=None):
         self.display_name = display_name
@@ -48,69 +120,15 @@ class Parameter(object):
         else:
             annotations = []
 
-        named = param.kind in (param.KEYWORD_ONLY, param.VAR_KEYWORD)
-        aliases = [param.name]
-        default = util.UNSET
-        typ = util.identity
-
-        kwargs = {
-            'argument_name': param.name,
-            'undocumented': Parameter.UNDOCUMENTED in annotations,
-            }
-
-        if param.default is not param.empty:
-            if Parameter.REQUIRED not in annotations:
-                default = param.default
-            if default is not None:
-                typ = type(param.default)
-
-        if Parameter.LAST_OPTION in annotations:
-            kwargs['last_option'] = True
-
-        set_coerce = False
-        for thing in annotations:
-            if isinstance(thing, Parameter):
-                return thing
-            elif callable(thing):
-                if set_coerce:
-                    raise ValueError(
-                        "Coercion function specified twice in annotation: "
-                        "{0.__name__} {1.__name__}".format(typ, thing))
-                typ = thing
-                set_coerce = True
-            elif isinstance(thing, six.string_types):
-                if not named:
-                    raise ValueError("Cannot give aliases for a positional "
-                                     "parameter.")
-                if len(thing.split()) > 1:
-                    raise ValueError("Cannot have whitespace in aliases.")
-                aliases.append(thing)
-            elif isinstance(thing, ParameterFlag):
-                pass
-            else:
-                raise ValueError(thing)
-
-        if named:
-            kwargs['aliases'] = [
-                util.name_py2cli(alias, named)
-                for alias in aliases]
-            if default is False and typ is bool:
-                return FlagParameter(value=True, false_value=False, **kwargs)
-            else:
-                kwargs['default'] = default
-                kwargs['typ'] = typ
-                if typ is int:
-                    return IntOptionParameter(**kwargs)
-                else:
-                    return OptionParameter(**kwargs)
+        for i, annotation in enumerate(annotations):
+            if getattr(annotation, '_clize__parameter_converter', False):
+                conv = annotation
+                annotations = annotations[:i] + annotations[i+1:]
+                break
         else:
-            kwargs['display_name'] = util.name_py2cli(param.name)
-            if param.kind == param.VAR_POSITIONAL:
-                return ExtraPosArgsParameter(
-                    required=Parameter.REQUIRED in annotations,
-                    typ=typ, **kwargs)
-            else:
-                return PositionalParameter(default=default, typ=typ, **kwargs)
+            conv = default_converter
+
+        return conv(param, annotations)
 
     R = REQUIRED = ParameterFlag('REQUIRED')
     """Annotate a parameter with this to force it to be required.

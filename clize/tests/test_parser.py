@@ -82,6 +82,26 @@ class FromSigTests(object):
         cparam = parser.Parameter.from_parameter(sparam)
         self.assertTrue(cparam is param)
 
+    def test_converter(self):
+        class CustExc(Exception):
+            pass
+        @parser.parameter_converter
+        def converter(param, annotations):
+            raise CustExc
+        @parser.parameter_converter
+        def noop_converter(param, annotations):
+            pass
+
+        sigs = [
+            support.s('o: c', locals={'c': converter, 'n': noop_converter}),
+            support.s('*, o: a',
+                      locals={'a': ("abc", converter, noop_converter)})
+            ]
+        for sig in sigs:
+            sparam = list(sig.parameters.values())[0]
+            self.assertRaises(CustExc, parser.Parameter.from_parameter, sparam)
+
+
 @testfunc
 def signaturetests(self, sig_str, str_rep, args, posargs, kwargs):
     sig = support.s(sig_str, locals={'P': parser.Parameter})
@@ -90,6 +110,7 @@ def signaturetests(self, sig_str, str_rep, args, posargs, kwargs):
     self.assertEqual(str(csig), str_rep)
     self.assertEqual(ba.args, posargs)
     self.assertEqual(ba.kwargs, kwargs)
+
 
 @signaturetests
 class SigTests(object):
@@ -167,6 +188,7 @@ class SigTests(object):
         ['1', '2', '--four', '4'], {'three': '3'}
         )
 
+
 @testfunc
 def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
     sig = support.s(sig_str)
@@ -231,6 +253,7 @@ def sigerrortests(self, sig_str, args, exc_typ):
     else: #pragma: no cover
         self.fail('{0.__name__} not raised'.format(exc_typ))
 
+
 @sigerrortests
 class SigErrorTests(object):
     not_enough_pos = 'one, two', ['1'], errors.MissingRequiredArguments
@@ -258,6 +281,7 @@ class SigErrorTests(object):
             raise
         else:
             self.fail('MissingRequiredArguments not raised') # pragma: no cover
+
 
 @testfunc
 def badparam(self, sig_str, locals=None):
