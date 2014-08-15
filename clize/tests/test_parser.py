@@ -288,9 +288,11 @@ def badparam(self, sig_str, locals=None):
     if locals is None:
         locals = {}
     sig = support.s(sig_str, pre='from clize import Parameter', locals=locals)
-    param = list(sig.parameters.values())[0]
+    params = list(sig.parameters.values())
+    if len(params) != 1:
+        raise ValueError("badparam requires exactly one parameter")
     try:
-        cparam = parser.Parameter.from_parameter(param)
+        parser.Parameter.from_parameter(params[0])
     except ValueError:
         pass
     else:
@@ -303,5 +305,24 @@ class UnknownAnnotation(object):
 class BadParamTests(object):
     alias_superfluous = 'one: "a"',
     alias_spaces = '*, one: "a b"',
+    alias_duplicate = '*, one: dup', {'dup': ('a', 'a')}
     unknown_annotation = 'one: ua', {'ua': UnknownAnnotation()}
     coerce_twice = 'one: co', {'co': (str, int)}
+
+
+@testfunc
+def badsig(self, sig_str, locals=None):
+    if locals is None:
+        locals = {}
+    sig = support.s(sig_str, pre='from clize import Parameter', locals=locals)
+    try:
+        parser.CliSignature.from_signature(sig)
+    except ValueError:
+        pass
+    else:
+        self.fail('ValueError not raised')
+
+
+@badsig
+class BadSigTests(object):
+    alias_overlapping = '*, one: "a", two: "a"',

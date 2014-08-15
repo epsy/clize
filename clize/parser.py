@@ -66,6 +66,8 @@ def default_converter(param, annotations):
                                  "parameter.")
             if len(thing.split()) > 1:
                 raise ValueError("Cannot have whitespace in aliases.")
+            if thing in aliases:
+                raise ValueError("Duplicate alias " + repr(thing))
             aliases.append(thing)
         elif isinstance(thing, ParameterFlag):
             pass
@@ -567,6 +569,13 @@ class CliSignature(object):
 
             if aliases_ is not None:
                 for alias in aliases_:
+                    existing = aliases.get(alias)
+                    if existing is not None:
+                        raise ValueError(
+                            "Parameters {0.display_name} and {1.display_name} "
+                            "use a duplicate alias {2!r}."
+                            .format(existing, param, alias)
+                            )
                     aliases[alias] = param
 
             if func:
