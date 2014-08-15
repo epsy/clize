@@ -1,6 +1,1 @@
-*.sw?
-*.pyc
-__pycache__
-build
-dist
-MANIFEST
+.bzrignore
