@@ -7,8 +7,7 @@ from functools import partial
 from itertools import chain
 from collections import defaultdict
 
-from sigtools.specifiers import forwards_to
-from sigtools.modifiers import autokwoargs, annotate
+from sigtools import modifiers, specifiers
 
 from clize import runner, parser, util
 
@@ -16,7 +15,7 @@ from clize import runner, parser, util
 def _clize(fn, alias={}, force_positional=(), coerce={},
            require_excess=False, extra=(),
            use_kwoargs=None):
-    sig = util.funcsigs.signature(fn)
+    sig = specifiers.signature(fn)
     has_kwoargs = False
     annotations = defaultdict(list)
     ann_positional = []
@@ -35,15 +34,15 @@ def _clize(fn, alias={}, force_positional=(), coerce={},
         annotations[name].extend(aliases)
     for name, func in coerce.items():
         annotations[name].append(func)
-    annotate(**annotations)(fn)
+    fn = modifiers.annotate(**annotations)(fn)
     use_kwoargs = has_kwoargs if use_kwoargs is None else use_kwoargs
     if not use_kwoargs:
-        fn = autokwoargs(
+        fn = modifiers.autokwoargs(
             exceptions=chain(ann_positional, force_positional))(fn)
     return runner.Clize(fn, extra=extra)
 
 
-@forwards_to(_clize, 1)
+@specifiers.forwards_to(_clize, 1)
 def clize(fn=None, **kwargs):
     """Compatibility with clize<3.0 releases. Decorates a function in order
     to be passed to `clize.run`. See :ref:`porting-2`."""

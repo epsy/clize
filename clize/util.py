@@ -7,21 +7,12 @@
 import os
 from functools import update_wrapper
 
-import inspect
-try:
-    inspect.signature
-except AttributeError:
-    import funcsigs
-else:
-    funcsigs = inspect
-
 try:
     from collections import OrderedDict
 except ImportError:
     from ordereddict import OrderedDict
 
 import six
-from sigtools.wrappers import wrapper_decorator
 
 
 class _Unset(object):

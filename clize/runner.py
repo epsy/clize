@@ -10,14 +10,11 @@ from functools import partial, update_wrapper
 import operator
 import itertools
 
-import six
 from sigtools.modifiers import annotate, autokwoargs
-from sigtools.specifiers import forwards_to_method
+from sigtools.specifiers import forwards_to_method, signature
 from sigtools.signatures import mask
 
 from clize import util, errors, parser
-
-funcsigs = util.funcsigs
 
 class _CliWrapper(object):
     def __init__(self, obj):
@@ -175,7 +172,7 @@ class Clize(object):
     def signature(self):
         """The `.parser.CliSignature` object used to parse arguments."""
         return parser.CliSignature.from_signature(
-            mask(util.funcsigs.signature(self.func), self.pass_name),
+            mask(signature(self.func), self.pass_name),
             extra=itertools.chain(self._process_alt(self.alt), self.extra))
 
     def _process_alt(self, alt):

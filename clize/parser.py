@@ -12,8 +12,6 @@ import six
 
 from clize import errors, util
 
-funcsigs = util.funcsigs
-
 
 class ParameterFlag(object):
     def __init__(self, name, prefix='clize.Parameter'):

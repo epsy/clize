@@ -1,5 +1,4 @@
-from sigtools import support, modifiers
-from clize.util import funcsigs
+from sigtools import support, modifiers, specifiers
 
 from clize import parser, errors, util
 from clize.tests.util import testfunc
@@ -272,7 +271,8 @@ class SigErrorTests(object):
         @modifiers.annotate(args=parser.Parameter.REQUIRED)
         def func(*args):
             raise NotImplementedError
-        csig = parser.CliSignature.from_signature(funcsigs.signature(func))
+        csig = parser.CliSignature.from_signature(
+            specifiers.signature(func))
         try:
             csig.read_arguments(())
         except errors.MissingRequiredArguments:
