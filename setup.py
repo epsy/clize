@@ -1,27 +1,22 @@
 #!/usr/bin/env python
 
-import sys
-
 from setuptools import setup
-
-deps = ['sigtools', 'six']
-
-if sys.version_info < (2, 7):
-    deps.append('ordereddict')
 
 setup(
     name='clize',
     version='3.0a',
-    description='Function decorator to quickly turn functions '
-                'into CLIs as we know them',
+    description='Command-line argument parsing for Python, without the effort',
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
-    install_requires=deps,
+    install_requires=['six', 'sigtools >= 0.1a5'],
+    extras_require={
+        ':python_version in "2.6"': ['ordereddict']
+    },
     packages=('clize',),
     test_suite='clize.tests',
     keywords=[
-        'CLI', 'options', 'arguments', 'getopts',
+        'CLI', 'options', 'arguments', 'getopts', 'getopt', 'argparse',
         'introspection', 'flags', 'decorator', 'subcommands',
         ],
     classifiers=[
@@ -34,6 +29,7 @@ setup(
         "Programming Language :: Python :: 3.1",
         "Programming Language :: Python :: 3.2",
         "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
         "Environment :: Console",
         "Intended Audience :: Developers",
         "Intended Audience :: System Administrators",
