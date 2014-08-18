@@ -8,7 +8,7 @@ from clize.tests.util import testfunc
 def fromsigtests(self, sig_str, typ, str_rep, attrs):
     sig = support.s(sig_str, pre='from clize import Parameter')
     param = list(sig.parameters.values())[0]
-    cparam = parser.Parameter.from_parameter(param)
+    cparam = parser.CliSignature.convert_parameter(param)
     self.assertEqual(type(cparam), typ)
     self.assertEqual(str(cparam), str_rep)
     p_attrs = dict(
@@ -78,7 +78,7 @@ class FromSigTests(object):
         param = parser.Parameter('abc')
         sig = support.s('xyz: p', locals={'p': param})
         sparam = list(sig.parameters.values())[0]
-        cparam = parser.Parameter.from_parameter(sparam)
+        cparam = parser.CliSignature.convert_parameter(sparam)
         self.assertTrue(cparam is param)
 
     def test_converter(self):
@@ -98,7 +98,7 @@ class FromSigTests(object):
             ]
         for sig in sigs:
             sparam = list(sig.parameters.values())[0]
-            self.assertRaises(CustExc, parser.Parameter.from_parameter, sparam)
+            self.assertRaises(CustExc, parser.CliSignature.convert_parameter, sparam)
 
 
 @testfunc
@@ -292,14 +292,16 @@ def badparam(self, sig_str, locals=None):
     if len(params) != 1:
         raise ValueError("badparam requires exactly one parameter")
     try:
-        parser.Parameter.from_parameter(params[0])
+        parser.CliSignature.convert_parameter(params[0])
     except ValueError:
         pass
     else:
         self.fail('ValueError not raised')
 
+
 class UnknownAnnotation(object):
     pass
+
 
 @badparam
 class BadParamTests(object):
@@ -308,6 +310,9 @@ class BadParamTests(object):
     alias_duplicate = '*, one: dup', {'dup': ('a', 'a')}
     unknown_annotation = 'one: ua', {'ua': UnknownAnnotation()}
     coerce_twice = 'one: co', {'co': (str, int)}
+    dup_pconverter = 'one: a', {'a': (parser.default_converter,
+                                      parser.default_converter)}
+    unimplemented_parameter = '**kwargs',
 
 
 @testfunc

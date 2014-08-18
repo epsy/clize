@@ -7,8 +7,10 @@ interpret function signatures and read commandline arguments
 """
 
 import itertools
+from functools import partial
 
 import six
+from sigtools import modifiers
 
 from clize import errors, util
 
@@ -22,79 +24,6 @@ class ParameterFlag(object):
         return '{0.prefix}.{0.name}'.format(self)
 
 
-def parameter_converter(obj):
-    obj._clize__parameter_converter = True
-    return obj
-
-
-def default_converter(param, annotations):
-    named = param.kind in (param.KEYWORD_ONLY, param.VAR_KEYWORD)
-    aliases = [param.name]
-    default = util.UNSET
-    typ = util.identity
-
-    kwargs = {
-        'argument_name': param.name,
-        'undocumented': Parameter.UNDOCUMENTED in annotations,
-        }
-
-    if param.default is not param.empty:
-        if Parameter.REQUIRED not in annotations:
-            default = param.default
-        if default is not None:
-            typ = type(param.default)
-
-    if Parameter.LAST_OPTION in annotations:
-        kwargs['last_option'] = True
-
-    set_coerce = False
-    for thing in annotations:
-        if isinstance(thing, Parameter):
-            return thing
-        elif callable(thing):
-            if set_coerce:
-                raise ValueError(
-                    "Coercion function specified twice in annotation: "
-                    "{0.__name__} {1.__name__}".format(typ, thing))
-            typ = thing
-            set_coerce = True
-        elif isinstance(thing, six.string_types):
-            if not named:
-                raise ValueError("Cannot give aliases for a positional "
-                                 "parameter.")
-            if len(thing.split()) > 1:
-                raise ValueError("Cannot have whitespace in aliases.")
-            if thing in aliases:
-                raise ValueError("Duplicate alias " + repr(thing))
-            aliases.append(thing)
-        elif isinstance(thing, ParameterFlag):
-            pass
-        else:
-            raise ValueError(thing)
-
-    if named:
-        kwargs['aliases'] = [
-            util.name_py2cli(alias, named)
-            for alias in aliases]
-        if default is False and typ is bool:
-            return FlagParameter(value=True, false_value=False, **kwargs)
-        else:
-            kwargs['default'] = default
-            kwargs['typ'] = typ
-            if typ is int:
-                return IntOptionParameter(**kwargs)
-            else:
-                return OptionParameter(**kwargs)
-    else:
-        kwargs['display_name'] = util.name_py2cli(param.name)
-        if param.kind == param.VAR_POSITIONAL:
-            return ExtraPosArgsParameter(
-                required=Parameter.REQUIRED in annotations,
-                typ=typ, **kwargs)
-        else:
-            return PositionalParameter(default=default, typ=typ, **kwargs)
-
-
 class Parameter(object):
     """Represents a CLI parameter.
 
@@ -105,30 +34,11 @@ class Parameter(object):
     """
 
     required = False
-    converter = default_converter
 
     def __init__(self, display_name, undocumented=False, last_option=None):
         self.display_name = display_name
         self.undocumented = undocumented
         self.last_option = last_option
-
-    @classmethod
-    def from_parameter(self, param):
-        """"""
-        if param.annotation != param.empty:
-            annotations = util.maybe_iter(param.annotation)
-        else:
-            annotations = []
-
-        for i, annotation in enumerate(annotations):
-            if getattr(annotation, '_clize__parameter_converter', False):
-                conv = annotation
-                annotations = annotations[:i] + annotations[i+1:]
-                break
-        else:
-            conv = default_converter
-
-        return conv(param, annotations)
 
     R = REQUIRED = ParameterFlag('REQUIRED')
     """Annotate a parameter with this to force it to be required.
@@ -522,6 +432,116 @@ class ExtraPosArgsParameter(PositionalParameter):
         return fmt.format(self.display_name)
 
 
+def parameter_converter(obj):
+    obj._clize__parameter_converter = True
+    return obj
+
+
+def is_parameter_converter(obj):
+    return getattr(obj, '_clize__parameter_converter', False)
+
+
+def unimplemented_parameter(argument_name, **kwargs):
+    raise ValueError(
+        "This converter cannot convert parameter {0!r},".format(argument_name)
+        )
+
+
+@modifiers.autokwoargs
+def use_class(
+        pos=unimplemented_parameter, varargs=unimplemented_parameter,
+        named=unimplemented_parameter, varkwargs=unimplemented_parameter):
+    return parameter_converter(
+        partial(_use_class, pos, varargs, named, varkwargs))
+
+
+def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls,
+                 param, annotations):
+    named = param.kind in (param.KEYWORD_ONLY, param.VAR_KEYWORD)
+    aliases = [param.name]
+    default = util.UNSET
+    typ = util.identity
+
+    kwargs = {
+        'argument_name': param.name,
+        'undocumented': Parameter.UNDOCUMENTED in annotations,
+        }
+
+    if param.default is not param.empty:
+        if Parameter.REQUIRED not in annotations:
+            default = param.default
+        if default is not None:
+            typ = type(param.default)
+
+    if Parameter.REQUIRED in annotations:
+        kwargs['required'] = True
+
+    if Parameter.LAST_OPTION in annotations:
+        kwargs['last_option'] = True
+
+    set_coerce = False
+    for thing in annotations:
+        if isinstance(thing, Parameter):
+            return thing
+        elif callable(thing):
+            if is_parameter_converter(thing):
+                raise ValueError(
+                    "A custom parameter converter must be the first element "
+                    "of a parameter's annotation")
+            if set_coerce:
+                raise ValueError(
+                    "Coercion function specified twice in annotation: "
+                    "{0.__name__} {1.__name__}".format(typ, thing))
+            typ = thing
+            set_coerce = True
+        elif isinstance(thing, six.string_types):
+            if not named:
+                raise ValueError("Cannot give aliases for a positional "
+                                 "parameter.")
+            if len(thing.split()) > 1:
+                raise ValueError("Cannot have whitespace in aliases.")
+            if thing in aliases:
+                raise ValueError("Duplicate alias " + repr(thing))
+            aliases.append(thing)
+        elif isinstance(thing, ParameterFlag):
+            pass
+        else:
+            raise ValueError(thing)
+
+    kwargs['default'] = default
+    kwargs['typ'] = typ
+
+    if named:
+        kwargs['aliases'] = [
+            util.name_py2cli(alias, named)
+            for alias in aliases]
+        if param.kind == param.VAR_KEYWORD:
+            return varkwargs_cls(**kwargs)
+        return named_cls(**kwargs)
+    else:
+        kwargs['display_name'] = util.name_py2cli(param.name)
+        if param.kind == param.VAR_POSITIONAL:
+            return varargs_cls(**kwargs)
+        return pos_cls(**kwargs)
+
+def pos_parameter(required=False, **kwargs):
+    return PositionalParameter(**kwargs)
+
+def named_parameter(**kwargs):
+    if kwargs['default'] is False and kwargs['typ'] is bool:
+        del kwargs['default'], kwargs['typ']
+        return FlagParameter(value=True, false_value=False, **kwargs)
+    elif kwargs['typ'] is int:
+        return IntOptionParameter(**kwargs)
+    else:
+        return OptionParameter(**kwargs)
+
+default_converter = use_class(
+    pos=pos_parameter, varargs=ExtraPosArgsParameter,
+    named=named_parameter,
+    )
+
+
 class CliSignature(object):
     """A collection of parameters that can be used to translate CLI arguments
     to function arguments.
@@ -550,6 +570,8 @@ class CliSignature(object):
 
         A set of all required parameters.
     """
+
+    converter = default_converter
 
     def __init__(self, parameters):
         pos = self.positional = []
@@ -598,9 +620,29 @@ class CliSignature(object):
         return cls(
             itertools.chain(
                 (
-                    cls.param_cls.from_parameter(param)
+                    cls.convert_parameter(param)
                     for param in sig.parameters.values()
                 ), extra))
+
+    @classmethod
+    def convert_parameter(cls, param):
+        """Convert a python parameter to a CLI parameter"""
+        if param.annotation != param.empty:
+            annotations = util.maybe_iter(param.annotation)
+        else:
+            annotations = []
+
+        for i, annotation in enumerate(annotations):
+            if getattr(annotation, '_clize__parameter_converter', False):
+                conv = annotation
+                annotations = annotations[:i] + annotations[i+1:]
+                break
+        else:
+            conv = cls.converter
+
+        return conv(param, annotations)
+
+
 
     def read_arguments(self, args, name='unnamed'):
         """Returns a `.CliBoundArguments` instance for this CLI signature
