@@ -34,6 +34,10 @@ class Parameter(object):
     """
 
     required = False
+    """Is this parameter required?"""
+
+    extras = ()
+    """Iterable of extra parameters this parameter incurs"""
 
     def __init__(self, display_name, undocumented=False, last_option=None):
         self.display_name = display_name
@@ -50,7 +54,7 @@ class Parameter(object):
     """Annotate a parameter with this and all following arguments will be
     processed as positional."""
 
-    # I = IGNORE = ParameterFlag('IGNORE')
+    I = IGNORE = ParameterFlag('IGNORE')
 
     U = UNDOCUMENTED = ParameterFlag('UNDOCUMENTED')
     """Parameters annotated with this will be omitted from the
@@ -542,6 +546,13 @@ default_converter = use_class(
     )
 
 
+def _develop_extras(params):
+    for param in params:
+        yield param
+        for subparam in _develop_extras(param.extras):
+            yield subparam
+
+
 class CliSignature(object):
     """A collection of parameters that can be used to translate CLI arguments
     to function arguments.
@@ -579,7 +590,7 @@ class CliSignature(object):
         alt = self.alternate = []
         aliases = self.aliases = {}
         required = self.required = set()
-        for param in parameters:
+        for param in _develop_extras(parameters):
             required_ = getattr(param, 'required', False)
             func = getattr(param, 'func', None)
             aliases_ = getattr(param, 'aliases', None)
@@ -619,9 +630,9 @@ class CliSignature(object):
         """
         return cls(
             itertools.chain(
-                (
-                    cls.convert_parameter(param)
-                    for param in sig.parameters.values()
+                filter(lambda x: x is not Parameter.IGNORE,
+                    (cls.convert_parameter(param)
+                    for param in sig.parameters.values())
                 ), extra))
 
     @classmethod
@@ -631,6 +642,9 @@ class CliSignature(object):
             annotations = util.maybe_iter(param.annotation)
         else:
             annotations = []
+
+        if Parameter.IGNORE in annotations:
+            return Parameter.IGNORE
 
         for i, annotation in enumerate(annotations):
             if getattr(annotation, '_clize__parameter_converter', False):

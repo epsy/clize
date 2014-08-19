@@ -187,6 +187,16 @@ class SigTests(object):
         ['1', '2', '--four', '4'], {'three': '3'}
         )
 
+    ignored = 'one:P.I', '', (), [], {}
+
+    def test_converter_ignore(self):
+        @parser.parameter_converter
+        def conv(param, annotations):
+            return parser.Parameter.IGNORE
+        sig = support.s('one:conv', locals={'conv': conv})
+        csig = parser.CliSignature.from_signature(sig)
+        self.assertEqual(str(csig), '')
+
 
 @testfunc
 def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
@@ -237,6 +247,18 @@ class ExtraParamsTests(object):
                     func=_func, aliases=['--alt'])],
             ('a', '--alt', 'a', 'b'), ['a', 'b'], {}, _func
         )
+
+    def test_param_extras(self):
+        extra_params = [
+            parser.FlagParameter(
+                value=True, false_value=False,
+                aliases=['-' + name], argument_name=name)
+            for name in 'abc']
+        param = parser.PositionalParameter(
+            display_name='one', argument_name='one')
+        param.extras = extra_params
+        csig = parser.CliSignature([param])
+        self.assertEqual('[-a] [-b] [-c] one', str(csig))
 
 
 @testfunc
