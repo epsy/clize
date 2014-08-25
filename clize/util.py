@@ -39,6 +39,10 @@ def name_cli2py(name, kw=False):
     return name.strip('-').replace('-', '_')
 
 def name_type2cli(typ):
+    try:
+        return typ.clize_type_name
+    except AttributeError:
+        pass
     if typ is identity or typ in six.string_types:
         return 'STR'
     else:

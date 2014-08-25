@@ -454,22 +454,34 @@ def unimplemented_parameter(argument_name, **kwargs):
 @modifiers.autokwoargs
 def use_class(
         pos=unimplemented_parameter, varargs=unimplemented_parameter,
-        named=unimplemented_parameter, varkwargs=unimplemented_parameter):
+        named=unimplemented_parameter, varkwargs=unimplemented_parameter,
+        kwargs={}):
     return parameter_converter(
-        partial(_use_class, pos, varargs, named, varkwargs))
+        partial(_use_class, pos, varargs, named, varkwargs, kwargs))
 
 
-def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls,
-                 param, annotations):
+@modifiers.autokwoargs
+def use_mixin(cls, kwargs={}):
+    class _PosWithMixin(cls, PositionalParameter): pass
+    class _VarargsWithMixin(cls, ExtraPosArgsParameter): pass
+    class _NamedWithMixin(cls, OptionParameter): pass
+    return use_class(pos=_PosWithMixin, varargs=_VarargsWithMixin,
+                     named=_NamedWithMixin,
+                     kwargs=kwargs)
+
+
+def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
+               param, annotations):
     named = param.kind in (param.KEYWORD_ONLY, param.VAR_KEYWORD)
     aliases = [param.name]
     default = util.UNSET
     typ = util.identity
 
-    kwargs = {
-        'argument_name': param.name,
-        'undocumented': Parameter.UNDOCUMENTED in annotations,
-        }
+    kwargs = dict(
+        kwargs,
+        argument_name=param.name,
+        undocumented=Parameter.UNDOCUMENTED in annotations,
+        )
 
     if param.default is not param.empty:
         if Parameter.REQUIRED not in annotations:
