@@ -81,6 +81,10 @@ class Parameter(object):
         """
         if self.last_option:
             ba.posarg_only = True
+        ba.unsatisfied.discard(self)
+
+    def unsatisfied(self, ba):
+        return True
 
     def format_type(self):
         return ''
@@ -204,6 +208,25 @@ class NamedParameter(Parameter):
             ba.in_args = orig_args
         ba.unsatisfied.discard(nparam)
 
+    def get_value(self, ba, i):
+        arg = ba.in_args[i]
+        if arg.startswith('--'):
+            name, glued, val = arg.partition('=')
+        else:
+            arg = arg.lstrip('-')
+            if len(arg) > 1:
+                glued = True
+                val = arg[1:]
+            else:
+                glued = False
+        if not glued:
+            try:
+                val = ba.in_args[i+1]
+            except IndexError:
+                raise errors.MissingValue
+        ba.skip = not glued
+        return val
+
 
 class FlagParameter(NamedParameter, ParameterWithSourceEquivalent):
     """A named parameter that takes no argument.
@@ -253,23 +276,8 @@ class OptionParameter(NamedParameter, ParameterWithValue,
     def read_argument(self, ba, i):
         if self.argument_name in ba.kwargs:
             raise errors.DuplicateNamedArgument()
-        arg = ba.in_args[i]
-        if arg.startswith('--'):
-            name, glued, val = arg.partition('=')
-        else:
-            arg = arg.lstrip('-')
-            if len(arg) > 1:
-                glued = True
-                val = arg[1:]
-            else:
-                glued = False
-        if not glued:
-            try:
-                val = ba.in_args[i+1]
-            except IndexError:
-                raise errors.MissingValue
+        val = self.get_value(ba, i)
         ba.kwargs[self.argument_name] = self.coerce_value(val)
-        ba.skip = not glued
 
     def format_type(self):
         return '=' + util.name_type2cli(self.typ)
@@ -312,9 +320,6 @@ class IntOptionParameter(OptionParameter):
 class MultiParameter(ParameterWithValue):
     """Parameter that can collect multiple values."""
 
-    def __str__(self):
-        return '[{0}...]'.format(self.name)
-
     def get_collection(self, ba):
         """Return an object that new values will be appended to."""
         raise NotImplementedError
@@ -322,15 +327,6 @@ class MultiParameter(ParameterWithValue):
     def read_argument(self, ba, i):
         val = self.coerce_value(ba.in_args[i])
         self.get_collection(ba).append(val)
-
-
-class MultiOptionParameter(NamedParameter, MultiParameter):
-    """Named parameter that can collect multiple values."""
-
-    required = False
-
-    def get_collection(self, ba):
-        return ba.kwargs.setdefault(self.argument_name, [])
 
 
 class EatAllPositionalParameter(MultiParameter):
@@ -359,7 +355,7 @@ class IgnoreAllOptionParameterArguments(EatAllOptionParameterArguments):
         pass
 
 
-class EatAllOptionParameter(MultiOptionParameter):
+class EatAllOptionParameter(NamedParameter):
     """Parameter that collects all remaining arguments as positional
     arguments, even those which look like named arguments."""
 
@@ -370,7 +366,6 @@ class EatAllOptionParameter(MultiOptionParameter):
         self.args_param = self.extra_type(self)
 
     def read_argument(self, ba, i):
-        super(EatAllOptionParameter, self).read_argument(ba, i)
         ba.post_name.append(ba.in_args[i])
         ba.posarg_only = True
         ba.sticky = self.args_param
@@ -826,11 +821,16 @@ class CliBoundArguments(object):
                             raise errors.UnknownOption(name)
                     with errors.SetArgumentErrorContext(param=param):
                         param.read_argument(self, i)
-                        self.unsatisfied.discard(param)
                         param.apply_generic_flags(self)
 
         if self.unsatisfied and not self.func:
-            raise errors.MissingRequiredArguments(self.unsatisfied)
+            unsatisfied = []
+            for p in self.unsatisfied:
+                with errors.SetArgumentErrorContext(param=p):
+                    if p.unsatisfied(self):
+                        unsatisfied.append(p)
+            if unsatisfied:
+                raise errors.MissingRequiredArguments(unsatisfied)
 
         del self.sticky, self.posarg_only, self.skip, self.unsatisfied
 

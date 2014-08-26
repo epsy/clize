@@ -1,1 +1,1 @@
-from .parameters import one_of, mapped
+from .parameters import one_of, mapped, multi

@@ -129,3 +129,65 @@ def one_of(case_sensitive=None, list_name='list', *values):
     return mapped(
         list(_conv_oneof(values)),
         case_sensitive=case_sensitive, list_name=list_name)
+
+
+class NotEnoughValues(errors.ArgumentError):
+    """Raised when MultiOptionParameter is given less values than its min
+    parameter."""
+
+    @property
+    def message(self):
+        return "Received too few values for {0.display_name}".format(
+                self.param)
+
+
+class TooManyValues(errors.ArgumentError):
+    """Raised when MultiOptionParameter is given more values than its max
+    parameter."""
+
+    @property
+    def message(self):
+        return "Received too many values for {0.display_name}".format(
+                self.param)
+
+
+class MultiOptionParameter(parser.MultiParameter, parser.OptionParameter):
+    """Named parameter that can collect multiple values."""
+
+    required = True
+
+    def __init__(self, min, max, **kwargs):
+        super(MultiOptionParameter, self).__init__(**kwargs)
+        self.min = min
+        self.max = max
+
+    def read_argument(self, ba, i):
+        val = self.coerce_value(self.get_value(ba, i))
+        col = self.get_collection(ba)
+        col.append(val)
+        if self.min <= len(col):
+            ba.unsatisfied.discard(self)
+        if self.max is not None and self.max < len(col):
+            raise TooManyValues
+
+    def get_collection(self, ba):
+        return ba.kwargs.setdefault(self.argument_name, [])
+
+    def apply_generic_flags(self, ba):
+        if self.last_option:
+            ba.posarg_only = True
+
+    def unsatisfied(self, ba):
+        if not self.min:
+            ba.kwargs[self.argument_name] = []
+            return False
+        if not ba.kwargs.get(self.argument_name):
+            return True
+        raise NotEnoughValues
+
+
+def multi(min=0, max=None):
+    return parser.use_class(named=MultiOptionParameter, kwargs={
+            'min': min,
+            'max': max,
+        })
