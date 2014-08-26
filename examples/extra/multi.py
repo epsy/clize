@@ -1,9 +1,10 @@
 from sigtools import modifiers
-from clize import run, extra
+from clize import run
+from clize.extra import parameters
 
 
 @modifiers.kwoargs('listen')
-@modifiers.annotate(listen=('l', extra.multi()))
+@modifiers.annotate(listen=('l', parameters.multi()))
 def main(listen):
     """Listens on the given addresses
 

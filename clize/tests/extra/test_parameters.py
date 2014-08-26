@@ -1,6 +1,7 @@
 from sigtools import support
 
-from clize import parser, extra, errors, Parameter
+from clize import parser, errors, Parameter
+from clize.extra import parameters
 from clize.tests import util
 
 
@@ -12,36 +13,38 @@ def check_repr(self, sig_str, annotation, str_rep):
 
 @check_repr
 class RepTests(object):
-    mapped_basic = ('par:a', extra.mapped([
+    mapped_basic = ('par:a', parameters.mapped([
         ('greeting', ['hello'], 'h1'),
         ('parting', ['goodbye'], 'h2'),
         ]), 'par')
-    mapped_force_icase = ('par:a', extra.mapped([
+    mapped_force_icase = ('par:a', parameters.mapped([
         (1, ['thing'], 'h')
         ], case_sensitive=False), 'par')
-    mapped_force_scase = ('par:a', extra.mapped([
+    mapped_force_scase = ('par:a', parameters.mapped([
         (1, ['Thing'], 'h'),
         ], case_sensitive=True), 'par')
-    mapped_imply_scase = ('par:a', extra.mapped([
+    mapped_imply_scase = ('par:a', parameters.mapped([
         (1, ['thing'], 'h'),
         (2, ['Thing'], 'h'),
         ]), 'par')
-    mapped_bad_icase = ('par:a', extra.mapped([
+    mapped_bad_icase = ('par:a', parameters.mapped([
         (1, ['thing'], 'h'),
         (2, ['Thing'], 'h'),
         ], case_sensitive=False), 'par')
 
-    oneof_basic = 'par:a', extra.one_of('hello', 'goodbye', 'bye'), 'par'
-    oneof_help = 'par:a', extra.one_of(('hello', 'h1'), ('bye', 'h2')), 'par'
+    oneof_basic = 'par:a', parameters.one_of('hello', 'goodbye', 'bye'), 'par'
+    oneof_help = (
+        'par:a', parameters.one_of(('hello', 'h1'), ('bye', 'h2')), 'par')
 
-    multi_basic = '*, par:a', extra.multi(), '--par=STR'
-    multi_req = '*, par:a', extra.multi(1), '--par=STR'
-    multi_min = '*, par:a', extra.multi(2), '--par=STR'
-    multi_max = '*, par:a', extra.multi(max=2), '--par=STR'
-    multi_bound = '*, par:a', extra.multi(min=2, max=3), '--par=STR'
-    multi_conv = '*, par:a', (extra.multi(), int), '--par=INT'
+    multi_basic = '*, par:a', parameters.multi(), '--par=STR'
+    multi_req = '*, par:a', parameters.multi(1), '--par=STR'
+    multi_min = '*, par:a', parameters.multi(2), '--par=STR'
+    multi_max = '*, par:a', parameters.multi(max=2), '--par=STR'
+    multi_bound = '*, par:a', parameters.multi(min=2, max=3), '--par=STR'
+    multi_conv = '*, par:a', (parameters.multi(), int), '--par=INT'
     multi_last_opt = (
-        '*args, par:a', (extra.multi(), Parameter.L), '--par=STR [args...]')
+        '*args, par:a', (parameters.multi(), Parameter.L),
+        '--par=STR [args...]')
 
 
 @util.testfunc
@@ -145,16 +148,16 @@ class MultiTests(object):
 class MultiErrorTests(object):
     req_not_met = RepTests.multi_req, (), errors.MissingRequiredArguments
     min_not_met_1 = (
-        RepTests.multi_min, ('--par=one',), extra.parameters.NotEnoughValues)
+        RepTests.multi_min, ('--par=one',), parameters.NotEnoughValues)
     min_not_met_2 = (
-        RepTests.multi_min, ('--par', 'one'), extra.parameters.NotEnoughValues)
+        RepTests.multi_min, ('--par', 'one'), parameters.NotEnoughValues)
 
     max_passed_1 = (
         RepTests.multi_max, ('--par=1', '--par=2', '--par=3'),
-        extra.parameters.TooManyValues)
+        parameters.TooManyValues)
     max_passed_2 = (
         RepTests.multi_max, ('--par=1', '--par=2', '--par=3', '--par=4'),
-        extra.parameters.TooManyValues)
+        parameters.TooManyValues)
 
     def test_message(self):
         sig_str, annotation, str_rep = RepTests.multi_bound
@@ -163,10 +166,10 @@ class MultiErrorTests(object):
 
         try:
             csig.read_arguments(('--par=1',))
-        except extra.parameters.NotEnoughValues as e:
+        except parameters.NotEnoughValues as e:
             self.assertEqual(e.message, "Received too few values for --par")
 
         try:
             csig.read_arguments(('--par=1', '--par=2', '--par=3', '--par=4'))
-        except extra.parameters.TooManyValues as e:
+        except parameters.TooManyValues as e:
             self.assertEqual(e.message, "Received too many values for --par")

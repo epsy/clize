@@ -1,8 +1,9 @@
 from sigtools import modifiers
-from clize import run, extra
+from clize import run
+from clize.extra import parameters
 
 
-greeting = extra.mapped([
+greeting = parameters.mapped([
     ('Hello', ['hello', 'hi'], 'A welcoming message'),
     ('Goodbye', ['goodbye', 'bye'], 'A parting message'),
 ])
