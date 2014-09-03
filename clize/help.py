@@ -235,7 +235,7 @@ class ClizeHelp(Help):
         if getattr(param, 'default', None) in (util.UNSET, None, False, ''):
             default = ''
         else:
-            default = "((default: {0})".format(param.default)
+            default = "(default: {0})".format(param.default)
         cols.append(param.full_name, desc + default)
         if name in self.after:
             for p in self.after[name]:
