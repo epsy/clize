@@ -58,7 +58,7 @@ class GetExcecutableTests(object):
         finally:
             if which_backup:
                 shutil.which = which_backup
-            else:
+            elif which is not None:
                 del shutil.which
 
     none = None, 'python', 'python'

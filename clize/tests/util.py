@@ -20,7 +20,7 @@ def make_run_test(func, value, **kwargs):
 
 def build_sigtests(func, cls):
     if func is None:
-        func = cls._test_func
+        func = cls.__dict__['_test_func']
     members = {
             '_test_func': func,
         }
