@@ -9,6 +9,7 @@ import os
 from functools import partial, update_wrapper
 import operator
 import itertools
+import shutil
 
 from sigtools.modifiers import annotate, autokwoargs
 from sigtools.specifiers import forwards_to_method, signature
@@ -237,24 +238,55 @@ class SubcommandDispatcher(object):
         return func('{0} {1}'.format(name, command), *args)
 
 
-def fix_argv(argv, path):
+def fix_argv(argv, path, main):
     """Properly display ``python -m`` invocations"""
     if not path[0]:
+        try:
+            name = main_module_name(main)
+        except AttributeError:
+            pass
+        else:
+            argv = argv[:]
+            argv[0] = '{0} -m {1}'.format(
+                get_executable(sys.executable, 'python'), name)
+    else:
+        name = get_executable(sys.argv[0], sys.argv[0])
         argv = argv[:]
-        import __main__
-        argv[0] = '{0} -m {1}'.format(
-            os.path.basename(sys.executable) if sys.executable else 'python',
-            main_module_name(__main__))
+        argv[0] = name
     return argv
 
 
+def get_executable(path, default):
+    print(path)
+    if not path:
+        return default
+    if path.endswith('.py'):
+        return path
+    basename = os.path.basename(path)
+    try:
+        which = shutil.which
+    except AttributeError:
+        which = None
+    else:
+        if which(basename) == path:
+            print('which equal')
+            return basename
+    rel = os.path.relpath(path)
+    if rel.startswith('../'):
+        if which is None and os.path.isabs(path):
+            return basename
+        return path
+    return rel
+
+
 def main_module_name(module):
-    if module.__file__.endswith('/__main__.py'):
+    modname = os.path.splitext(os.path.basename(module.__file__))[0]
+    if modname == '__main__' and sys.version_info >= (2,7):
         return module.__package__
-    return (
-        module.__package__ + '.' +
-        os.path.splitext(os.path.basename(module.__file__))[0]
-        )
+    elif not module.__package__:
+        return modname
+    else:
+        return module.__package__ + '.' + modname
 
 
 @autokwoargs
@@ -282,7 +314,8 @@ def run(args=None, catch=(), exit=True, out=None, err=None, *fn, **kwargs):
     cli = Clize.get_cli(fn, **kwargs)
 
     if args is None:
-        args = fix_argv(sys.argv, sys.path)
+        module = sys.modules['__main__']
+        args = fix_argv(sys.argv, sys.path, module)
     if out is None:
         out = sys.stdout
     if err is None:
