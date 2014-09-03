@@ -19,6 +19,8 @@ def make_run_test(func, value, **kwargs):
     return _func
 
 def build_sigtests(func, cls):
+    if func is None:
+        func = cls._test_func
     members = {
             '_test_func': func,
         }
@@ -30,3 +32,5 @@ def build_sigtests(func, cls):
 
 def testfunc(test_func):
     return partial(build_sigtests, test_func)
+
+repeated_test = partial(build_sigtests, None)
