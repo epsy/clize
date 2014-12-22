@@ -1,1 +1,9 @@
-.bzrignore
+__pycache__
+/build
+/dist
+/MANIFEST
+/*.egg*
+/.coverage
+/htmlcov
+/.tox
+/venv*
