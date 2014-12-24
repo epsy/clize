@@ -257,7 +257,6 @@ def fix_argv(argv, path, main):
 
 
 def get_executable(path, default):
-    print(path)
     if not path:
         return default
     if path.endswith('.py'):
@@ -269,7 +268,6 @@ def get_executable(path, default):
         which = None
     else:
         if which(basename) == path:
-            print('which equal')
             return basename
     rel = os.path.relpath(path)
     if rel.startswith('../'):
