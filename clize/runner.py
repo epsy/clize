@@ -28,7 +28,12 @@ class _CliWrapper(object):
 def cli_commands(obj, namef, clizer):
     cmds = util.OrderedDict()
     cmd_by_name = {}
-    for key, val in util.dict_from_names(obj).items():
+    try:
+        names = util.dict_from_names(obj).items()
+    except AttributeError:
+        raise ValueError("Cannot guess name for anonymous objects "
+                         "(lists, dicts, etc)")
+    for key, val in names:
         if not key:
             continue
         names = tuple(namef(name) for name in util.maybe_iter(key))
