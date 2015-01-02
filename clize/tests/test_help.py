@@ -1,3 +1,7 @@
+# clize -- A command-line argument parser for Python
+# Copyright (C) 2011-2015 by Yann Kaiser <kaiser.yann@gmail.com>
+# See COPYING for details.
+
 from sigtools.support import f
 from clize import runner, help
 from clize.tests.util import testfunc
