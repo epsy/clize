@@ -6,7 +6,6 @@
 from __future__ import unicode_literals
 
 import itertools
-from functools import partial
 import inspect
 import re
 
@@ -22,18 +21,18 @@ def lines_to_paragraphs(L):
 p_delim = re.compile(r'\n\s*\n')
 
 class Help(object):
-
     def __init__(self, subject, owner):
         self.subject = subject
         self.owner = owner
-
-    @util.property_once
-    def header(self):
-        self.prepare()
-        return self.__dict__['header']
+        self.prepared = False
 
     def prepare(self):
         """Override for stuff to be done once per subject"""
+        self.prepared = True
+
+    def prepare_once(self):
+        if not self.prepared:
+            self.prepare()
 
     @runner.Clize(pass_name=True, hide_help=True)
     @kwoargs('usage')
@@ -43,6 +42,7 @@ class Help(object):
 
         usage: Only show the full usage
         """
+        self.prepare_once()
         name = name.rpartition(' ')[0]
         f = util.Formatter()
         if usage:
@@ -51,18 +51,13 @@ class Help(object):
             f.extend(self.show(name))
         return six.text_type(f)
 
-def update_new(target, other):
-    for key, val in six.iteritems(other):
-        if key not in target:
-            target[key] = val
-
 def split_docstring(s):
     if not s:
         return
     code_coming = False
     code = False
     for p in p_delim.split(s):
-        if code_coming or code and p.startswith(' '):
+        if (code_coming or code) and p.startswith(' '):
             yield p
             code_coming = False
             code = True
@@ -70,9 +65,25 @@ def split_docstring(s):
             item = ' '.join(p.split())
             if item.endswith(':'):
                 code_coming = True
+                if item == ':':
+                    continue
             code = False
             yield item
 
+
+def pname(p):
+    return getattr(p, 'argument_name', p.display_name)
+
+
+def filter_undocumented(params):
+    for param in params:
+        if not param.undocumented:
+            yield param
+
+
+LABEL_POS = "Arguments:"
+LABEL_OPT = "Options:"
+LABEL_ALT = "Other actions:"
 
 class ClizeHelp(Help):
     @property
@@ -80,95 +91,107 @@ class ClizeHelp(Help):
         return self.subject.signature
 
     @classmethod
-    def get_arg_type(cls, arg):
-        if arg.kwarg:
-            if arg.func:
-                return 'alt'
-            else:
-                return 'opt'
-        else:
-            return 'pos'
+    def get_param_type(cls, param):
+        try:
+            param.aliases
+        except AttributeError:
+            return LABEL_POS
+        if getattr(param, 'func', None) is None:
+            return LABEL_OPT
+        return LABEL_ALT
 
-    @classmethod
-    def filter_undocumented(cls, params):
-        for param in params:
-            if not param.undocumented:
-                yield param
 
     def prepare(self):
-        self.arguments = {
-            'pos': list(self.filter_undocumented(self.signature.positional)),
-            'opt': list(self.filter_undocumented(self.signature.named)),
-            'alt': list(self.filter_undocumented(self.signature.alternate)),
-            }
-        self.header, self.arghelp, self.before, self.after, self.footer = \
-            self.parse_help()
-        self.order = list(self.arghelp.keys())
+        super(ClizeHelp, self).prepare()
+        s = self.sections = util.OrderedDict((
+            (LABEL_POS, util.OrderedDict()),
+            (LABEL_OPT, util.OrderedDict()),
+            (LABEL_ALT, util.OrderedDict()),
+            ))
+        self.after = {}
+        for p in filter_undocumented(self.signature.positional):
+            s[LABEL_POS][pname(p)] = p, ''
+        for p in sorted(
+                filter_undocumented(self.signature.named), key=pname):
+            s[LABEL_OPT][pname(p)] = p, ''
+        for p in sorted(
+                filter_undocumented(self.signature.alternate), key=pname):
+            s[LABEL_ALT][pname(p)] = p, ''
+        self._parse_help()
+        s[LABEL_ALT] = s.pop(LABEL_ALT)
 
-    def parse_func_help(self, obj):
-        return self.parse_docstring(inspect.getdoc(obj))
+    def _parse_func_help(self, obj):
+        return self._parse_docstring(inspect.getdoc(obj))
 
     argdoc_re = re.compile('^([a-zA-Z_]+): ?(.+)$')
-    def parse_docstring(self, s):
+    def _parse_docstring(self, s):
+        free_text = []
         header = []
-        arghelp = util.OrderedDict()
-        before = {}
-        after = {}
-        last_arghelp = None
-        cur_after = []
+        label = None
+        last_argname = None
         for p in split_docstring(s):
             argdoc = self.argdoc_re.match(p)
             if argdoc:
                 argname, text = argdoc.groups()
-                arghelp[argname] = text
-                if cur_after:
-                    prev, this = cur_after, None
-                    if prev[-1].endswith(':'):
-                        this = [prev.pop()]
-                    if last_arghelp:
-                        after[last_arghelp] = cur_after
+                if free_text:
+                    if free_text[-1].endswith(':'):
+                        label = free_text.pop()
+                    if last_argname:
+                        self.after[last_argname] = free_text
                     else:
-                        header.extend(cur_after)
-                    if this:
-                        before[argname] = this
-                    cur_after = []
-                last_arghelp = argname
+                        header.extend(free_text)
+                    free_text = []
+                last_argname = argname
+                try:
+                    default_label = self.get_param_type(
+                        self.signature.parameters[argname])
+                except KeyError:
+                    continue
+                if default_label != LABEL_POS:
+                    try:
+                        param, _ = self.sections[default_label].pop(argname)
+                    except KeyError:
+                        continue
+                    label_ = label or default_label
+                    if label_ not in self.sections:
+                        self.sections[label_] = util.OrderedDict()
+                else:
+                    try:
+                        param, _ = self.sections[default_label][argname]
+                    except KeyError:
+                        continue
+                    label_ = default_label
+                self.sections[label_][argname] = param, text
             else:
-                cur_after.append(p)
-        if not arghelp:
-            header = cur_after
+                free_text.append(p)
+        if not last_argname:
+            header = free_text
             footer = []
         else:
-            footer = cur_after
-        return (
-            lines_to_paragraphs(header), arghelp, before, after,
-            lines_to_paragraphs(footer)
-            )
+            footer = free_text
+        return lines_to_paragraphs(header), lines_to_paragraphs(footer)
 
-    def parse_help(self):
-        header, arghelp, before, after, footer = \
-            self.parse_func_help(self.subject.func)
+    def _parse_help(self):
+        self.header, self.footer = self._parse_func_help(self.subject.func)
         for wrapper in wrappers(self.subject.func):
-            _, w_arghelp, w_before, w_after, _ = \
-                self.parse_func_help(wrapper)
-            update_new(arghelp, w_arghelp)
-            update_new(before, w_before)
-            update_new(after, w_after)
-        return header, arghelp, before, after, footer
+            self._parse_func_help(wrapper)
 
     @property
     def description(self):
+        self.prepare_once()
         try:
             return self.header[0]
         except IndexError:
             return ''
 
     def show_usage(self, name):
-        return 'Usage: {0} {1}{2}'.format(
-            name,
-            '[OPTIONS] ' if self.signature.named else '',
-            ' '.join(str(arg)
-                     for arg in self.signature.positional)
+        return 'Usage: {name}{options}{space}{positional}'.format(
+            name=name,
+            options=' [OPTIONS]' if self.signature.named else '',
+            space=' ' if self.signature.positional else '',
+            positional=' '.join(
+                str(arg)
+                for arg in filter_undocumented(self.signature.positional))
             ),
 
     def alternates_with_helper(self):
@@ -192,56 +215,29 @@ class ClizeHelp(Help):
         for name, usage in self.usages(name):
             yield ' '.join((name, usage))
 
-    def docstring_index(self, param):
-        name = getattr(param, 'argument_name', param.display_name)
-        try:
-            return self.order.index(name), name
-        except ValueError:
-            return float('inf'), name
-
-    kind_order = [
-        ('pos', 'Positional arguments:'),
-        ('opt', 'Options:'),
-        ('alt', 'Other actions:'),
-        ]
     def show_arguments(self):
         f = util.Formatter()
         with f.columns() as cols:
-            for key, message in self.kind_order:
+            for label, section in self.sections.items():
+                if not section: continue
                 f.new_paragraph()
-                if key in self.arguments and self.arguments[key]:
-                    if key == 'opt':
-                        params = sorted(self.arguments[key],
-                                        key=self.docstring_index)
-                    else:
-                        params = self.arguments[key]
-                    if getattr(params[0], 'argument_name', None
-                            ) not in self.before:
-                        f.append(message)
-                    with f.indent():
-                        for arg in params:
-                            self.show_argument(arg, f, cols)
+                f.append(label)
+                with f.indent():
+                    for argname, (param, text) in section.items():
+                        self.show_argument(
+                            param,
+                            text, self.after.get(argname, ()),
+                            f, cols)
         return f
 
-    def show_argument(self, param, f, cols):
-        name = getattr(param, 'argument_name', None)
-        if name in self.before:
-            for p in self.before[name]:
+    def show_argument(self, param, desc, after, f, cols):
+        ret = param.show_help(desc, after, f, cols)
+        if ret is not None:
+            cols.append(*ret)
+            if after:
                 f.new_paragraph()
-                f.append(p, indent=-2)
-        desc = getattr(param, 'description', None)
-        if desc is None:
-            desc = self.arghelp.get(name, '')
-        if getattr(param, 'default', None) in (util.UNSET, None, False, ''):
-            default = ''
-        else:
-            default = "(default: {0})".format(param.default)
-        cols.append(param.full_name, desc + default)
-        if name in self.after:
-            for p in self.after[name]:
+                f.extend(after)
                 f.new_paragraph()
-                f.append(p, indent=-2)
-            f.new_paragraph()
 
     def show(self, name):
         f = util.Formatter()
@@ -268,6 +264,7 @@ class DispatcherHelper(Help):
             return lines_to_paragraphs(split_docstring(inspect.cleandoc(doc)))
 
     def prepare(self):
+        super(DispatcherHelper, self).prepare()
         self.header = self.prepare_notes(self.owner.description)
         self.footer = self.prepare_notes(self.owner.footnotes)
 

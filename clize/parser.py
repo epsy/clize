@@ -96,6 +96,9 @@ class Parameter(object):
     def __str__(self):
         return self.display_name
 
+    def show_help(self, desc, after, f, cols):
+        return self.full_name, getattr(self, 'description', None) or desc
+
 
 class ParameterWithSourceEquivalent(Parameter):
     """Parameter that relates to a function parameter in the source.
@@ -592,6 +595,7 @@ class CliSignature(object):
     converter = default_converter
 
     def __init__(self, parameters):
+        params = self.parameters = {}
         pos = self.positional = []
         named = self.named = []
         alt = self.alternate = []
@@ -622,6 +626,7 @@ class CliSignature(object):
                 named.append(param)
             else:
                 pos.append(param)
+            params[getattr(param, 'argument_name', param.display_name)] = param
 
     param_cls = Parameter
     """The parameter class `.from_signature` will use to convert source
