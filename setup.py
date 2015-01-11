@@ -4,13 +4,13 @@ from setuptools import setup
 
 setup(
     name='clize',
-    version='3.0a1',
+    version='3.0a2',
     description='Command-line argument parsing for Python, without the effort',
     license='MIT',
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
-    install_requires=['six', 'sigtools >= 0.1a5'],
+    install_requires=['six', 'sigtools >= 0.1b1'],
     extras_require={
         ':python_version in "2.6"': ['ordereddict'],
     },
