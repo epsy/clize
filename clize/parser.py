@@ -102,7 +102,7 @@ class Parameter(object):
     def show_help_parens(self):
         s = ', '.join(self.help_parens())
         if s:
-            return '({0})'.format(s)
+            return ' ({0})'.format(s)
         return ''
 
     def help_parens(self):

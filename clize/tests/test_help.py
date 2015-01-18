@@ -78,14 +78,14 @@ class WholeHelpTests(object):
         Description
 
         Arguments:
-            one     Argument one(type: INT)
-            two     Argument two(type: INT, default: 2)
-            args    Other arguments(type: INT)
+            one     Argument one (type: INT)
+            two     Argument two (type: INT, default: 2)
+            args    Other arguments (type: INT)
 
         Options:
             --alpha=STR  Option alpha
             --beta=INT   Option beta
-            --gamma=INT  Option gamma(default: 5)
+            --gamma=INT  Option gamma (default: 5)
 
         Other actions:
             -h, --help  Show the help
