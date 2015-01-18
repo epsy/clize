@@ -4,7 +4,7 @@
 
 from sigtools import support
 
-from clize import parser, errors, Parameter
+from clize import parser, errors, Parameter, runner
 from clize.extra import parameters
 from clize.tests import util
 
@@ -21,6 +21,22 @@ class RepTests(object):
         ('greeting', ['hello'], 'h1'),
         ('parting', ['goodbye'], 'h2'),
         ]), 'par')
+    mapped_default = ('par:a="greeting"', parameters.mapped([
+        ('greeting', ['hello'], 'h1'),
+        ('parting', ['goodbye'], 'h2'),
+        ]), '[par]')
+    mapped_alternate_list = ('par:a', parameters.mapped([
+        ('greeting', ['hello'], 'h1'),
+        ('parting', ['goodbye'], 'h2'),
+        ], list_name="options"), 'par')
+    mapped_no_list = ('par:a', parameters.mapped([
+        ('greeting', ['hello'], 'h1'),
+        ('parting', ['goodbye'], 'h2'),
+        ], list_name=None), 'par')
+    mapped_kw = ('*, par:a', parameters.mapped([
+        ('greeting', ['hello'], 'h1'),
+        ('parting', ['goodbye'], 'h2'),
+        ], list_name=None), '--par=STR')
     mapped_force_icase = ('par:a', parameters.mapped([
         (1, ['thing'], 'h')
         ], case_sensitive=False), 'par')
@@ -77,6 +93,12 @@ class MappedTests(object):
     isec_1 = RepTests.mapped_basic, ['HElLo'], ['greeting'], {}
     isec_2 = RepTests.mapped_basic, ['GoODByE'], ['parting'], {}
 
+    use_default = RepTests.mapped_default, [], [], {}
+
+    exact_alternate = (
+        RepTests.mapped_alternate_list, ['hello'], ['greeting'], {})
+    exact_no_lisy = RepTests.mapped_no_list, ['hello'], ['greeting'], {}
+
     forced_icase_1 = RepTests.mapped_force_icase, ['thing'], [1], {}
     forced_icase_2 = RepTests.mapped_force_icase, ['ThiNG'], [1], {}
 
@@ -97,12 +119,74 @@ class MappedTests(object):
             goodbye h2""".split(),
             ba.func('name', *ba.args, **ba.kwargs).split())
 
+    def test_show_list_alt(self):
+        sig = support.s('par:a',
+                        locals={'a': RepTests.mapped_alternate_list[1]})
+        csig = parser.CliSignature.from_signature(sig)
+        ba = csig.read_arguments(['options'])
+        par = csig.positional[0]
+        self.assertEqual(par.show_list, ba.func)
+        self.assertEqual(
+            """name: Possible values for par:
+            hello h1
+            goodbye h2""".split(),
+            ba.func('name', *ba.args, **ba.kwargs).split())
 
 @annotated_sigerror_tests
 class MappedErrorTests(object):
     not_found = RepTests.mapped_basic, ['dog']
     forced_scase = RepTests.mapped_force_scase, ['thing']
     bas_icase = RepTests.mapped_bad_icase, ['anything'], ValueError
+    alternate = RepTests.mapped_alternate_list, ['list']
+    none = RepTests.mapped_no_list, ['list']
+
+
+@util.testfunc
+def test_help(self, sig_info, doc, expected):
+    sig_str, annotation, _ = sig_info
+    f = support.f(sig_str, locals={'a': annotation})
+    f.__doc__ = doc
+    cli = runner.Clize.get_cli(f)
+    self.assertEqual(expected.split(), cli('func', '--help').split())
+
+@test_help
+class MappedHelpTests(object):
+    basic = RepTests.mapped_basic, "par: type of greeting", """
+        Usage: func par
+        Arguments:
+          par          type of greeting (use "list" for options)
+        Other actions:
+          -h, --help   Show the help
+    """
+    default = RepTests.mapped_default, "par: type of greeting", """
+        Usage: func [par]
+        Arguments:
+          par          type of greeting (default: hello,
+                       use "list" for options)
+        Other actions:
+          -h, --help   Show the help
+    """
+    alternate = RepTests.mapped_alternate_list, "par: type of greeting", """
+        Usage: func par
+        Arguments:
+          par          type of greeting (use "options" for options)
+        Other actions:
+          -h, --help   Show the help
+    """
+    none = RepTests.mapped_no_list, "par: type of greeting", """
+        Usage: func par
+        Arguments:
+          par          type of greeting
+        Other actions:
+          -h, --help   Show the help
+    """
+    kw = RepTests.mapped_kw, "par: type of greeting", """
+        Usage: func [OPTIONS]
+        Options:
+          --par=STR   type of greeting
+        Other actions:
+          -h, --help  Show the help
+    """
 
 
 @annotated_sigtests

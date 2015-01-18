@@ -83,6 +83,22 @@ class MappedParameter(parser.ParameterWithValue):
         f.new_paragraph()
         return str(f)
 
+    def help_parens(self):
+        backup = self.default
+        try:
+            for arg, keys, _ in self.values:
+                if arg == self.default:
+                    self.default = keys[0]
+                    break
+            else:
+                self.default = util.UNSET
+            for s in super(MappedParameter, self).help_parens():
+                yield s
+        finally:
+            self.default = backup
+        if self.list_name:
+            yield 'use "{0}" for options'.format(self.list_name)
+
 
 @modifiers.autokwoargs
 def mapped(values, list_name='list', case_sensitive=None):
