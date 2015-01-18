@@ -86,18 +86,27 @@ class Parameter(object):
     def unsatisfied(self, ba):
         return True
 
-    def format_type(self):
-        return ''
-
-    @util.property_once
-    def full_name(self):
-        return self.display_name + self.format_type()
+    def get_full_name(self):
+        return self.display_name
 
     def __str__(self):
         return self.display_name
 
     def show_help(self, desc, after, f, cols):
-        return self.full_name, getattr(self, 'description', None) or desc
+        return (
+            self.get_full_name(), (
+                getattr(self, 'description', None) or desc
+                ) + self.show_help_parens()
+            )
+
+    def show_help_parens(self):
+        s = ', '.join(self.help_parens())
+        if s:
+            return '({0})'.format(s)
+        return ''
+
+    def help_parens(self):
+        return ()
 
 
 class ParameterWithSourceEquivalent(Parameter):
@@ -109,6 +118,9 @@ class ParameterWithSourceEquivalent(Parameter):
         super(ParameterWithSourceEquivalent, self).__init__(**kwargs)
         self.argument_name = argument_name
 
+
+def _is_default_type(typ):
+    return typ is util.identity or issubclass(typ, six.string_types)
 
 class ParameterWithValue(Parameter):
     """A parameter that stores a value, with possible default and/or
@@ -141,23 +153,15 @@ class ParameterWithValue(Parameter):
             exc.__cause__ = e
             raise exc
 
-    def format_type(self):
-        if (
-                self.typ is not util.identity
-                and not issubclass(self.typ, six.string_types)
-            ):
-            return '=' + util.name_type2cli(self.typ)
-        return ''
-
-    @util.property_once
-    def full_name(self):
-        return self.display_name + self.format_type()
-
     def __str__(self):
         if self.required:
-            return self.full_name
+            return self.get_full_name()
         else:
-            return '[{0}]'.format(self.full_name)
+            return '[{0}]'.format(self.get_full_name())
+
+    def help_parens(self):
+        if self.default != util.UNSET:
+            yield 'default: ' + str(self.default)
 
 
 class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
@@ -165,6 +169,12 @@ class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
     def read_argument(self, ba, i):
         val = self.coerce_value(ba.in_args[i])
         ba.args.append(val)
+
+    def help_parens(self):
+        if not _is_default_type(self.typ):
+            yield 'type: ' + util.name_type2cli(self.typ)
+        for s in super(PositionalParameter, self).help_parens():
+            yield s
 
 
 class NamedParameter(Parameter):
@@ -186,10 +196,9 @@ class NamedParameter(Parameter):
         forms(one dash) first."""
         return len(name) - len(name.lstrip('-')), next(cls.__key_count)
 
-    @util.property_once
-    def full_name(self):
+    def get_full_name(self):
         return ', '.join(sorted(self.aliases, key=self.alias_key)
-            ) + self.format_type()
+            )
 
     def __str__(self):
         return '[{0}]'.format(self.display_name)
@@ -284,6 +293,12 @@ class OptionParameter(NamedParameter, ParameterWithValue,
 
     def format_type(self):
         return '=' + util.name_type2cli(self.typ)
+
+    def get_full_name(self):
+        return (
+            super(OptionParameter, self).get_full_name()
+            + self.format_type()
+            )
 
     def __str__(self):
         if self.required:

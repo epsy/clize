@@ -53,6 +53,46 @@ class WholeHelpTests(object):
         Footer
     """
 
+    parens = "one:int, two=2, *args:int, alpha, beta:int, gamma=5", """
+        Description
+
+        one: Argument one
+
+        two: Argument two
+
+        args: Other arguments
+
+        alpha: Option alpha
+
+        beta: Option beta
+
+        gamma: Option gamma
+
+        Footer
+    """, [
+        'func --alpha=STR --beta=INT [--gamma=INT] one [two] [args...]',
+        USAGE_HELP
+    ], """
+        Usage: func [OPTIONS] one [two] [args...]
+
+        Description
+
+        Arguments:
+            one     Argument one(type: INT)
+            two     Argument two(type: INT, default: 2)
+            args    Other arguments(type: INT)
+
+        Options:
+            --alpha=STR  Option alpha
+            --beta=INT   Option beta
+            --gamma=INT  Option gamma(default: 5)
+
+        Other actions:
+            -h, --help  Show the help
+
+        Footer
+    """
+
     pos_out_of_order = "one, two", """
         Description
 

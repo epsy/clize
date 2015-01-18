@@ -36,12 +36,12 @@ class FromSigTests(object):
         'typ': util.identity, 'default': None, 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
-    pos_default_int = 'one=3', parser.PositionalParameter, '[one=INT]', {
+    pos_default_int = 'one=3', parser.PositionalParameter, '[one]', {
         'typ': int, 'default': 3, 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
     pos_default_but_required = (
-        'one:Parameter.REQUIRED=3', parser.PositionalParameter, 'one=INT', {
+        'one:Parameter.REQUIRED=3', parser.PositionalParameter, 'one', {
             'typ': int, 'default': util.UNSET, 'required': True,
             'argument_name': 'one', 'display_name': 'one',
             'undocumented': False, 'last_option': None})
@@ -168,7 +168,7 @@ class SigTests(object):
         '*args, one', '--one=STR [args...]',
         ('2', '--one', '1', '3'), ['2', '3'], {'one': '1'})
 
-    conv = 'a=1', '[a=INT]', ('1',), [1], {}
+    conv = 'a=1', '[a]', ('1',), [1], {}
 
     named_int_glued = (
         '*, one:"a"=1, two:"b"="s"', '[--one=INT] [--two=STR]',
