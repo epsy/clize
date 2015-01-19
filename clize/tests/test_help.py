@@ -326,6 +326,24 @@ class WholeHelpTests(object):
 
         Footer
     """
+    undocumented = "one:P.U, two:P.U, *args:P.U, alpha:P.U, beta:P.U", """
+        Description
+
+        two: unseen
+
+        beta: unseen
+
+        Footer
+    """, ['func ', USAGE_HELP], """
+        Usage: func [OPTIONS]
+
+        Description
+
+        Other actions:
+        -h, --help  Show the help
+
+        Footer
+    """
 
 
 @repeated_test
@@ -478,7 +496,7 @@ class WrappedFuncTests(object):
 @repeated_test
 class FormattingTests(object):
     def _test_func(self, sig, doc, help_str):
-        func = f(sig, pre="from clize import Parameter")
+        func = f(sig, pre="from clize import Parameter as P")
         func.__doc__ = doc
         r = runner.Clize(func)
         h = help.ClizeHelp(r, None)
