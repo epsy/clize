@@ -15,6 +15,35 @@ def check_repr(self, sig_str, annotation, str_rep):
     csig = parser.CliSignature.from_signature(sig)
     self.assertEqual(str(csig), str_rep)
 
+
+@util.testfunc
+def test_help(self, sig_info, doc, expected):
+    sig_str, annotation, _ = sig_info
+    f = support.f(sig_str, locals={'a': annotation})
+    f.__doc__ = doc
+    cli = runner.Clize.get_cli(f)
+    self.assertEqual(expected.split(), cli('func', '--help').split())
+
+
+@util.testfunc
+def annotated_sigtests(self, sig_info, in_args, args, kwargs):
+    sig_str, annotation, str_rep = sig_info
+    sig = support.s(sig_str, locals={'a': annotation})
+    csig = parser.CliSignature.from_signature(sig)
+    ba = csig.read_arguments(in_args)
+    self.assertEqual(ba.args, args)
+    self.assertEqual(ba.kwargs, kwargs)
+
+
+@util.testfunc
+def annotated_sigerror_tests(self, sig_info, in_args,
+                             exc=errors.BadArgumentFormat):
+    sig_str, annotation, str_rep = sig_info
+    sig = support.s(sig_str, locals={'a': annotation})
+    csig = parser.CliSignature.from_signature(sig)
+    self.assertRaises(exc, csig.read_arguments, in_args)
+
+
 @check_repr
 class RepTests(object):
     mapped_basic = ('par:a', parameters.mapped([
@@ -56,34 +85,15 @@ class RepTests(object):
     oneof_help = (
         'par:a', parameters.one_of(('hello', 'h1'), ('bye', 'h2')), 'par')
 
-    multi_basic = '*, par:a', parameters.multi(), '--par=STR'
-    multi_req = '*, par:a', parameters.multi(1), '--par=STR'
-    multi_min = '*, par:a', parameters.multi(2), '--par=STR'
-    multi_max = '*, par:a', parameters.multi(max=2), '--par=STR'
-    multi_bound = '*, par:a', parameters.multi(min=2, max=3), '--par=STR'
-    multi_conv = '*, par:a', (parameters.multi(), int), '--par=INT'
+    multi_basic = '*, par:a', parameters.multi(), '[--par=STR...]'
+    multi_req = '*, par:a', parameters.multi(1), '--par=STR...'
+    multi_min = '*, par:a', parameters.multi(2), '--par=STR...'
+    multi_max = '*, par:a', parameters.multi(max=2), '[--par=STR...]'
+    multi_bound = '*, par:a', parameters.multi(min=2, max=3), '--par=STR...'
+    multi_conv = '*, par:a', (parameters.multi(), int), '[--par=INT...]'
     multi_last_opt = (
         '*args, par:a', (parameters.multi(), Parameter.L),
-        '--par=STR [args...]')
-
-
-@util.testfunc
-def annotated_sigtests(self, sig_info, in_args, args, kwargs):
-    sig_str, annotation, str_rep = sig_info
-    sig = support.s(sig_str, locals={'a': annotation})
-    csig = parser.CliSignature.from_signature(sig)
-    ba = csig.read_arguments(in_args)
-    self.assertEqual(ba.args, args)
-    self.assertEqual(ba.kwargs, kwargs)
-
-
-@util.testfunc
-def annotated_sigerror_tests(self, sig_info, in_args,
-                             exc=errors.BadArgumentFormat):
-    sig_str, annotation, str_rep = sig_info
-    sig = support.s(sig_str, locals={'a': annotation})
-    csig = parser.CliSignature.from_signature(sig)
-    self.assertRaises(exc, csig.read_arguments, in_args)
+        '[--par=STR...] [args...]')
 
 
 @annotated_sigtests
@@ -132,6 +142,7 @@ class MappedTests(object):
             goodbye h2""".split(),
             ba.func('name', *ba.args, **ba.kwargs).split())
 
+
 @annotated_sigerror_tests
 class MappedErrorTests(object):
     not_found = RepTests.mapped_basic, ['dog']
@@ -140,14 +151,6 @@ class MappedErrorTests(object):
     alternate = RepTests.mapped_alternate_list, ['list']
     none = RepTests.mapped_no_list, ['list']
 
-
-@util.testfunc
-def test_help(self, sig_info, doc, expected):
-    sig_str, annotation, _ = sig_info
-    f = support.f(sig_str, locals={'a': annotation})
-    f.__doc__ = doc
-    cli = runner.Clize.get_cli(f)
-    self.assertEqual(expected.split(), cli('func', '--help').split())
 
 @test_help
 class MappedHelpTests(object):
@@ -261,3 +264,14 @@ class MultiErrorTests(object):
             csig.read_arguments(('--par=1', '--par=2', '--par=3', '--par=4'))
         except parameters.TooManyValues as e:
             self.assertEqual(e.message, "Received too many values for --par")
+
+
+@test_help
+class MultiHelpTests(object):
+    basic = RepTests.multi_basic, "par: addresses", """
+        Usage: func [OPTIONS]
+        Options:
+          --par=STR   addresses
+        Other actions:
+          -h, --help  Show the help
+    """

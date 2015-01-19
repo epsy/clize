@@ -174,7 +174,8 @@ class TooManyValues(errors.ArgumentError):
 class MultiOptionParameter(parser.MultiParameter, parser.OptionParameter):
     """Named parameter that can collect multiple values."""
 
-    required = True
+    required = True # even if min=0, unsatisfied must be called
+                    # in order to give an empty list
 
     def __init__(self, min, max, **kwargs):
         super(MultiOptionParameter, self).__init__(**kwargs)
@@ -204,6 +205,13 @@ class MultiOptionParameter(parser.MultiParameter, parser.OptionParameter):
         if not ba.kwargs.get(self.argument_name):
             return True
         raise NotEnoughValues
+
+    def __str__(self):
+        if self.min:
+            fmt = '{0}{1}...'
+        else:
+            fmt = '[{0}{1}...]'
+        return fmt.format(self.display_name, self.format_type())
 
 
 def multi(min=0, max=None):
