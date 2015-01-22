@@ -86,6 +86,9 @@ class Parameter(object):
     def unsatisfied(self, ba):
         return True
 
+    def post_parse(self, ba):
+        """Called after all arguments are processed successfully"""
+
     def get_full_name(self):
         return self.display_name
 
@@ -849,14 +852,18 @@ class CliBoundArguments(object):
                         param.read_argument(self, i)
                         param.apply_generic_flags(self)
 
-        if self.unsatisfied and not self.func:
-            unsatisfied = []
-            for p in self.unsatisfied:
-                with errors.SetArgumentErrorContext(param=p):
-                    if p.unsatisfied(self):
-                        unsatisfied.append(p)
-            if unsatisfied:
-                raise errors.MissingRequiredArguments(unsatisfied)
+        if not self.func:
+            if self.unsatisfied:
+                unsatisfied = []
+                for p in self.unsatisfied:
+                    with errors.SetArgumentErrorContext(param=p):
+                        if p.unsatisfied(self):
+                            unsatisfied.append(p)
+                if unsatisfied:
+                    raise errors.MissingRequiredArguments(unsatisfied)
+
+            for p in self.sig.parameters.values():
+                p.post_parse(self)
 
         del self.sticky, self.posarg_only, self.skip, self.unsatisfied
 
