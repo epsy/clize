@@ -69,7 +69,7 @@ class MappedParameter(parser.ParameterWithValue):
             ba.args[:] = []
             ba.kwargs.clear()
             ba.func = self.show_list
-            ba.sticky = parser.IgnoreAllOptionParameterArguments(self)
+            ba.sticky = parser.IgnoreAllArguments()
 
     def show_list(self, name):
         f = util.Formatter()
@@ -151,69 +151,26 @@ def one_of(case_sensitive=None, list_name='list', *values):
         case_sensitive=case_sensitive, list_name=list_name)
 
 
-class NotEnoughValues(errors.ArgumentError):
-    """Raised when MultiOptionParameter is given less values than its min
-    parameter."""
-
-    @property
-    def message(self):
-        return "Received too few values for {0.display_name}".format(
-                self.param)
-
-
-class TooManyValues(errors.ArgumentError):
-    """Raised when MultiOptionParameter is given more values than its max
-    parameter."""
-
-    @property
-    def message(self):
-        return "Received too many values for {0.display_name}".format(
-                self.param)
-
-
 class MultiOptionParameter(parser.MultiParameter, parser.OptionParameter):
     """Named parameter that can collect multiple values."""
 
-    def __init__(self, min, max, **kwargs):
-        super(MultiOptionParameter, self).__init__(**kwargs)
-        self.min = min
-        self.max = max
-
-    def read_argument(self, ba, i):
-        val = self.coerce_value(self.get_value(ba, i))
-        col = self.get_collection(ba)
-        col.append(val)
-        if self.min <= len(col):
-            ba.unsatisfied.discard(self)
-        if self.max is not None and self.max < len(col):
-            raise TooManyValues
-
     def get_collection(self, ba):
         return ba.kwargs.setdefault(self.argument_name, [])
-
-    def apply_generic_flags(self, ba):
-        if self.last_option:
-            ba.posarg_only = True
-
-    @property
-    def required(self):
-        return self.min
-
-    def unsatisfied(self, ba):
-        if not ba.kwargs.get(self.argument_name):
-            return True
-        raise NotEnoughValues
 
     def post_parse(self, ba):
         super(MultiOptionParameter, self).post_parse(ba)
         ba.kwargs.setdefault(self.argument_name, [])
 
-    def get_full_name(self):
-        return super(MultiOptionParameter, self).get_full_name() + '...'
+    def unsatisfied(self, ba):
+        if not ba.kwargs.get(self.argument_name):
+            return True
+        raise errors.NotEnoughValues
 
 
 def multi(min=0, max=None):
-    return parser.use_class(named=MultiOptionParameter, kwargs={
+    return parser.use_class(
+        named=MultiOptionParameter, varargs=parser.ExtraPosArgsParameter,
+        kwargs={
             'min': min,
             'max': max,
         })

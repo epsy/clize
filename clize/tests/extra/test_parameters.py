@@ -95,6 +95,16 @@ class RepTests(object):
         '*args, par:a', (parameters.multi(), Parameter.L),
         '[--par=STR...] [args...]')
 
+    margs_basic = '*args:a', parameters.multi(), '[args...]'
+    margs_req = '*args:a', parameters.multi(1), 'args...'
+    margs_min = '*args:a', parameters.multi(2), 'args...'
+    margs_max = '*args:a', parameters.multi(max=2), '[args...]'
+    margs_bound = '*args:a', parameters.multi(min=2, max=3), 'args...'
+    margs_conv = '*args:a', (parameters.multi(), int), '[args...]'
+    margs_last_opt = (
+        '*args:a, par=""', (parameters.multi(), Parameter.L),
+        '[--par=STR] [args...]')
+
 
 @annotated_sigtests
 class MappedTests(object):
@@ -234,21 +244,39 @@ class MultiTests(object):
         RepTests.multi_last_opt, ('--par=1', '--par=2'),
         ['--par=2'], {'par': ['1']})
 
+    a_basic_none = RepTests.margs_basic, (), [], {}
+    a_basic_one = RepTests.margs_basic, ('one',), ['one'], {}
+    a_basic_two = RepTests.margs_basic, ('one', 'two'), ['one', 'two'], {}
+
+    a_conv = RepTests.margs_conv, ('1', '2'), [1, 2], {}
+
+    a_req_met = RepTests.margs_req, ('1',), ['1'], {}
+
+    a_min_met = RepTests.margs_min, ('1', '2'), ['1', '2'], {}
+
+    a_max_met_1 = RepTests.margs_max, (), [], {}
+    a_max_met_2 = RepTests.margs_max, ('1',), ['1'], {}
+    a_max_met_3 = RepTests.margs_max, ('1', '2'), ['1', '2'], {}
+
+    a_last_opt = (
+        RepTests.margs_last_opt, ('1', '--par=2'), ['1', '--par=2'], {})
+
+
 
 @annotated_sigerror_tests
 class MultiErrorTests(object):
     req_not_met = RepTests.multi_req, (), errors.MissingRequiredArguments
     min_not_met_1 = (
-        RepTests.multi_min, ('--par=one',), parameters.NotEnoughValues)
+        RepTests.multi_min, ('--par=one',), errors.NotEnoughValues)
     min_not_met_2 = (
-        RepTests.multi_min, ('--par', 'one'), parameters.NotEnoughValues)
+        RepTests.multi_min, ('--par', 'one'), errors.NotEnoughValues)
 
     max_passed_1 = (
         RepTests.multi_max, ('--par=1', '--par=2', '--par=3'),
-        parameters.TooManyValues)
+        errors.TooManyValues)
     max_passed_2 = (
         RepTests.multi_max, ('--par=1', '--par=2', '--par=3', '--par=4'),
-        parameters.TooManyValues)
+        errors.TooManyValues)
 
     def test_message(self):
         sig_str, annotation, str_rep = RepTests.multi_bound
@@ -257,13 +285,24 @@ class MultiErrorTests(object):
 
         try:
             csig.read_arguments(('--par=1',))
-        except parameters.NotEnoughValues as e:
+        except errors.NotEnoughValues as e:
             self.assertEqual(e.message, "Received too few values for --par")
 
         try:
             csig.read_arguments(('--par=1', '--par=2', '--par=3', '--par=4'))
-        except parameters.TooManyValues as e:
+        except errors.TooManyValues as e:
             self.assertEqual(e.message, "Received too many values for --par")
+
+    a_req_not_met = RepTests.margs_req, (), errors.MissingRequiredArguments
+    a_min_not_met_1 = (
+        RepTests.margs_min, ('one',), errors.NotEnoughValues)
+    a_min_not_met_2 = (
+        RepTests.margs_min, ('one',), errors.NotEnoughValues)
+
+    a_max_passed_1 = RepTests.margs_max, ('1', '2', '3'), errors.TooManyValues
+    a_max_passed_2 = (
+        RepTests.margs_max, ('1', '2', '3', '4'), errors.TooManyValues)
+
 
 
 @test_help

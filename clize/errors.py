@@ -93,6 +93,26 @@ class MissingValue(ArgumentError):
         return "No value found after {0}".format(self.param.display_name)
 
 
+class NotEnoughValues(ArgumentError):
+    """Raised when MultiOptionParameter is given less values than its min
+    parameter."""
+
+    @property
+    def message(self):
+        return "Received too few values for {0.display_name}".format(
+                self.param)
+
+
+class TooManyValues(ArgumentError):
+    """Raised when MultiOptionParameter is given more values than its max
+    parameter."""
+
+    @property
+    def message(self):
+        return "Received too many values for {0.display_name}".format(
+                self.param)
+
+
 class BadArgumentFormat(ArgumentError):
     """Raised when an argument cannot be converted to the correct format."""
 

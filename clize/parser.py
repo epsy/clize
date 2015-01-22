@@ -128,6 +128,15 @@ class ParameterWithSourceEquivalent(Parameter):
         self.argument_name = argument_name
 
 
+class HelperParameter(Parameter):
+    """Parameter that doesn't appear in CLI signatures but is used for
+    instance as sticky parameter in CliBoundArguments."""
+
+    def __init__(self, **kwargs):
+        super(HelperParameter, self).__init__(
+            display_name='<internal>', **kwargs)
+
+
 def _is_default_type(typ):
     return typ is util.identity or issubclass(typ, six.string_types)
 
@@ -162,22 +171,12 @@ class ParameterWithValue(Parameter):
             exc.__cause__ = e
             raise exc
 
+    def get_value(self, ba, i):
+        return ba.in_args[i]
+
     def help_parens(self):
         if self.default != util.UNSET:
             yield 'default: ' + str(self.default)
-
-
-class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
-    """Equivalent of a positional-only parameter in python."""
-    def read_argument(self, ba, i):
-        val = self.coerce_value(ba.in_args[i])
-        ba.args.append(val)
-
-    def help_parens(self):
-        if not _is_default_type(self.typ):
-            yield 'type: ' + util.name_type2cli(self.typ)
-        for s in super(PositionalParameter, self).help_parens():
-            yield s
 
 
 class NamedParameter(Parameter):
@@ -228,7 +227,7 @@ class NamedParameter(Parameter):
         ba.unsatisfied.discard(nparam)
 
     def get_value(self, ba, i):
-        arg = ba.in_args[i]
+        arg = super(NamedParameter, self).get_value(ba, i)
         if arg.startswith('--'):
             name, glued, val = arg.partition('=')
         else:
@@ -339,37 +338,88 @@ class IntOptionParameter(OptionParameter):
         self.redispatch_short_arg(rest, ba, i)
 
 
+class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
+    """Equivalent of a positional-only parameter in python."""
+
+    def read_argument(self, ba, i):
+        ba.args.append(self.coerce_value(self.get_value(ba, i)))
+
+    def help_parens(self):
+        if not _is_default_type(self.typ):
+            yield 'type: ' + util.name_type2cli(self.typ)
+        for s in super(PositionalParameter, self).help_parens():
+            yield s
+
+
 class MultiParameter(ParameterWithValue):
     """Parameter that can collect multiple values."""
+
+    def __init__(self, min, max, **kwargs):
+        super(MultiParameter, self).__init__(**kwargs)
+        self.min = min
+        self.max = max
+
+    @property
+    def required(self):
+        return self.min
 
     def get_collection(self, ba):
         """Return an object that new values will be appended to."""
         raise NotImplementedError
 
     def read_argument(self, ba, i):
-        val = self.coerce_value(ba.in_args[i])
-        self.get_collection(ba).append(val)
+        val = self.coerce_value(self.get_value(ba, i))
+        col = self.get_collection(ba)
+        col.append(val)
+        if self.min <= len(col):
+            ba.unsatisfied.discard(self)
+        if self.max is not None and self.max < len(col):
+            raise errors.TooManyValues
+
+    def apply_generic_flags(self, ba):
+        if self.last_option:
+            ba.posarg_only = True
+
+    def unsatisfied(self, ba):
+        if not ba.args or len(ba.unsatisfied) > 1:
+            return True
+        raise errors.NotEnoughValues
+
+    def get_full_name(self):
+        return super(MultiParameter, self).get_full_name() + '...'
 
 
-class EatAllPositionalParameter(MultiParameter):
+class ExtraPosArgsParameter(MultiParameter, PositionalParameter):
+    """Parameter that forwards all remaining positional arguments to the
+    callee.
+
+    Used to convert *args-like parameters.
+    """
+
+    def __init__(self, required=False, min=None, max=None, **kwargs):
+        min = bool(required) if min is None else min
+        super(ExtraPosArgsParameter, self).__init__(min=min, max=max, **kwargs)
+
+    def get_collection(self, ba):
+        return ba.args
+
+    def apply_generic_flags(self, ba):
+        super(ExtraPosArgsParameter, self).apply_generic_flags(ba)
+        ba.sticky = self
+
+
+class AppendArguments(HelperParameter, MultiParameter):
     """Helper parameter that collects multiple values to be passed as
     positional arguments to the callee."""
+
+    def __init__(self, **kwargs):
+        super(AppendArguments, self).__init__(min=0, max=None, **kwargs)
 
     def get_collection(self, ba):
         return ba.args
 
 
-class EatAllOptionParameterArguments(EatAllPositionalParameter):
-    """Helper parameter for .EatAllOptionParameter that adds the remaining
-    arguments as positional arguments for the function."""
-
-    def __init__(self, param, **kwargs):
-        super(EatAllOptionParameterArguments, self).__init__(
-            display_name='...', undocumented=False, **kwargs)
-        self.param = param
-
-
-class IgnoreAllOptionParameterArguments(EatAllOptionParameterArguments):
+class IgnoreAllArguments(HelperParameter, Parameter):
     """Helper parameter for .EatAllOptionParameter that ignores the remaining
     arguments."""
 
@@ -377,30 +427,13 @@ class IgnoreAllOptionParameterArguments(EatAllOptionParameterArguments):
         pass
 
 
-class EatAllOptionParameter(NamedParameter):
-    """Parameter that collects all remaining arguments as positional
-    arguments, even those which look like named arguments."""
-
-    extra_type = EatAllOptionParameterArguments
-
-    def __init__(self, **kwargs):
-        super(EatAllOptionParameter, self).__init__(**kwargs)
-        self.args_param = self.extra_type(self)
-
-    def read_argument(self, ba, i):
-        ba.post_name.append(ba.in_args[i])
-        ba.posarg_only = True
-        ba.sticky = self.args_param
-
-
-class FallbackCommandParameter(EatAllOptionParameter):
+class FallbackCommandParameter(NamedParameter):
     """Parameter that sets an alternative function when triggered. When used
     as an argument other than the first all arguments are discarded."""
 
     def __init__(self, func, **kwargs):
         super(FallbackCommandParameter, self).__init__(**kwargs)
         self.func = func
-        self.ignore_all = IgnoreAllOptionParameterArguments(self)
 
     @util.property_once
     def description(self):
@@ -409,16 +442,13 @@ class FallbackCommandParameter(EatAllOptionParameter):
         except AttributeError:
             pass
 
-    def get_collection(self, ba):
-        return []
-
     def read_argument(self, ba, i):
         ba.args[:] = []
         ba.kwargs.clear()
-        super(FallbackCommandParameter, self).read_argument(ba, i)
+        ba.post_name.append(ba.in_args[i])
         ba.func = self.func
-        if i:
-            ba.sticky = self.ignore_all
+        ba.posarg_only = True
+        ba.sticky = IgnoreAllArguments() if i else AppendArguments()
 
 
 class AlternateCommandParameter(FallbackCommandParameter):
@@ -429,24 +459,6 @@ class AlternateCommandParameter(FallbackCommandParameter):
         if i:
             raise errors.ArgsBeforeAlternateCommand(self)
         return super(AlternateCommandParameter, self).read_argument(ba, i)
-
-
-class ExtraPosArgsParameter(PositionalParameter):
-    """Parameter that forwards all remaining positional arguments to the
-    callee."""
-
-    required = None # clear required property from ParameterWithValue
-
-    def __init__(self, required=False, **kwargs):
-        super(ExtraPosArgsParameter, self).__init__(**kwargs)
-        self.required = required
-
-    def read_argument(self, ba, i):
-        super(ExtraPosArgsParameter, self).read_argument(ba, i)
-        ba.sticky = self
-
-    def get_full_name(self):
-        return super(ExtraPosArgsParameter, self).get_full_name() + '...'
 
 
 def parameter_converter(obj):
