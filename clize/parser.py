@@ -200,8 +200,12 @@ class NamedParameter(Parameter):
         return ', '.join(sorted(self.aliases, key=self.alias_key)
             )
 
+    @property
+    def short_name(self):
+        return min(self.aliases, key=len)
+
     def __str__(self):
-        return '[{0}]'.format(self.display_name)
+        return '[{0}]'.format(self.short_name)
 
     def redispatch_short_arg(self, rest, ba, i):
         """Processes the rest of an argument as if it was a new one prefixed
@@ -292,20 +296,22 @@ class OptionParameter(NamedParameter, ParameterWithValue,
         ba.kwargs[self.argument_name] = self.coerce_value(val)
 
     def format_type(self):
-        return '=' + util.name_type2cli(self.typ)
+        return util.name_type2cli(self.typ)
 
     def get_full_name(self):
         return (
             super(OptionParameter, self).get_full_name()
-            + self.format_type()
+            + '=' + self.format_type()
             )
 
     def __str__(self):
         if self.required:
-            fmt = '{0}{1}'
+            fmt = '{0}{1}{2}'
         else:
-            fmt = '[{0}{1}]'
-        return fmt.format(self.display_name, self.format_type())
+            fmt = '[{0}{1}{2}]'
+        sn = self.short_name
+        return fmt.format(
+            sn, ' ' if len(sn) == 2 else '=', self.format_type())
 
 def split_int_rest(s):
     for i, c, in enumerate(s):

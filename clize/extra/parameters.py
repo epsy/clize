@@ -208,10 +208,11 @@ class MultiOptionParameter(parser.MultiParameter, parser.OptionParameter):
 
     def __str__(self):
         if self.min:
-            fmt = '{0}{1}...'
+            fmt = '{0}{1}{2}...'
         else:
-            fmt = '[{0}{1}...]'
-        return fmt.format(self.display_name, self.format_type())
+            fmt = '[{0}{1}{2}...]'
+        sn = self.short_name
+        return fmt.format(sn, ' ' if len(sn) == 2 else '=', self.format_type())
 
 
 def multi(min=0, max=None):

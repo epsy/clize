@@ -75,8 +75,19 @@ class FromSigTests(object):
         'argument_name': 'one', 'display_name': '--one', 'aliases': ['--one'],
         'undocumented': False, 'last_option': None}
 
-    alias = '*, one: "a"', parser.OptionParameter, '--one=STR', {
-        'display_name': '--one', 'aliases': ['--one', '-a']}
+    alias = ('*, one: "a"', parser.OptionParameter, '-a STR',
+        {'display_name': '--one', 'aliases': ['--one', '-a']})
+    alias_shortest = ('*, one: "al"', parser.OptionParameter, '--al=STR',
+        {'display_name': '--one', 'aliases': ['--one', '--al']})
+
+    def test_alias_multi(self):
+        sig = support.s('*, one: a', locals={'a': ('a', 'b', 'abc')})
+        param = list(sig.parameters.values())[0]
+        cparam = parser.CliSignature.convert_parameter(param)
+        self.assertEqual(type(cparam), parser.OptionParameter)
+        self.assertEqual(str(cparam), '-a STR')
+        self.assertEqual(cparam.display_name, '--one')
+        self.assertEqual(cparam.aliases, ['--one', '-a', '-b', '--abc'])
 
     def test_param_inst(self):
         param = parser.Parameter('abc')
@@ -129,16 +140,17 @@ class SigTests(object):
         '*, one, two', _two_str_usage,
         ('--one', '1', '--two', '2'), [], {'one': '1', 'two': '2'})
 
+    _two_str_a_usage = '-a STR -b STR'
     kw_short_nonglued = (
-        '*, one: "a", two: "b"', _two_str_usage,
+        '*, one: "a", two: "b"', _two_str_a_usage,
         ('-a', '1', '-b', '2'), [], {'one': '1', 'two': '2'})
     kw_short_glued = (
-        '*, one: "a", two: "b"', _two_str_usage,
+        '*, one: "a", two: "b"', _two_str_a_usage,
         ('-a1', '-b2'), [], {'one': '1', 'two': '2'})
 
     pos_and_kw = (
         'one, *, two, three, four: "a", five: "b"',
-        '--two=STR --three=STR --four=STR --five=STR one',
+        '--two=STR --three=STR -a STR -b STR one',
         ('1', '--two', '2', '--three=3', '-a', '4', '-b5'),
         ['1'], {'two': '2', 'three': '3', 'four': '4', 'five': '5'})
     pos_and_kw_mixed = (
@@ -154,7 +166,7 @@ class SigTests(object):
         )
 
     _one_flag = '*, one:"a"=False'
-    _one_flag_u = '[--one]'
+    _one_flag_u = '[-a]'
     flag_false = _one_flag, _one_flag_u, ('--one=',), [], {'one': False}
     flag_false_0 = _one_flag, _one_flag_u, ('--one=0',), [], {'one': False}
     flag_false_n = _one_flag, _one_flag_u, ('--one=no',), [], {'one': False}
@@ -171,7 +183,7 @@ class SigTests(object):
     conv = 'a=1', '[a]', ('1',), [1], {}
 
     named_int_glued = (
-        '*, one:"a"=1, two:"b"="s"', '[--one=INT] [--two=STR]',
+        '*, one:"a"=1, two:"b"="s"', '[-a INT] [-b STR]',
         ('-a15bham',), [], {'one': 15, 'two': 'ham'})
 
     double_dash = (
