@@ -89,15 +89,21 @@ class Parameter(object):
     def post_parse(self, ba):
         """Called after all arguments are processed successfully"""
 
+    def get_all_names(self):
+        return self.get_full_name()
+
     def get_full_name(self):
         return self.display_name
 
     def __str__(self):
-        return self.display_name
+        if self.required:
+            return self.get_full_name()
+        else:
+            return '[{0}]'.format(self.get_full_name())
 
     def show_help(self, desc, after, f, cols):
         return (
-            self.get_full_name(), (
+            self.get_all_names(), (
                 getattr(self, 'description', None) or desc
                 ) + self.show_help_parens()
             )
@@ -156,12 +162,6 @@ class ParameterWithValue(Parameter):
             exc.__cause__ = e
             raise exc
 
-    def __str__(self):
-        if self.required:
-            return self.get_full_name()
-        else:
-            return '[{0}]'.format(self.get_full_name())
-
     def help_parens(self):
         if self.default != util.UNSET:
             yield 'default: ' + str(self.default)
@@ -199,7 +199,7 @@ class NamedParameter(Parameter):
         forms(one dash) first."""
         return len(name) - len(name.lstrip('-')), next(cls.__key_count)
 
-    def get_full_name(self):
+    def get_all_names(self):
         return ', '.join(sorted(self.aliases, key=self.alias_key)
             )
 
@@ -207,8 +207,8 @@ class NamedParameter(Parameter):
     def short_name(self):
         return min(self.aliases, key=len)
 
-    def __str__(self):
-        return '[{0}]'.format(self.short_name)
+    def get_full_name(self):
+        return self.short_name
 
     def redispatch_short_arg(self, rest, ba, i):
         """Processes the rest of an argument as if it was a new one prefixed
@@ -301,20 +301,15 @@ class OptionParameter(NamedParameter, ParameterWithValue,
     def format_type(self):
         return util.name_type2cli(self.typ)
 
-    def get_full_name(self):
+    def get_all_names(self):
         return (
-            super(OptionParameter, self).get_full_name()
+            super(OptionParameter, self).get_all_names() #FIXME
             + '=' + self.format_type()
             )
 
-    def __str__(self):
-        if self.required:
-            fmt = '{0}{1}{2}'
-        else:
-            fmt = '[{0}{1}{2}]'
+    def get_full_name(self):
         sn = self.short_name
-        return fmt.format(
-            sn, ' ' if len(sn) == 2 else '=', self.format_type())
+        return (' ' if len(sn) == 2 else '=').join((sn, self.format_type()))
 
 def split_int_rest(s):
     for i, c, in enumerate(s):
@@ -450,12 +445,8 @@ class ExtraPosArgsParameter(PositionalParameter):
         super(ExtraPosArgsParameter, self).read_argument(ba, i)
         ba.sticky = self
 
-    def __str__(self):
-        if self.required:
-            fmt = '{0}...'
-        else:
-            fmt = '[{0}...]'
-        return fmt.format(self.display_name)
+    def get_full_name(self):
+        return super(ExtraPosArgsParameter, self).get_full_name() + '...'
 
 
 def parameter_converter(obj):

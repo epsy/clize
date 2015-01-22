@@ -208,13 +208,8 @@ class MultiOptionParameter(parser.MultiParameter, parser.OptionParameter):
         super(MultiOptionParameter, self).post_parse(ba)
         ba.kwargs.setdefault(self.argument_name, [])
 
-    def __str__(self):
-        if self.required:
-            fmt = '{0}{1}{2}...'
-        else:
-            fmt = '[{0}{1}{2}...]'
-        sn = self.short_name
-        return fmt.format(sn, ' ' if len(sn) == 2 else '=', self.format_type())
+    def get_full_name(self):
+        return super(MultiOptionParameter, self).get_full_name() + '...'
 
 
 def multi(min=0, max=None):

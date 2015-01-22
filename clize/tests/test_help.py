@@ -42,7 +42,7 @@ class WholeHelpTests(object):
 
         Arguments:
             one     Argument one
-            args    Other arguments
+            args... Other arguments
 
         Options:
             --two=STR   Option two
@@ -80,7 +80,7 @@ class WholeHelpTests(object):
         Arguments:
             one     Argument one (type: INT)
             two     Argument two (type: INT, default: 2)
-            args    Other arguments (type: INT)
+            args... Other arguments (type: INT)
 
         Options:
             --alpha=STR  Option alpha
@@ -233,7 +233,7 @@ class WholeHelpTests(object):
         Arguments:
             one     Argument one
             two     Argument two
-            args    Other arguments
+            args... Other arguments
 
         Label:
             --alpha=STR   Option alpha
