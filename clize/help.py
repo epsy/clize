@@ -120,11 +120,8 @@ class ClizeHelp(Help):
         self._parse_help()
         s[LABEL_ALT] = s.pop(LABEL_ALT)
 
-    def _parse_func_help(self, obj):
-        return self._parse_docstring(inspect.getdoc(obj))
-
     argdoc_re = re.compile('^([a-zA-Z_]+): ?(.+)$')
-    def _parse_docstring(self, s):
+    def parse_docstring(self, s):
         free_text = []
         header = []
         label = None
@@ -171,10 +168,19 @@ class ClizeHelp(Help):
             footer = free_text
         return lines_to_paragraphs(header), lines_to_paragraphs(footer)
 
+    def parse_func_help(self, obj):
+        return self.parse_docstring(inspect.getdoc(obj))
+
+    def _parse_subject_help(self, subject):
+        ret = self.parse_func_help(subject.func)
+        for p in subject.signature.parameters.values():
+            p.prepare_help(self)
+        return ret
+
     def _parse_help(self):
-        self.header, self.footer = self._parse_func_help(self.subject.func)
+        self.header, self.footer = self._parse_subject_help(self.subject)
         for wrapper in wrappers(self.subject.func):
-            self._parse_func_help(wrapper)
+            self.parse_func_help(wrapper)
 
     @property
     def description(self):

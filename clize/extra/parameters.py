@@ -2,10 +2,12 @@
 # Copyright (C) 2011-2015 by Yann Kaiser <kaiser.yann@gmail.com>
 # See COPYING for details.
 
-import six
-from sigtools import modifiers
+import inspect
 
-from clize import parser, errors, util
+import six
+from sigtools import modifiers, specifiers, signatures
+
+from clize import parser, errors, util, help
 
 
 class _ShowList(BaseException):
@@ -51,7 +53,7 @@ class MappedParameter(parser.ParameterWithValue):
             for target, names, _ in self.values
             for name in names)
 
-    def coerce_value(self, value):
+    def coerce_value(self, value, ba):
         table = self.values_table
         key = value if self.case_sensitive else value.lower()
         if key == self.list_name:
@@ -115,7 +117,7 @@ def mapped(values, list_name='list', case_sensitive=None):
         The default is to guess based on the contents of values.
 
     .. literalinclude:: /../examples/extra/mapped.py
-        :lines: 5-19
+        :lines: 6-20
 
     """
     return parser.use_mixin(MappedParameter, kwargs={
@@ -174,3 +176,220 @@ def multi(min=0, max=None):
             'min': min,
             'max': max,
         })
+
+
+class _ComposedProperty(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __get__(self, instance, owner):
+        return getattr(instance.real, self.name)
+
+    def __set__(self, instance, value):
+        return setattr(instance.real, self.name, value)
+
+    def __delete__(self, instance):
+        return delattr(instance.real, self.name)
+
+
+class _SubBoundArguments(object):
+    def __init__(self, real):
+        self.real = real
+        self.args = []
+        self.kwargs = {}
+
+    sig = _ComposedProperty('sig')
+    name = _ComposedProperty('name')
+    in_args = _ComposedProperty('in_args')
+    func = _ComposedProperty('func')
+    post_name = _ComposedProperty('post_name')
+    meta = _ComposedProperty('meta')
+    sticky = _ComposedProperty('sticky')
+    posarg_only = _ComposedProperty('posarg_only')
+    skip = _ComposedProperty('skip')
+    unsatisfied = _ComposedProperty('unsatisfied')
+
+
+class _DerivBoundArguments(object):
+    def __init__(self, deriv, real):
+        self.real = real
+        u = self.unsatisfied = set()
+        if deriv.sub_required:
+            u.add(deriv)
+
+    args = _ComposedProperty('args')
+    kwargs = _ComposedProperty('kwargs')
+    sig = _ComposedProperty('sig')
+    name = _ComposedProperty('name')
+    in_args = _ComposedProperty('in_args')
+    func = _ComposedProperty('func')
+    post_name = _ComposedProperty('post_name')
+    meta = _ComposedProperty('meta')
+    sticky = _ComposedProperty('sticky')
+    posarg_only = _ComposedProperty('posarg_only')
+    skip = _ComposedProperty('skip')
+
+
+class ForwarderParameter(parser.NamedParameter,
+                         parser.ParameterWithSourceEquivalent):
+    def __init__(self, real, parent, **kwargs):
+        super(ForwarderParameter, self).__init__(
+            aliases=real.aliases, argument_name=real.argument_name,
+            undocumented=True, **kwargs)
+        self.real = real
+        self.parent = parent
+        self.orig_redispatch = real.redispatch_short_arg
+        real.redispatch_short_arg = self.redispatch_short_arg
+
+    def get_fba(self, ba):
+        return self.parent.get_meta(ba).get_sub()
+
+    def read_argument(self, ba, i):
+        self.real.read_argument(self.get_fba(ba), i)
+
+    def apply_generic_flags(self, ba):
+        self.real.apply_generic_flags(self.get_fba(ba))
+
+    def redispatch_short_arg(self, rest, ba, i):
+        self.orig_redispatch(rest, ba.real, i)
+
+
+def _redirect_ba(param, dap):
+    if isinstance(param, parser.NamedParameter):
+        return ForwarderParameter(real=param, parent=dap)
+    raise ValueError("Parameter \"{0}\" cannot be used in an "
+                     "argument decorator".format(param))
+
+
+class _DapMeta(object):
+    def __init__(self, ba, parent):
+        self.ba = ba
+        self.parent = parent
+        self.sub = None
+        self.deriv = None
+
+    def get_sub(self):
+        if self.sub is None:
+            fba = self.sub = _SubBoundArguments(self.ba)
+            self.ba.unsatisfied.update(self.parent.cli.required)
+            return fba
+        else:
+            return self.sub
+
+    def pop_sub(self):
+        s = self.sub
+        self.sub = None
+        return s
+
+    def get_deriv(self):
+        if self.deriv is None:
+            fba = self.deriv = _DerivBoundArguments(self.parent, self.ba)
+            return fba
+        else:
+            return self.deriv
+
+
+class DecoratedArgumentParameter(parser.ParameterWithSourceEquivalent):
+    required = True
+
+    @property
+    def sub_required(self):
+        try:
+            return self._sub_required
+        except AttributeError:
+            attr = super(DecoratedArgumentParameter, type(self)).required
+            return attr.__get__(self, type(self))
+
+    def __init__(self, decorator, **kwargs):
+        super(DecoratedArgumentParameter, self).__init__(**kwargs)
+        self.decorator = decorator
+        self.cli = parser.CliSignature.from_signature(
+            signatures.mask(specifiers.signature(decorator), 1))
+        self.extras = [
+            _redirect_ba(p, self)
+            for p in self.cli.parameters.values()
+            #if not isinstance(p, ForwarderParameter)
+            ]
+        try:
+            super(DecoratedArgumentParameter, type(self)).required.__get__
+        except AttributeError:
+            self._sub_required = self.required
+        self.required = True
+
+    def get_meta(self, ba):
+        return ba.meta.setdefault(self.argument_name, _DapMeta(ba, self))
+
+    def coerce_value(self, arg, ba):
+        val = super(DecoratedArgumentParameter, self).coerce_value(arg, ba)
+        d = self.get_meta(ba).pop_sub()
+        if d is None:
+            if self.cli.required:
+                raise errors.MissingRequiredArguments(self.cli.required)
+            args = []
+            kwargs = {}
+        else:
+            args = d.args
+            kwargs = d.kwargs
+        return self.decorator(val, *args, **kwargs)
+
+    def __str__(self):
+        pstr = super(DecoratedArgumentParameter, self).__str__()
+        decos = ' '.join(
+            str(p) for p in self.cli.parameters.values()
+            if not p.undocumented
+            )
+        if not decos:
+            if self.sub_required:
+                return pstr
+            return '[{0}]'.format(pstr)
+        elif self.sub_required:
+            return '{0} {1}'.format(decos, pstr)
+        else:
+            return '[{0} {1}]'.format(decos, pstr)
+
+    def read_argument(self, ba, i):
+        super(DecoratedArgumentParameter, self).read_argument(
+            self.get_meta(ba).get_deriv(), i)
+
+    def apply_generic_flags(self, ba):
+        super(DecoratedArgumentParameter, self).apply_generic_flags(
+            self.get_meta(ba).get_deriv())
+
+    def unsatisfied(self, ba):
+        m = self.get_meta(ba)
+        if m.sub is not None:
+            raise errors.MissingRequiredArguments((self,))
+        if m.get_deriv().unsatisfied:
+            return super(DecoratedArgumentParameter, self).unsatisfied(ba)
+        else:
+            return False
+
+    def prepare_help(self, helper):
+        for p in self.cli.parameters.values():
+            if not p.undocumented:
+                helper.sections[help.LABEL_OPT][p.argument_name] = (p, '')
+        doc = inspect.getdoc(self.decorator)
+        if doc:
+            helper.parse_docstring(
+                doc.format(
+                    param=self.display_name
+                ))
+        for p in self.cli.parameters.values():
+            p.prepare_help(helper)
+
+
+def argument_decorator(f):
+    """Decorates a function to create an annotation for adding parameters
+    to qualify another.
+
+    .. literalinclude:: /../examples/extra/argdeco.py
+        :lines:5-25
+
+    ::
+
+        $ python argdeco.py abc -c def ghi
+        abc DEF ghi
+
+    """
+    return parser.use_mixin(
+        DecoratedArgumentParameter, kwargs={'decorator': f})

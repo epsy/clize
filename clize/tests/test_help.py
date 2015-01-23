@@ -144,6 +144,18 @@ class WholeHelpTests(object):
             -h, --help  Show the help
     """
 
+    short_name = '*, a', """
+        a: alpha
+    """, ['func -a STR', USAGE_HELP], """
+        Usage: func [OPTIONS]
+
+        Options:
+            -a STR  alpha
+
+        Other actions:
+            -h, --help  Show the help
+    """
+
     label = "*, alpha, beta", """
         desc
 

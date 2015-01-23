@@ -2,7 +2,7 @@
 # Copyright (C) 2011-2015 by Yann Kaiser <kaiser.yann@gmail.com>
 # See COPYING for details.
 
-from sigtools import support
+from sigtools import support, modifiers
 
 from clize import parser, errors, Parameter, runner
 from clize.extra import parameters
@@ -13,7 +13,13 @@ from clize.tests import util
 def check_repr(self, sig_str, annotation, str_rep):
     sig = support.s(sig_str, locals={'a': annotation})
     csig = parser.CliSignature.from_signature(sig)
-    self.assertEqual(str(csig), str_rep)
+    self.assertEqual(str_rep, str(csig))
+
+
+@util.testfunc
+def test_bad_param(self, sig_str, annotation, error=ValueError):
+    sig = support.s(sig_str, locals={'a': annotation})
+    self.assertRaises(error, parser.CliSignature.from_signature, sig)
 
 
 @util.testfunc
@@ -104,6 +110,86 @@ class RepTests(object):
     margs_last_opt = (
         '*args:a, par=""', (parameters.multi(), Parameter.L),
         '[--par=STR] [args...]')
+
+    @parameters.argument_decorator
+    def _blank(arg):
+        return arg + 'x'
+    deco_blank_pos = 'par:a', _blank, 'par'
+    deco_blank_posd = 'par:a="d"', _blank, '[par]'
+    deco_blank_kw = '*, par:a', _blank, '--par=STR'
+    deco_blank_kwd = '*, par:a="d"', _blank, '[--par=STR]'
+    deco_blank_args = '*par:a', _blank, '[par...]'
+    @parameters.argument_decorator
+    @modifiers.kwoargs(start='kw')
+    def _kw(arg, kw):
+        return arg + kw
+    deco_kw_pos = 'par:a', _kw, '--kw=STR par'
+    deco_kw_posd = 'par:a="d"', _kw, '[--kw=STR par]'
+    deco_kw_kw = '*, par:a', _kw, '--kw=STR --par=STR'
+    deco_kw_kwd = '*, par:a="d"', _kw, '[--kw=STR --par=STR]'
+    deco_kw_args = '*par:a', _kw, '[--kw=STR par...]'
+    @parameters.argument_decorator
+    @modifiers.autokwoargs
+    def _kwdef(arg, kw='D'):
+        return arg + kw
+    deco_def_pos = 'par:a', _kwdef, '[--kw=STR] par'
+    deco_def_posd = 'par:a="d"', _kwdef, '[[--kw=STR] par]'
+    deco_def_kw = '*, par:a', _kwdef, '[--kw=STR] --par=STR'
+    deco_def_kwd = '*, par:a="d"', _kwdef, '[[--kw=STR] --par=STR]'
+    deco_def_args = '*par:a', _kwdef, '[[--kw=STR] par...]'
+    @parameters.argument_decorator
+    @modifiers.autokwoargs
+    def _flag(arg, f=False):
+        return arg + ('y' if f else 'n')
+    deco_flag_pos = 'par:a', _flag, '[-f] par'
+    deco_flag_posd = 'par:a="d"', _flag, '[[-f] par]'
+    deco_flag_kw = '*, par:a', _flag, '[-f] --par=STR'
+    deco_flag_kwd = '*, par:a="d"', _flag, '[[-f] --par=STR]'
+    deco_flag_args = '*par:a', _flag, '[[-f] par...]'
+    deco_flag_other = 'par:a, *, x=False', _flag, '[-x] [-f] par'
+    @parameters.argument_decorator
+    @modifiers.autokwoargs
+    def _int(arg, i=0):
+        return arg + str(i)
+    deco_int_pos = 'par:a', _int, '[-i INT] par'
+    deco_int_posd = 'par:a="d"', _int, '[[-i INT] par]'
+    deco_int_kw = '*, par:a', _int, '[-i INT] --par=STR'
+    deco_int_kwd = '*, par:a="d"', _int, '[[-i INT] --par=STR]'
+    deco_int_args = '*par:a', _int, '[[-i INT] par...]'
+    deco_int_other = 'par:a, *, x=False', _int, '[-x] [-i INT] par'
+    @parameters.argument_decorator
+    @modifiers.kwoargs(start='kw')
+    def _all(arg, kw, flag=False, kwd='D', i=0):
+        return arg, kw, flag, kwd, i
+    _all_rep = '--kw=STR [--flag] [--kwd=STR] [-i INT] '
+    deco_all_pos = 'par:a', _all, _all_rep + 'par'
+    deco_all_posd = 'par:a="d"', _all, '[' + _all_rep + 'par]'
+    deco_all_kw = '*, par:a', _all, _all_rep + '--par=STR'
+    deco_all_kwd = '*, par:a="d"', _all, '[' + _all_rep + '--par=STR]'
+    deco_all_args = '*par:a', _all, '[' + _all_rep + 'par...]'
+    @parameters.argument_decorator
+    @modifiers.kwoargs(start='why')
+    def _inner(arg, why, zed='zed'):
+        return '(' + arg + why + zed + ')'
+    @parameters.argument_decorator
+    @modifiers.kwoargs(start='ab')
+    @modifiers.annotate(cd=_inner)
+    def _nest(arg, ab, cd='cd'):
+        return '(' + arg + ab + cd + ')'
+    _nest_rep = '--ab=STR [--why=STR [--zed=STR] --cd=STR] '
+    deco_nest_pos = 'par:a', _nest, _nest_rep + 'par'
+    deco_nest_posd = 'par:a="d"', _nest, '[' + _nest_rep + 'par]'
+    deco_nest_kw = '*, par:a', _nest, _nest_rep + '--par=STR'
+    deco_nest_kwd = '*, par:a="d"', _nest, '[' + _nest_rep + '--par=STR]'
+    deco_nest_args = '*par:a', _nest, '[' + _nest_rep + 'par...]'
+
+
+@test_bad_param
+class BadParamTests(object):
+    @parameters.argument_decorator
+    def _with_pokarg(arg, invalid):
+        raise NotImplementedError
+    deco_with_pokarg = 'par: a', _with_pokarg
 
 
 @annotated_sigtests
@@ -262,7 +348,6 @@ class MultiTests(object):
         RepTests.margs_last_opt, ('1', '--par=2'), ['1', '--par=2'], {})
 
 
-
 @annotated_sigerror_tests
 class MultiErrorTests(object):
     req_not_met = RepTests.multi_req, (), errors.MissingRequiredArguments
@@ -304,7 +389,6 @@ class MultiErrorTests(object):
         RepTests.margs_max, ('1', '2', '3', '4'), errors.TooManyValues)
 
 
-
 @test_help
 class MultiHelpTests(object):
     basic = RepTests.multi_basic, "par: addresses", """
@@ -313,4 +397,252 @@ class MultiHelpTests(object):
           --par=STR   addresses
         Other actions:
           -h, --help  Show the help
+    """
+
+
+@annotated_sigtests
+class DecoTests(object):
+    blank_pos = RepTests.deco_blank_pos, ['1'], ['1x'], {}
+    blank_posd = RepTests.deco_blank_posd, ['1'], ['1x'], {}
+    blank_posd_d = RepTests.deco_blank_posd, [], [], {}
+    blank_kw = RepTests.deco_blank_kw, ['--par=1'], [], {'par': '1x'}
+    blank_kwd = RepTests.deco_blank_kwd, ['--par=1'], [], {'par': '1x'}
+    blank_kwd_d = RepTests.deco_blank_kwd, [], [], {}
+    blank_args = RepTests.deco_blank_args, ['1', '2'], ['1x', '2x'], {}
+    blank_args_none = RepTests.deco_blank_args, [], [], {}
+
+    kw_pos = RepTests.deco_kw_pos, ['--kw=y', '1'], ['1y'], {}
+    kw_posd = RepTests.deco_kw_posd, ['--kw=y', '1'], ['1y'], {}
+    kw_posd_d = RepTests.deco_kw_posd, [], [], {}
+    kw_kw = RepTests.deco_kw_kw, ['--kw=y', '--par=1'], [], {'par': '1y'}
+    kw_kwd = RepTests.deco_kw_kwd, ['--kw=y', '--par=1'], [], {'par': '1y'}
+    kw_kwd_d = RepTests.deco_kw_kwd, [], [], {}
+    kw_args = (
+        RepTests.deco_kw_args, ['--kw=a', '1', '--kw=b', '2'],
+        ['1a', '2b'], {})
+    kw_args_none = RepTests.deco_kw_args, [], [], {}
+
+    def_pos = RepTests.deco_def_pos, ['--kw=z', '1'], ['1z'], {}
+    def_pos_D = RepTests.deco_def_pos, ['1'], ['1D'], {}
+    def_posd = RepTests.deco_def_posd, ['--kw=z', '1'], ['1z'], {}
+    def_posd_D = RepTests.deco_def_posd, ['1'], ['1D'], {}
+    def_posd_d = RepTests.deco_def_posd, [], [], {}
+    def_kw = RepTests.deco_def_kw, ['--kw=z', '--par=1'], [], {'par': '1z'}
+    def_kwd = RepTests.deco_def_kwd, ['--kw=z', '--par=1'], [], {'par': '1z'}
+    def_kwd_D = RepTests.deco_def_kwd, ['--par=1'], [], {'par': '1D'}
+    def_kwd_d = RepTests.deco_def_kwd, [], [], {}
+    def_args = (
+        RepTests.deco_def_args, ['--kw=a', '1', '--kw=b', '2', '3'],
+        ['1a', '2b', '3D'], {}
+        )
+    def_args_none = RepTests.deco_def_args, [], [], {}
+
+    flag_pos = RepTests.deco_flag_pos, ['-f', '1'], ['1y'], {}
+    flag_pos_n = RepTests.deco_flag_pos, ['1'], ['1n'], {}
+    flag_posd = RepTests.deco_flag_posd, ['-f', '1'], ['1y'], {}
+    flag_posd_n = RepTests.deco_flag_posd, ['1'], ['1n'], {}
+    flag_posd_d = RepTests.deco_flag_posd, [], [], {}
+    flag_kw = RepTests.deco_flag_kw, ['-f', '--par=2'], [], {'par': '2y'}
+    flag_kw_n = RepTests.deco_flag_kw, ['--par=2'], [], {'par': '2n'}
+    flag_kwd = RepTests.deco_flag_kwd, ['-f', '--par=2'], [], {'par': '2y'}
+    flag_kwd_n = RepTests.deco_flag_kwd, ['--par=2'], [], {'par': '2n'}
+    flag_kwd_d = RepTests.deco_flag_kwd, [], [], {}
+    flag_args = RepTests.deco_flag_args, ['-f', '6', '5'], ['6y', '5n'], {}
+    flag_args_none = RepTests.deco_flag_args, [], [], {}
+
+    flag_redisp_a = RepTests.deco_flag_other, ['-fx', '2'], ['2y'], {'x': True}
+    flag_redisp_b = RepTests.deco_flag_other, ['-xf', '2'], ['2y'], {'x': True}
+
+    flag_pos = RepTests.deco_flag_pos, ['-f', '1'], ['1y'], {}
+    flag_pos_abs = RepTests.deco_flag_pos, ['1'], ['1n'], {}
+
+    int_redisp_a = RepTests.deco_int_other, ['-i5x', 'a'], ['a5'], {'x': True}
+    int_redisp_b = RepTests.deco_int_other, ['-xi5', 'a'], ['a5'], {'x': True}
+
+    all_pos = (
+        RepTests.deco_all_pos, ['--kw=kw', 'par'],
+        [('par', 'kw', False, 'D', 0)], {})
+
+    nest = (
+        RepTests.deco_nest_pos,
+        ['--ab=1', '--why=2', '--zed=3', '--cd=4', 'a'],
+        ['(a1(423))'], {}
+        )
+    nest_defaults = (
+        RepTests.deco_nest_pos,
+        ['--ab=1', 'a'],
+        ['(a1cd)'], {}
+        )
+
+    def test_copy_required(self):
+        obj = object()
+        def deco(arg):
+            raise NotImplementedError
+        class BaseParamCls(parser.ParameterWithValue):
+            required = obj
+        class ParamCls(BaseParamCls, parameters.DecoratedArgumentParameter):
+            pass
+        p = ParamCls(decorator=deco, argument_name='test', display_name='test')
+        self.assertTrue(obj is p.sub_required)
+
+    def test_composed_property(self):
+        class Shell(object):
+            def __init__(self, real):
+                self.real = real
+            attr = parameters._ComposedProperty('attr')
+        class Target(object):
+            pass
+        t = Target()
+        s = Shell(t)
+        self.assertRaises(AttributeError, lambda: s.attr)
+        obj = object()
+        s.attr = obj
+        self.assertTrue(t.attr is obj)
+        obj = object()
+        t.attr = obj
+        self.assertTrue(s.attr is obj)
+        del s.attr
+        self.assertRaises(AttributeError, lambda: s.attr)
+
+
+MissingReq = errors.MissingRequiredArguments
+
+
+@annotated_sigerror_tests
+class DecoErrorTests(object):
+    blank_missing = RepTests.deco_blank_pos, [], MissingReq
+    pos_kw_missing = RepTests.deco_kw_pos, ['1'], MissingReq
+    pos_kw_missing_after = RepTests.deco_kw_pos, ['1', '--kw=y'], MissingReq
+
+    args_kwdef_noarg_1 = RepTests.deco_def_pos, ['1', '--kw=x'], MissingReq
+    args_kwdef_noarg_2 = (
+        RepTests.deco_def_pos, ['--kw=x', '1', '--kw=y'], MissingReq)
+    args_flag_noarg_1 = (
+        RepTests.deco_flag_args, ['1', '-f', '1', '-f'], MissingReq)
+    args_flag_noarg_2 = (
+        RepTests.deco_flag_pos, ['-f'], MissingReq)
+
+
+@util.repeated_test
+class DecoHelpTests(object):
+    def _test_func(self, sig_str, annotation, doc, expected):
+        f = support.f(sig_str, locals={'a': annotation})
+        f.__doc__ = doc
+        cli = runner.Clize.get_cli(f)
+        self.assertEqual(expected.split(), cli('func', '--help').split())
+
+    @parameters.argument_decorator
+    @modifiers.kwoargs(start='kw')
+    def _undoc(arg, kw, flag=False, kwd='D', i=0):
+        raise NotImplementedError
+    undoc = 'par: a', _undoc, "par: things", """
+        Usage: func [OPTIONS] --kw=STR [--flag] [--kwd=STR] [-i INT] par
+        Arguments:
+            par     things
+        Options:
+            --kw=STR
+            --flag
+            --kwd=STR   (default: D)
+            -i INT      (default: 0)
+        Other actions:
+            -h, --help  Show the help
+    """
+
+
+    @parameters.argument_decorator
+    @modifiers.kwoargs(start='kw')
+    def _doc(arg, kw, flag=False, kwd='D', i=0):
+        """
+        kw: KW
+
+        flag: FLAG
+
+        kwd: KWD
+
+        i: I
+        """
+        raise NotImplementedError
+    doc = 'par: a', _doc, "par: things", """
+        Usage: func [OPTIONS] --kw=STR [--flag] [--kwd=STR] [-i INT] par
+        Arguments:
+            par     things
+        Options:
+            --kw=STR    KW
+            --flag      FLAG
+            --kwd=STR   KWD (default: D)
+            -i INT      I (default: 0)
+        Other actions:
+            -h, --help  Show the help
+    """
+
+
+    @parameters.argument_decorator
+    @modifiers.kwoargs(start='kw')
+    def _label(arg, kw, flag=False, kwd='D', i=0):
+        """
+
+        Qualifies parameters of kind "_label":
+
+        kw: KW
+
+        flag: FLAG
+
+        kwd: KWD
+
+        i: I
+        """
+        raise NotImplementedError
+    label = 'par: a', _label, "par: things", """
+        Usage: func [OPTIONS] --kw=STR [--flag] [--kwd=STR] [-i INT] par
+        Arguments:
+            par     things
+        Qualifies parameters of kind "_label":
+            --kw=STR    KW
+            --flag      FLAG
+            --kwd=STR   KWD (default: D)
+            -i INT      I (default: 0)
+        Other actions:
+            -h, --help  Show the help
+    """
+
+    @parameters.argument_decorator
+    @modifiers.kwoargs(start='kw')
+    def _subst(arg, kw, flag=False, kwd='D', i=0):
+        """
+
+        Qualifies parameters of kind "_label":
+
+        kw: KW
+
+        flag: FLAG
+
+        kwd: KWD
+
+        i: I
+        """
+        raise NotImplementedError
+    subst = 'par: a', _subst, "par: things", """
+        Usage: func [OPTIONS] --kw=STR [--flag] [--kwd=STR] [-i INT] par
+        Arguments:
+            par     things
+        Qualifies parameters of kind "_label":
+            --kw=STR    KW
+            --flag      FLAG
+            --kwd=STR   KWD (default: D)
+            -i INT      I (default: 0)
+        Other actions:
+            -h, --help  Show the help
+    """
+
+    nest_doc = 'par: a', RepTests._nest, "par: things", """
+        Usage: func [OPTIONS] --ab=STR [--why=STR [--zed=STR] --cd=STR] par
+        Arguments:
+            par     things
+        Options:
+            --ab=STR
+            --cd=STR    (default: cd)
+            --why=STR
+            --zed=STR   (default: zed)
+        Other actions:
+            -h, --help  Show the help
     """

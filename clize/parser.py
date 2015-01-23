@@ -102,6 +102,8 @@ class Parameter(object):
             return '[{0}]'.format(self.get_full_name())
 
     def show_help(self, desc, after, f, cols):
+        """Called by `~clize.help.ClizeHelp` to produce the parameter's
+        description in the help output."""
         return (
             self.get_all_names(), (
                 getattr(self, 'description', None) or desc
@@ -116,6 +118,10 @@ class Parameter(object):
 
     def help_parens(self):
         return ()
+
+    def prepare_help(self, helper):
+        """Called by `~clize.help.ClizeHelp` to allow parameters to
+        complement the help."""
 
 
 class ParameterWithSourceEquivalent(Parameter):
@@ -159,7 +165,7 @@ class ParameterWithValue(Parameter):
         """Tells if the parameter has no default value."""
         return self.default is util.UNSET
 
-    def coerce_value(self, arg):
+    def coerce_value(self, arg, ba):
         """Coerces ``arg`` using the ``typ`` function. Raises
         `.errors.BadArgumentFormat` if the coercion function raises
         `ValueError`.
@@ -295,16 +301,14 @@ class OptionParameter(NamedParameter, ParameterWithValue,
         if self.argument_name in ba.kwargs:
             raise errors.DuplicateNamedArgument()
         val = self.get_value(ba, i)
-        ba.kwargs[self.argument_name] = self.coerce_value(val)
+        ba.kwargs[self.argument_name] = self.coerce_value(val, ba)
 
     def format_type(self):
         return util.name_type2cli(self.typ)
 
     def get_all_names(self):
-        return (
-            super(OptionParameter, self).get_all_names() #FIXME
-            + '=' + self.format_type()
-            )
+        names = super(OptionParameter, self).get_all_names()
+        return names + (' ' if len(names) == 2 else '=') + self.format_type()
 
     def get_full_name(self):
         sn = self.short_name
@@ -314,6 +318,7 @@ def split_int_rest(s):
     for i, c, in enumerate(s):
         if not c.isdigit():
             return s[:i], s[i:]
+    return s, ''
 
 class IntOptionParameter(OptionParameter):
     """A named parameter that takes an integer as argument. The short form
@@ -333,7 +338,7 @@ class IntOptionParameter(OptionParameter):
             return
 
         val, rest = split_int_rest(arg)
-        ba.kwargs[self.argument_name] = self.coerce_value(val)
+        ba.kwargs[self.argument_name] = self.coerce_value(val, ba)
 
         self.redispatch_short_arg(rest, ba, i)
 
@@ -342,7 +347,7 @@ class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
     """Equivalent of a positional-only parameter in python."""
 
     def read_argument(self, ba, i):
-        ba.args.append(self.coerce_value(self.get_value(ba, i)))
+        ba.args.append(self.coerce_value(self.get_value(ba, i), ba))
 
     def help_parens(self):
         if not _is_default_type(self.typ):
@@ -368,7 +373,7 @@ class MultiParameter(ParameterWithValue):
         raise NotImplementedError
 
     def read_argument(self, ba, i):
-        val = self.coerce_value(self.get_value(ba, i))
+        val = self.coerce_value(self.get_value(ba, i), ba)
         col = self.get_collection(ba)
         col.append(val)
         if self.min <= len(col):
@@ -622,7 +627,7 @@ class CliSignature(object):
     converter = default_converter
 
     def __init__(self, parameters):
-        params = self.parameters = {}
+        params = self.parameters = util.OrderedDict()
         pos = self.positional = []
         named = self.named = []
         alt = self.alternate = []
@@ -660,7 +665,7 @@ class CliSignature(object):
     parameters to CLI parameters"""
 
     @classmethod
-    def from_signature(cls, sig, extra=()):
+    def from_signature(cls, sig, extra=(), **kwargs):
         """Takes a signature object and returns an instance of this class
         derived from it.
 
@@ -668,11 +673,11 @@ class CliSignature(object):
         :param iterable extra: Extra parameter instances to include.
         """
         return cls(
-            itertools.chain(
+            parameters=itertools.chain(
                 filter(lambda x: x is not Parameter.IGNORE,
                     (cls.convert_parameter(param)
                     for param in sig.parameters.values())
-                ), extra))
+                ), extra), **kwargs)
 
     @classmethod
     def convert_parameter(cls, param):
@@ -810,11 +815,12 @@ class CliBoundArguments(object):
     def __init__(self, sig, args, name):
         self.sig = sig
         self.name = name
-        self.in_args = args
+        self.in_args = tuple(args)
         self.func = None
         self.post_name = []
         self.args = []
         self.kwargs = {}
+        self.meta = {}
 
         self.sticky = None
         self.posarg_only = False

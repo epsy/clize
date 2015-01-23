@@ -185,6 +185,9 @@ class SigTests(object):
     named_int_glued = (
         '*, one:"a"=1, two:"b"="s"', '[-a INT] [-b STR]',
         ('-a15bham',), [], {'one': 15, 'two': 'ham'})
+    named_int_last = (
+        '*, one:"a"=1', '[-a INT]',
+        ('-a23',), [], {'one': 23})
 
     double_dash = (
         'one, two, three', 'one two three',
