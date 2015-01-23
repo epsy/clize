@@ -2,7 +2,9 @@
 Clize procedurally turns your functions into convenient command-line
 interfaces.
 
-::
+For instance:
+
+.. code-block:: python
 
     from sigtools.modifiers import kwoargs
     from clize import run
@@ -24,7 +26,9 @@ interfaces.
     if __name__ == '__main__':
         run(hello_world)
 
-::
+The python code above can now be used on the command-line as follows:
+
+.. code-block:: console
 
     $ pip install clize
     $ python hello.py --help
