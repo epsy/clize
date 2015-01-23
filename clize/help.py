@@ -223,17 +223,16 @@ class ClizeHelp(Help):
 
     def show_arguments(self):
         f = util.Formatter()
-        with f.columns() as cols:
+        with f.columns(indent=2) as cols:
             for label, section in self.sections.items():
                 if not section: continue
                 f.new_paragraph()
                 f.append(label)
-                with f.indent():
-                    for argname, (param, text) in section.items():
-                        self.show_argument(
-                            param,
-                            text, self.after.get(argname, ()),
-                            f, cols)
+                for argname, (param, text) in section.items():
+                    self.show_argument(
+                        param,
+                        text, self.after.get(argname, ()),
+                        f, cols)
         return f
 
     def show_argument(self, param, desc, after, f, cols):

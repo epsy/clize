@@ -200,3 +200,18 @@ class FormatterTests(object):
         with f.columns() as cols:
             cols.append('row1col1 is long', 'word word word')
             cols.append('col1', 'word word word word')
+
+
+    @equal('          lll1   c c c c c c c c c c c c c c c c c\n'
+           '                 c c c c c\n'
+           '          lll2   c c c c c c c c c c c c c c c c c\n'
+           '                 c c c c c'
+           )
+    def columns_wrap_indented(self, f):
+        with f.indent(10):
+            with f.columns() as cols:
+                cols.append('lll1',
+                    'c c c c c c c c c c c c c c c c c c c c c c')
+                with f.indent(10):
+                    cols.append('lll2',
+                        'c c c c c c c c c c c c c c c c c c c c c c')

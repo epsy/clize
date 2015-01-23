@@ -136,8 +136,9 @@ def process_widths(widths, max_width):
 
 class _FormatterColumns(object):
     def __init__(self, formatter, num, spacing, align,
-                 wrap, min_widths, max_widths):
+                 wrap, min_widths, max_widths, indent):
         self.formatter = formatter
+        self.indent = indent
         self.num = num
         self.spacing = spacing
         self.align = align or '<' * num
@@ -156,14 +157,14 @@ class _FormatterColumns(object):
                              self.num, len(cells)))
         row = _FormatterRow(self, cells)
         self.rows.append(row)
-        self.formatter.append_raw(row)
+        self.formatter.append_raw(row, -self.formatter._indent)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.finished = True
         self.widths = list(self.compute_widths())
 
     def compute_widths(self):
-        used = len(self.spacing) * (self.num - 1)
+        used = len(self.spacing) * (self.num - 1) + self.indent
         space_left = self.formatter.max_width - used
         min_widths = list(process_widths(self.min_widths, space_left))
         max_widths = list(process_widths(self.max_widths, space_left))
@@ -186,7 +187,8 @@ class _FormatterColumns(object):
 
     def format_cells(self, cells):
         wcells = (self.format_cell(*args) for args in enumerate(cells))
-        return (self.spacing.join(cline).rstrip()
+        indent = ' ' * self.indent
+        return (indent + self.spacing.join(cline).rstrip()
                 for cells in zip_longest(*wcells)
                 for cline in self.match_lines(cells)
                 )
@@ -278,10 +280,12 @@ class Formatter(object):
         return _FormatterIndent(self, indent)
 
     def columns(self, num=2, spacing='   ', align=None,
-                wrap=None, min_widths=None, max_widths=None):
+                wrap=None, min_widths=None, max_widths=None,
+                indent=None):
         return _FormatterColumns(
             self, num, spacing, align,
-            wrap, min_widths, max_widths)
+            wrap, min_widths, max_widths,
+            self._indent if indent is None else indent)
 
     def __str__(self):
         if self.lines and not self.lines[-1][1]:
