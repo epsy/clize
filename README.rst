@@ -32,7 +32,6 @@ The python code above can now be used on the command-line as follows:
 
     $ pip install clize
     $ python hello.py --help
-
         Usage: hello.py [OPTIONS] name
 
         Greets the world or the given name.
