@@ -42,6 +42,9 @@ Contents
    basics
    multicommands
    compositing
+   packaging
+   moreparams
+   newparams
    api
    upgrade
 

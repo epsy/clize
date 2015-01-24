@@ -1,5 +1,8 @@
 .. currentmodule:: clize
 
+.. _function-compositing:
+
+
 Function compositing
 ====================
 
