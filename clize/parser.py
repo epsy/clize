@@ -30,25 +30,11 @@ class Parameter(object):
     :param str display_name: The 'default' representation of the parameter.
     :param bool undocumented:
         If true, hides the parameter from the command help.
-    :param last_option: 
+    :param last_option: If `True`, the parameter will set the `.posarg_only`
+        flag on the bound arguments.
+
+    Also available as `clize.Parameter`.
     """
-
-    required = False
-    """Is this parameter required?"""
-
-    extras = ()
-    """Iterable of extra parameters this parameter incurs"""
-
-    def __init__(self, display_name, undocumented=False, last_option=None):
-        self.display_name = display_name
-        self.undocumented = undocumented
-        self.last_option = last_option
-
-    R = REQUIRED = ParameterFlag('REQUIRED')
-    """Annotate a parameter with this to force it to be required.
-
-    Mostly only useful for ``*args`` parameters. In other cases simply don't
-    provide a default value."""
 
     L = LAST_OPTION = ParameterFlag('LAST_OPTION')
     """Annotate a parameter with this and all following arguments will be
@@ -58,9 +44,29 @@ class Parameter(object):
 
     U = UNDOCUMENTED = ParameterFlag('UNDOCUMENTED')
     """Parameters annotated with this will be omitted from the
-    documentation."""
+    documentation (``--help``)."""
 
-    # M = MULTIPLE = ParameterFlag('MULTIPLE')
+    R = REQUIRED = ParameterFlag('REQUIRED')
+    """Annotate a parameter with this to force it to be required.
+
+    Mostly only useful for ``*args`` parameters. In other cases, simply don't
+    provide a default value."""
+
+
+    required = False
+    """Is this parameter required?"""
+
+    extras = ()
+    """Iterable of extra parameters this parameter incurs"""
+
+    def __init__(self, display_name, undocumented=False, last_option=None):
+        self.display_name = display_name
+        """The name used in printing this parameter."""
+        self.undocumented = undocumented
+        """If true, this parameter is hidden from the documentation."""
+        self.last_option = last_option
+        """If true, arguments after this parameter is triggered will all be
+        processed as positional."""
 
     def read_argument(self, ba, i):
         """Reads one or more arguments from ``ba.in_args`` from position ``i``.
@@ -78,24 +84,33 @@ class Parameter(object):
 
         :param clize.parser.CliBoundArguments ba:
             The bound arguments object this call is expected to mutate.
+
+        The base implementation of this method applies the `last_option`
+        setting if applicable and discards itself from
+        `CliBoundArguments.unsatisfied`
         """
         if self.last_option:
             ba.posarg_only = True
         ba.unsatisfied.discard(self)
 
     def unsatisfied(self, ba):
+        """Called after processing arguments if this parameter required
+        and not discarded from `.CliBoundArguments.unsatisfied`."""
         return True
 
     def post_parse(self, ba):
-        """Called after all arguments are processed successfully"""
+        """Called after all arguments are processed successfully."""
 
     def get_all_names(self):
+        """Return a string with all of this parameter's names."""
         return self.get_full_name()
 
     def get_full_name(self):
+        """Return a string that designates this parameter."""
         return self.display_name
 
     def __str__(self):
+        """Return a string to represent this parameter in cli usage."""
         if self.required:
             return self.get_full_name()
         else:
@@ -111,17 +126,25 @@ class Parameter(object):
             )
 
     def show_help_parens(self):
+        """Return a string to complement a parameter's description in the
+        ``--help`` output."""
         s = ', '.join(self.help_parens())
         if s:
             return ' ({0})'.format(s)
         return ''
 
     def help_parens(self):
+        """Return an iterable of strings to complement a parameter's
+        description in the ``--help`` output. Used by `.show_help_parens`"""
         return ()
 
     def prepare_help(self, helper):
         """Called by `~clize.help.ClizeHelp` to allow parameters to
-        complement the help."""
+        complement the help.
+
+        :param: clize.help.ClizeHelp helper: The object charged with
+            displaying the help.
+        """
 
 
 class ParameterWithSourceEquivalent(Parameter):
@@ -136,7 +159,7 @@ class ParameterWithSourceEquivalent(Parameter):
 
 class HelperParameter(Parameter):
     """Parameter that doesn't appear in CLI signatures but is used for
-    instance as sticky parameter in CliBoundArguments."""
+    instance as the ``.sticky`` attribute of the bound arguments."""
 
     def __init__(self, **kwargs):
         super(HelperParameter, self).__init__(
@@ -147,8 +170,8 @@ def _is_default_type(typ):
     return typ is util.identity or issubclass(typ, six.string_types)
 
 class ParameterWithValue(Parameter):
-    """A parameter that stores a value, with possible default and/or
-    conversion.
+    """A parameter that takes a value from the arguments, with possible
+    default and/or conversion.
 
     :param callable typ: A callable to convert the value or raise `ValueError`.
         Defaults to `.util.identity`.
@@ -158,7 +181,11 @@ class ParameterWithValue(Parameter):
     def __init__(self, typ=util.identity, default=util.UNSET, **kwargs):
         super(ParameterWithValue, self).__init__(**kwargs)
         self.typ = typ
+        """The function used for coercing the value into the desired format or
+        type."""
         self.default = default
+        """The default value used for the parameter, or `.util.UNSET` if there
+        is no default value. Usually only used for displaying the help."""
 
     @property
     def required(self):
@@ -166,7 +193,7 @@ class ParameterWithValue(Parameter):
         return self.default is util.UNSET
 
     def coerce_value(self, arg, ba):
-        """Coerces ``arg`` using the ``typ`` function. Raises
+        """Coerces ``arg`` using the `.typ` function. Raises
         `.errors.BadArgumentFormat` if the coercion function raises
         `ValueError`.
         """
@@ -178,9 +205,12 @@ class ParameterWithValue(Parameter):
             raise exc
 
     def get_value(self, ba, i):
+        """Retrieves the "value" part of the argument in ``ba`` at
+        position ``i``."""
         return ba.in_args[i]
 
     def help_parens(self):
+        """Shows the default value in the parameter description."""
         if self.default != util.UNSET:
             yield 'default: ' + str(self.default)
 
@@ -189,35 +219,44 @@ class NamedParameter(Parameter):
     """Equivalent of a keyword-only parameter in python.
 
     :param aliases: The arguments that trigger this parameter. The first alias
-        is used to refer to the parameter.
+        is used to refer to the parameter. The first one is picked as
+        `.display_name` if unspecified.
     :type aliases: sequence of strings
     """
     def __init__(self, aliases, **kwargs):
         kwargs.setdefault('display_name', aliases[0])
         super(NamedParameter, self).__init__(**kwargs)
         self.aliases = aliases
+        """The parameter's aliases, eg. "--option" and "-o"."""
 
     __key_count = itertools.count()
     @classmethod
     def alias_key(cls, name):
-        """Key function to sort aliases in source order, but with short
+        """Sort key function to order aliases in source order, but with short
         forms(one dash) first."""
         return len(name) - len(name.lstrip('-')), next(cls.__key_count)
 
     def get_all_names(self):
+        """Retrieves all aliases."""
         return ', '.join(sorted(self.aliases, key=self.alias_key)
             )
 
     @property
     def short_name(self):
+        """Retrieves the shortest alias for displaying the parameter
+        signature."""
         return min(self.aliases, key=len)
 
     def get_full_name(self):
+        """Uses the shortest name instead of the display name."""
         return self.short_name
 
     def redispatch_short_arg(self, rest, ba, i):
         """Processes the rest of an argument as if it was a new one prefixed
-        with one dash."""
+        with one dash.
+
+        For instance when ``-a`` is a flag in ``-abcd``, the object implementing
+        it will call this to proceed as if ``-a -bcd`` was passed."""
         if not rest:
             return
         try:
@@ -233,6 +272,8 @@ class NamedParameter(Parameter):
         ba.unsatisfied.discard(nparam)
 
     def get_value(self, ba, i):
+        """Fetches the value after the ``=`` (``--opt=val``) or in the
+        next argument (``--opt val``)."""
         arg = super(NamedParameter, self).get_value(ba, i)
         if arg.startswith('--'):
             name, glued, val = arg.partition('=')
@@ -261,13 +302,22 @@ class FlagParameter(NamedParameter, ParameterWithSourceEquivalent):
     """
 
     false_triggers = '0', 'n', 'no', 'f', 'false'
+    """Values for which ``--flag=X`` will consider the argument false and
+    will pass `.false_value` to the function. In all other cases `.value`
+    is passed."""
 
     def __init__(self, value, false_value, **kwargs):
         super(FlagParameter, self).__init__(**kwargs)
         self.value = value
+        """The value passed to the function if the flag is activated,
+        usually `True`."""
         self.false_value = false_value
+        """The value passed to the function if the flag is not activated,
+        usually `False`."""
 
     def read_argument(self, ba, i):
+        """Overrides `NamedParameter`'s value-getting behavior to allow no
+        argument to be passed after the flag is named."""
         arg = ba.in_args[i]
         if arg[1] == '-':
             ba.kwargs[self.argument_name] = (
@@ -289,29 +339,31 @@ class FlagParameter(NamedParameter, ParameterWithSourceEquivalent):
             val and val.lower() not in self.false_triggers
             )
 
-    def format_type(self):
-        return ''
-
 
 class OptionParameter(NamedParameter, ParameterWithValue,
                       ParameterWithSourceEquivalent):
     """A named parameter that takes an argument."""
 
     def read_argument(self, ba, i):
+        """Stores the argument in `CliBoundArguments.kwargs` if it isn't
+        already present."""
         if self.argument_name in ba.kwargs:
             raise errors.DuplicateNamedArgument()
         val = self.get_value(ba, i)
         ba.kwargs[self.argument_name] = self.coerce_value(val, ba)
 
     def format_type(self):
+        """Returns a string designation of the value type."""
         return util.name_type2cli(self.typ)
 
     def get_all_names(self):
+        """Appends the value type to all aliases."""
         names = super(OptionParameter, self).get_all_names()
         return names + (' ' if len(names) == 2 else '=') + self.format_type()
 
     def get_full_name(self):
-        sn = self.short_name
+        """Appends the value type to the shortest alias."""
+        sn = super(OptionParameter, self).get_full_name()
         return (' ' if len(sn) == 2 else '=').join((sn, self.format_type()))
 
 def split_int_rest(s):
@@ -325,6 +377,7 @@ class IntOptionParameter(OptionParameter):
     of it can be chained with the short form of other named parameters."""
 
     def read_argument(self, ba, i):
+        """Handles redispatching after a numerical value."""
         if self.argument_name in ba.kwargs:
             raise errors.DuplicateNamedArgument()
         arg = ba.in_args[i]
@@ -347,9 +400,12 @@ class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
     """Equivalent of a positional-only parameter in python."""
 
     def read_argument(self, ba, i):
+        """Stores the argument in `CliBoundArguments.args`."""
         ba.args.append(self.coerce_value(self.get_value(ba, i), ba))
 
     def help_parens(self):
+        """Puts the value type in parenthesis since it isn't shown in
+        the parameter's signature."""
         if not _is_default_type(self.typ):
             yield 'type: ' + util.name_type2cli(self.typ)
         for s in super(PositionalParameter, self).help_parens():
@@ -362,10 +418,13 @@ class MultiParameter(ParameterWithValue):
     def __init__(self, min, max, **kwargs):
         super(MultiParameter, self).__init__(**kwargs)
         self.min = min
+        """The minimum amount of values this parameter accepts."""
         self.max = max
+        """The maximum amount of values this parameter accepts."""
 
     @property
     def required(self):
+        """Returns if there is a minimum amount of values required."""
         return self.min
 
     def get_collection(self, ba):
@@ -373,6 +432,8 @@ class MultiParameter(ParameterWithValue):
         raise NotImplementedError
 
     def read_argument(self, ba, i):
+        """Adds passed argument to the collection returned
+        by `get_collection`."""
         val = self.coerce_value(self.get_value(ba, i), ba)
         col = self.get_collection(ba)
         col.append(val)
@@ -382,15 +443,20 @@ class MultiParameter(ParameterWithValue):
             raise errors.TooManyValues
 
     def apply_generic_flags(self, ba):
+        """Doesn't automatically mark the parameter as satisfied."""
         if self.last_option:
             ba.posarg_only = True
 
     def unsatisfied(self, ba):
+        """Lets `errors.MissingRequiredArguments` be raised or raises
+        `errors.NotEnoughValues` if arguments were passed but not enough
+        to meet `.min`."""
         if not ba.args or len(ba.unsatisfied) > 1:
             return True
         raise errors.NotEnoughValues
 
     def get_full_name(self):
+        """Adds an elipsis to the parameter name."""
         return super(MultiParameter, self).get_full_name() + '...'
 
 
@@ -398,7 +464,7 @@ class ExtraPosArgsParameter(MultiParameter, PositionalParameter):
     """Parameter that forwards all remaining positional arguments to the
     callee.
 
-    Used to convert *args-like parameters.
+    Used to convert ``*args``-like parameters.
     """
 
     def __init__(self, required=False, min=None, max=None, **kwargs):
@@ -406,29 +472,37 @@ class ExtraPosArgsParameter(MultiParameter, PositionalParameter):
         super(ExtraPosArgsParameter, self).__init__(min=min, max=max, **kwargs)
 
     def get_collection(self, ba):
+        """Uses `CliBoundArguments.args` to collect the remaining arguments."""
         return ba.args
 
     def apply_generic_flags(self, ba):
+        """Sets itself as sticky parameter so that `errors.TooManyArguments`
+        is not raised when processing further parameters."""
         super(ExtraPosArgsParameter, self).apply_generic_flags(ba)
         ba.sticky = self
 
 
 class AppendArguments(HelperParameter, MultiParameter):
     """Helper parameter that collects multiple values to be passed as
-    positional arguments to the callee."""
+    positional arguments to the callee.
+
+    Similar to `ExtraPosArgsParameter` but does not correspond to a parameter
+    in the source."""
 
     def __init__(self, **kwargs):
         super(AppendArguments, self).__init__(min=0, max=None, **kwargs)
 
     def get_collection(self, ba):
+        """Uses `CliBoundArguments.args` to collect the remaining arguments."""
         return ba.args
 
 
 class IgnoreAllArguments(HelperParameter, Parameter):
-    """Helper parameter for .EatAllOptionParameter that ignores the remaining
-    arguments."""
+    """Helper parameter for `.FallbackCommandParameter` that ignores the
+    remaining arguments."""
 
     def read_argument(self, ba, i):
+        """Does nothing, ignoring all arguments processed."""
         pass
 
 
@@ -439,15 +513,21 @@ class FallbackCommandParameter(NamedParameter):
     def __init__(self, func, **kwargs):
         super(FallbackCommandParameter, self).__init__(**kwargs)
         self.func = func
+        """The function that will be called if this parameter is mentionned."""
 
     @util.property_once
     def description(self):
+        """Use `.func`'s docstring to provide the parameter
+        description."""
         try:
             return self.func.helper.description
         except AttributeError:
             pass
 
     def read_argument(self, ba, i):
+        """Clears all processed arguments, sets up `.func` to be called later,
+        and lets all remaining arguments be collected as positional if this
+        was the first argument."""
         ba.args[:] = []
         ba.kwargs.clear()
         ba.post_name.append(ba.in_args[i])
@@ -457,16 +537,25 @@ class FallbackCommandParameter(NamedParameter):
 
 
 class AlternateCommandParameter(FallbackCommandParameter):
-    """Parameter that sets an alternative function when triggered. When used
-    as an argument other than the first all arguments are discarded."""
+    """Parameter that sets an alternative function when triggered. Cannot
+    be used as any argument but the first."""
 
     def read_argument(self, ba, i):
+        """Raises an error when this parameter is used after other arguments
+        have been given."""
         if i:
             raise errors.ArgsBeforeAlternateCommand(self)
         return super(AlternateCommandParameter, self).read_argument(ba, i)
 
 
 def parameter_converter(obj):
+    """Decorates a callable to be interpreted as a parameter converter
+    when passed as an annotation.
+
+    It will be called with an `inspect.Parameter` object and a sequence of
+    objects passed as annotations, without the parameter converter itself.
+    It is expected to return a `clize.parser.Parameter` instance or
+    `Parameter.IGNORE`."""
     obj._clize__parameter_converter = True
     return obj
 
@@ -586,6 +675,7 @@ default_converter = use_class(
     pos=pos_parameter, varargs=ExtraPosArgsParameter,
     named=named_parameter,
     )
+"""The default parameter converter. It is described in detail in :ref:`default-converter`."""
 
 
 def _develop_extras(params):
@@ -600,6 +690,16 @@ class CliSignature(object):
     to function arguments.
 
     :param iterable parameters: The parameters to use.
+
+    .. attribute:: converter
+       :annotation: = clize.parser.default_converter
+
+       The converter used by default in case none is present in the
+       annotations.
+
+    .. attribute:: parameters
+
+        An ordered dict of all parameters of this cli signature.
 
     .. attribute:: positional
 
@@ -616,7 +716,7 @@ class CliSignature(object):
     .. attribute:: aliases
         :annotation: = {}
 
-        Maps parameter names to `Parameter` instances.
+        Maps parameter names to `NamedParameter` instances.
 
     .. attribute:: required
         :annotation: = set()
@@ -660,14 +760,10 @@ class CliSignature(object):
                 pos.append(param)
             params[getattr(param, 'argument_name', param.display_name)] = param
 
-    param_cls = Parameter
-    """The parameter class `.from_signature` will use to convert source
-    parameters to CLI parameters"""
-
     @classmethod
     def from_signature(cls, sig, extra=(), **kwargs):
         """Takes a signature object and returns an instance of this class
-        derived from it.
+        deduced from it.
 
         :param inspect.Signature sig: The signature object to use.
         :param iterable extra: Extra parameter instances to include.
@@ -681,7 +777,7 @@ class CliSignature(object):
 
     @classmethod
     def convert_parameter(cls, param):
-        """Convert a python parameter to a CLI parameter"""
+        """Convert a python parameter to a CLI parameter."""
         if param.annotation != param.empty:
             annotations = util.maybe_iter(param.annotation)
         else:
@@ -773,6 +869,12 @@ class CliBoundArguments(object):
         :annotation: = {}
 
         Mapping of named arguments to pass to the target function.
+
+    .. attribute:: meta
+        :annotation: = {}
+
+        A dict for parameters to store data for the duration of the
+        argument processing.
 
     .. attribute:: func
         :annotation: = None

@@ -42,6 +42,9 @@ is the process followed for each parameter:
 
 .. _default-converter:
 
+The default parameter converter
+...............................
+
 The default parameter converter works as follows:
 
 * It looks at the parameter's type and checks whether it is a named or

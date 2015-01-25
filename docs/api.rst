@@ -30,58 +30,58 @@ Parser
 .. module:: clize.parser
 
 .. autoclass:: CliSignature
+   :exclude-members: converter
+
+.. autofunction:: parameter_converter
+
+.. autofunction:: default_converter
 
 .. autoclass:: CliBoundArguments
 
-.. autoclass:: clize.Parameter
-   :no-members:
-   :members: from_parameter, REQUIRED, LAST_OPTION, UNDOCUMENTED,
-             read_argument, apply_generic_flags,
-             format_type, required, full_name
+.. autoclass:: Parameter
+   :show-inheritance:
+   :exclude-members: L, I, U, R
 
-.. autoclass:: ParameterWithSourceEquivalent
+.. autoclass:: clize.parser.ParameterWithSourceEquivalent
    :show-inheritance:
 
-.. autoclass:: ParameterWithValue
+.. autoclass:: clize.parser.HelperParameter
    :show-inheritance:
 
-.. autoclass:: PositionalParameter
+.. autoclass:: clize.parser.ParameterWithValue
    :show-inheritance:
 
-.. autoclass:: NamedParameter
+.. autoclass:: clize.parser.NamedParameter
    :show-inheritance:
 
-.. autoclass:: FlagParameter
+.. autoclass:: clize.parser.FlagParameter
    :show-inheritance:
 
-.. autoclass:: OptionParameter
+.. autoclass:: clize.parser.OptionParameter
    :show-inheritance:
 
-.. autoclass:: IntOptionParameter
+.. autoclass:: clize.parser.IntOptionParameter
    :show-inheritance:
 
-.. autoclass:: MultiParameter
+.. autoclass:: clize.parser.PositionalParameter
    :show-inheritance:
 
-.. autoclass:: EatAllPositionalParameter
+.. autoclass:: clize.parser.MultiParameter
    :show-inheritance:
 
-.. autoclass:: EatAllOptionParameterArguments
+.. autoclass:: clize.parser.ExtraPosArgsParameter
    :show-inheritance:
 
-.. autoclass:: IgnoreAllOptionParameterArguments
+.. autoclass:: clize.parser.AppendArguments
    :show-inheritance:
 
-.. autoclass:: EatAllOptionParameter
+.. autoclass:: clize.parser.IgnoreAllArguments
    :show-inheritance:
 
-.. autoclass:: FallbackCommandParameter
+.. autoclass:: clize.parser.FallbackCommandParameter
    :show-inheritance:
 
-.. autoclass:: AlternateCommandParameter
-   :show-inheritance:
-
-.. autoclass:: ExtraPosArgsParameter
+.. autoclass:: clize.parser.AlternateCommandParameter
    :show-inheritance:
 
 
