@@ -1,0 +1,83 @@
+import logging
+
+from sigtools import modifiers, wrappers
+from clize import run, parser, util
+
+
+levels = {
+    'CRITICAL': logging.CRITICAL,
+    'ERROR': logging.ERROR,
+    'WARNING': logging.WARNING,
+    'INFO': logging.INFO,
+    'DEBUG': logging.DEBUG,
+    'NOTSET': logging.NOTSET
+}
+
+
+def loglevel(arg):
+    try:
+        return int(arg)
+    except ValueError:
+        try:
+            return levels[arg.upper()]
+        except KeyError:
+            raise ValueError(arg)
+
+
+class LogLevelParameter(parser.OptionParameter):
+    def __init__(self, typ, implicit_value=logging.INFO, **kwargs):
+        super(LogLevelParameter, self).__init__(typ=loglevel, **kwargs)
+        self.implicit_value = implicit_value
+
+    def get_value(self, ba, i):
+        arg = ba.in_args[i]
+        if arg.startswith('--'):
+            name, eq, val = arg.partition('=')
+            if eq:
+                return val
+        return self.implicit_value
+
+    def help_parens(self):
+        if self.default is not util.UNSET:
+            for k, v in levels.items():
+                if v == self.default:
+                    default = k
+                    break
+            else:
+                default = self.default
+            yield 'default: {0}'.format(default)
+
+
+log_level = parser.use_class(named=LogLevelParameter)
+
+
+def try_log(logger):
+    logger.debug("Debug")
+    logger.info("Info")
+    logger.warning("Warning")
+    logger.error("Error")
+    logger.critical("Critical")
+
+
+@wrappers.wrapper_decorator(0, 'logger')
+@modifiers.autokwoargs
+@modifiers.annotate(log=log_level)
+def with_logger(wrapped, log=logging.CRITICAL, *args, **kwargs):
+    """
+    Logging options:
+
+    log: The desired log level"""
+    logger = logging.getLogger('myapp')
+    logger.setLevel(log)
+    logger.addHandler(logging.StreamHandler())
+    return wrapped(*args, logger=logger, **kwargs)
+
+
+@with_logger
+@modifiers.kwoargs('logger')
+def main(logger):
+    """Tries out the logging system"""
+    try_log(logger)
+
+
+run(main)
