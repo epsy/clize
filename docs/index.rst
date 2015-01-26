@@ -6,12 +6,12 @@ Clize procedurally turns your python functions into convenient command-line
 interfaces.
 
 .. literalinclude:: /../examples/hello.py
-   :emphasize-lines: 3,19-20
+   :emphasize-lines: 3,20-21
 
-::
+.. code-block:: console
 
-    $ pip install clize
-    $ python hello.py --help
+    $ pip install --user clize
+    $ python examples/hello.py --help
     Usage: examples/hello.py [OPTIONS] [name]
 
     Greets the world or the given name.
