@@ -575,12 +575,34 @@ def use_class(
         pos=unimplemented_parameter, varargs=unimplemented_parameter,
         named=unimplemented_parameter, varkwargs=unimplemented_parameter,
         kwargs={}):
+    """Creates a parameter converter similar to the default converter that
+    picks one of 4 factory functions depending on the type of parameter.
+
+    :param pos: The parameter factory for positional parameters.
+    :param varargs: The parameter factory for ``*args``-like parameters.
+    :param named: The parameter factory for keyword parameters.
+    :param varkwargs: The parameter factory for ``**kwargs``-like parameters.
+    :type pos: callable that returns a `Parameter` instance
+    :type varargs: callable that returns a `Parameter` instance
+    :type named: callable that returns a `Parameter` instance
+    :type varkwargs: callable that returns a `Parameter` instance
+    :param collections.abc.Mapping kwargs: additional arguments to pass
+        to the chosen factory.
+    """
     return parameter_converter(
         partial(_use_class, pos, varargs, named, varkwargs, kwargs))
 
 
 @modifiers.autokwoargs
 def use_mixin(cls, kwargs={}):
+    """Like ``use_class``, but creates classes inheriting from ``cls`` and
+    one of ``PositionalParameter``, ``ExtraPosArgsParameter``, and
+    ``OptionParameter``
+
+    :param cls: The class to use as mixin.
+    :param collections.abc.Mapping kwargs: additional arguments to pass
+        to the chosen factory.
+    """
     class _PosWithMixin(cls, PositionalParameter): pass
     class _VarargsWithMixin(cls, ExtraPosArgsParameter): pass
     class _NamedWithMixin(cls, OptionParameter): pass

@@ -36,6 +36,10 @@ Parser
 
 .. autofunction:: default_converter
 
+.. autofunction:: use_class
+
+.. autofunction:: use_mixin
+
 .. autoclass:: CliBoundArguments
 
 .. autoclass:: Parameter
