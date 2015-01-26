@@ -1,8 +1,8 @@
-*********************************
-Welcome to clize's documentation!
-*********************************
+*******************************************************
+clize: Command-line argument parsing without the effort
+*******************************************************
 
-Clize procedurally turns your functions into convenient command-line
+Clize procedurally turns your python functions into convenient command-line
 interfaces.
 
 .. literalinclude:: /../examples/hello.py
