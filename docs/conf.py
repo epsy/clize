@@ -12,7 +12,7 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
 
 on_rtd = os.environ.get('READTHEDOCS', False) == 'True'
 
@@ -28,7 +28,7 @@ on_rtd = os.environ.get('READTHEDOCS', False) == 'True'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sigtools.sphinxext']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sigtools.sphinxext', 'clize._sphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = []
