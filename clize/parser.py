@@ -41,6 +41,8 @@ class Parameter(object):
     processed as positional."""
 
     I = IGNORE = ParameterFlag('IGNORE')
+    """Annotate a parameter with this and it will be dropped from the
+    resulting CLI signature."""
 
     U = UNDOCUMENTED = ParameterFlag('UNDOCUMENTED')
     """Parameters annotated with this will be omitted from the

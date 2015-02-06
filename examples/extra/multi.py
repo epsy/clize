@@ -4,7 +4,7 @@ from clize.extra import parameters
 
 
 @modifiers.kwoargs('listen')
-@modifiers.annotate(listen=('l', parameters.multi()))
+@modifiers.annotate(listen=('l', parameters.multi(min=1, max=3)))
 def main(listen):
     """Listens on the given addresses
 

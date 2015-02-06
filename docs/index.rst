@@ -43,7 +43,7 @@ Contents
    multicommands
    compositing
    packaging
-   moreparams
+   params
    newparams
    api
    upgrade

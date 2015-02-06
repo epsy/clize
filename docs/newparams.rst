@@ -1,7 +1,13 @@
 .. module:: clize.parser
 
+
+.. _extending parser:
+
 Extending the parser
 ====================
+
+
+.. _parser overview:
 
 Execution overview
 ------------------
@@ -22,6 +28,8 @@ Execution overview
    runs that function and lets its return value bubble up to `clize.run`, which
    prints it.
 
+
+.. _parameter conversion:
 
 Parameter conversion
 --------------------
@@ -77,6 +85,8 @@ The default parameter converter works as follows:
     handle it.
 
 
+.. _parser description:
+
 The argument parser
 -------------------
 
@@ -104,6 +114,8 @@ parameters. The `~.CliBoundArguments.sticky`, `~.CliBoundArguments.posarg_only`
 and `~.CliBoundArguments.skip` can also be modified to change the ongoing
 argument reading process.
 
+
+.. _new param example:
 
 Example: Creating a parameter class for specifying log levels
 -------------------------------------------------------------

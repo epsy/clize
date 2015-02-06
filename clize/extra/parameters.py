@@ -170,6 +170,14 @@ class MultiOptionParameter(parser.MultiParameter, parser.OptionParameter):
 
 
 def multi(min=0, max=None):
+    """For option parameters, allows the parameter to be repeated on the
+    command-line with an optional minimum or maximum. For ``*args``-like
+    parameters, just adds the optional bounds.
+
+    .. literalinclude:: /../examples/extra/multi.py
+        :lines: 6-14
+    """
+
     return parser.use_class(
         named=MultiOptionParameter, varargs=parser.ExtraPosArgsParameter,
         kwargs={
@@ -383,13 +391,7 @@ def argument_decorator(f):
     to qualify another.
 
     .. literalinclude:: /../examples/extra/argdeco.py
-        :lines:5-25
-
-    ::
-
-        $ python argdeco.py abc -c def ghi
-        abc DEF ghi
-
+       :lines: 5-25
     """
     return parser.use_mixin(
         DecoratedArgumentParameter, kwargs={'decorator': f})
