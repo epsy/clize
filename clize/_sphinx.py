@@ -4,9 +4,15 @@ from sphinx.ext import autodoc
 
 
 class NoDupesObjectDirective(python.PyObject):
+    def get_ref_context(self):
+        try:
+            return self.env.ref_context
+        except AttributeError:
+            return self.env.temp_data
+
     def add_target_and_index(self, name_cls, sig, signode):
         modname = self.options.get(
-            'module', self.env.ref_context.get('py:module'))
+            'module', self.get_ref_context().get('py:module'))
         fullname = (modname and modname + '.' or '') + name_cls[0]
         # note target
         if fullname not in self.state.document.ids:
