@@ -1,3 +1,6 @@
+
+.. _dispatching:
+
 Multiple commands
 =================
 
@@ -38,6 +41,8 @@ dashes and those on the extremities are stripped away.
 Alternatively, you can pass any iterable of functions or a mapping(`dict` or
 `collections.OrderedDict`) to `.run`. In the case of a mapping, the keys are
 used without transformation to create the command names.
+
+.. _multiple commands:
 
 Multiple commands
 -----------------

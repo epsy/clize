@@ -1,7 +1,13 @@
 .. currentmodule:: clize
 
+
+.. _basics:
+
 Basics
 ======
+
+
+.. _install:
 
 Installation
 ------------

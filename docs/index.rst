@@ -31,10 +31,20 @@ interfaces.
     $ python hello.py --no-capitalize
     Hello john!
 
+Clize distinguishes itself from other argument parser in that it lets you focus
+on your actual program or script rather than on its argument parsing. You
+simply write the function you could have written anyways and pass it to
+`clize.run`.
+
+You can check out the |examples_url|_ folder, or you can start the tutorial at the :ref:`basics`.
+
+Clize doesn't stop there however: It supports :ref:`dispatching`, :ref:`function-compositing`, as well as :ref:`extending parser`.
+
+You may also consult documentation for each kind of parameter in the :ref:`parameter-reference`.
 
 
-Contents
---------
+Table of contents
+-----------------
 
 .. toctree::
    :maxdepth: 2

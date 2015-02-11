@@ -254,3 +254,12 @@ intersphinx_mapping = {
 autoclass_content = 'both'
 autodoc_member_order = 'bysource'
 autodoc_default_flags = 'members', 'undoc-members'
+
+rst_prolog = """
+
+.. |examples_url| replace:: examples
+.. _examples_url: https://github.com/epsy/clize/tree/master/examples
+
+..
+
+"""
