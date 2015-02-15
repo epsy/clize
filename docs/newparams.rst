@@ -16,16 +16,16 @@ Execution overview
 2. It forwards that to `.Clize.get_cli` in order to get a :ref:`cli
    object<cli-object>` to run.
 3. If there is more than one function, `.Clize.get_cli` uses
-   `.SubcommandDispatcher` to wrap it, otherwise creates a new `.Clize`
+   `.SubcommandDispatcher` to wrap it, otherwise it creates a new `.Clize`
    instance with it and returns it.
 4. `.run` calls that cli object with `sys.argv`.
 5. Assuming that object is a `.Clize` instance, it will now actually look at
    the function that was passed and create a `.CliSignature` object out of it.
 6. It then uses its `~.CliSignature.read_arguments` method with the arguments,
-   which returns a `~.CliBoundArguments` instance. More on this down below.
+   which returns a `~.CliBoundArguments` instance. More on this below.
 7. That instance carries which function needs to be run, overriding the default
    one if present, as well as the arguments to be passed to it. `.Clize` then
-   runs that function and lets its return value bubble up to `clize.run`, which
+   runs that function and lets its return value bubble up to `clize.run` which
    prints it.
 
 
@@ -96,23 +96,24 @@ initialization. For each argument of its input, it calls the
 signature object.  When the argument on the input starts with ``-`` it looks in
 its named parameter dict, otherwise it picks the next positional parameter.
 
-
-.. automethod:: .Parameter.read_argument
-   :noindex:
-
+.. automoremethod:: .Parameter.read_argument
 
 This method is expected to mutate ``ba``, an instance of `~.CliBoundArguments`.
 In particular, it should add any relevant arguments to its
 `~.CliBoundArguments.args` and `~.CliBoundArguments.kwargs` attributes which
-are used when calling the wrapped callable, or set the
-`~.CliBoundArguments.func` attribute to switch the wrapped callable for
-another.
+are used when calling the wrapped callable as in ``func(*args, **kwargs)``, or
+set the `~.CliBoundArguments.func` attribute which switches the wrapped
+callable for another.
 
-If applicable, it is also expected to discard itself from
+Part of the parameter's behavior is split from `read_argument` into `apply_generic_flags` in order to facilitate subclassing:
+
+.. automoremethod:: .Parameter.apply_generic_flags
+
+This pair of methods are expected to discard the parameter from
 `~.CliBoundArguments.unsatisfied`, the list of still-unsatisfied required
-parameters. The `~.CliBoundArguments.sticky`, `~.CliBoundArguments.posarg_only`
-and `~.CliBoundArguments.skip` can also be modified to change the ongoing
-argument reading process.
+parameters, when applicable. The `~.CliBoundArguments.sticky`,
+`~.CliBoundArguments.posarg_only` and `~.CliBoundArguments.skip` can also be
+modified to change the ongoing argument reading process.
 
 
 .. _new param example:
