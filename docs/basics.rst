@@ -1,6 +1,13 @@
 .. currentmodule:: clize
 
 
+.. |pip| replace:: pip
+.. _pip: https://pip.pypa.io/en/latest/
+
+.. |virtualenv| replace:: virtualenv
+.. _virtualenv: https://virtualenv.pypa.io/en/latest/
+
+
 .. _basics:
 
 Basics
@@ -12,9 +19,18 @@ Basics
 Installation
 ------------
 
-With sufficient privileges, or within a virtualenv::
+You can install clize using |pip|_. If in an activated virtualenv, type:
+
+.. code-block:: console
 
     pip install clize
+
+If you wish to do a user-wide install:
+
+.. code-block:: console
+
+    pip install --user clize
+
 
 A minimal application
 ---------------------
