@@ -246,9 +246,14 @@ class Formatter(object):
         self._indent = 0
 
     def append(self, line, indent=0):
-        self.wrapper.width = self.get_width(indent)
-        for wline in self.wrapper.wrap(line):
-            self.append_raw(wline, indent=indent)
+        if not line:
+            self.new_paragraph()
+        elif line.startswith(' '):
+            self.append_raw(line, indent)
+        else:
+            self.wrapper.width = self.get_width(indent)
+            for wline in self.wrapper.wrap(line):
+                self.append_raw(wline, indent=indent)
 
     def append_raw(self, line, indent=0):
         self.lines.append((self._indent + indent, line))
@@ -262,19 +267,11 @@ class Formatter(object):
 
     def extend(self, iterable):
         if not isinstance(iterable, Formatter):
-            iterator = ((0, line) for line in iterable)
+            for line in iterable:
+                self.append(line)
         else:
-            iterator = iter(iterable)
-        try:
-            first = next(iterator)
-        except StopIteration:
-            return
-        if not first[1]:
-            self.new_paragraph()
-        else:
-            self.append_raw(first[1], first[0])
-        for indent, line in iterator:
-            self.append_raw(line, indent)
+            for indent, line in iterable:
+                self.append_raw(line, indent)
 
     def indent(self, indent=2):
         return _FormatterIndent(self, indent)

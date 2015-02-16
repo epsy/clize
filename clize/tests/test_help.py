@@ -516,6 +516,18 @@ class FormattingTests(object):
         p_help_str = str(h.show('func'))
         self.assertEqual(help_str, p_help_str)
 
+    wrap = "", """
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis a est neque. Nullam ornare sem eu commodo gravida.
+        """, (
+            "Usage: func\n"
+            "\n"
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                                                    "Duis a est neque.\n"
+            "Nullam ornare sem eu commodo gravida.\n"
+            "\n"
+            "Other actions:\n"
+            "  -h, --help   Show the help"
+        )
     code_block = "*, alpha, beta", """
             This is a code example:
 
