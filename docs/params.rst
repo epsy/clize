@@ -1,5 +1,7 @@
 .. currentmodule:: clize.parser
 
+.. |colon| replace:: colon |nbsp| (``:``)
+
 .. _parameter-reference:
 
 Parameter reference
@@ -590,8 +592,275 @@ Forcing arguments to be treated as positional
     the parameter ``d`` which had the annotation.
 
 
+.. _docstring:
+
 Customizing the help using the docstring
 ----------------------------------------
 
-TODO
+Clize draws the text of the ``--help`` output from the wrapped function's
+docstring as well as of its `sigtools.wrappers.wrapper_decorator`-based
+decorators.
 
+While it allows some amount of customization, the input must follow certain
+rules and the output is formatted by Clize.
+
+The docstring is divided in units of paragraphs. Each paragraph is separated by
+two newlines.
+
+
+.. _pos doc:
+
+Documenting positional parameters
+.................................
+
+To document a parameter, start a paragraph with the name of the parameter you
+want to document followed by a |colon|, followed by text:
+
+.. code-block:: python
+
+    from clize import run
+
+    def func(one, and_two):
+        """
+        one: Documentation for the first parameter.
+
+        and_two: Documentation for the second parameter.
+        """
+
+    run(func)
+
+.. code-block:: console
+
+    $ python docstring.py --help
+    Usage: docstring.py one and-two
+
+    Arguments:
+      one          Documentation for the first parameter.
+      and-two      Documentation for the second parameter.
+
+    Other actions:
+      -h, --help   Show the help
+
+
+.. _desc doc:
+
+Description and footnotes
+.........................
+
+You can add a description as well as footnotes:
+
+.. code-block:: python
+
+    from clize import run
+
+    def func(one, and_two):
+        """
+        This is a description of the program.
+
+        one: Documentation for the first parameter.
+
+        and_two: Documentation for the second parameter.
+
+        These are footnotes about the program.
+        """
+
+    run(func)
+
+.. code-block:: console
+
+    $ python docstring.py --help
+    Usage: docstring.py one and-two
+
+    This is a description of the program.
+
+    Arguments:
+      one          Documentation for the first parameter.
+      and-two      Documentation for the second parameter.
+
+    Other actions:
+      -h, --help   Show the help
+
+    These are footnotes about the program.
+
+
+.. _after doc:
+
+Adding additional information
+.............................
+
+
+If you wish, you may add additional information about each parameter in a new
+paragraph below it:
+
+.. code-block:: python
+
+    from clize import run
+
+    def func(one, and_two):
+        """
+        This is a description of the program.
+
+        one: Documentation for the first parameter.
+
+        More information about the first parameter.
+
+        and_two: Documentation for the second parameter.
+
+        More information about the second parameter.
+
+        _:_
+
+        These are footnotes about the program.
+        """
+
+    run(func)
+
+To distinguish ``and_two``'s information and the footnotes, we inserted a dummy
+parameter description between them |nbsp| (``_:_``).
+
+.. code-block:: console
+
+    $ python docstring.py --help
+    Usage: docstring.py one and-two
+
+    This is a description of the program.
+
+    Arguments:
+      one          Documentation for the first parameter.
+
+    More information about the first parameter.
+
+      and-two      Documentation for the second parameter.
+
+    More information about the second parameter.
+
+    Other actions:
+      -h, --help   Show the help
+
+    These are footnotes about the program.
+
+
+.. _order doc:
+
+Ordering named parameters
+.........................
+
+Unlike positional parameters, named parameters will be shown in the order they
+appear in the docstring:
+
+.. code-block:: python
+
+    from clize import run
+
+    def func(*, one, and_two):
+        """
+        and_two: Documentation for the second parameter.
+
+        one: Documentation for the first parameter.
+        """
+
+    run(func)
+
+.. code-block:: console
+
+    $ python docstring.py --help
+    Usage: docstring.py [OPTIONS]
+
+    Options:
+      --and-two=STR   Documentation for the second parameter.
+      --one=STR       Documentation for the first parameter.
+
+    Other actions:
+      -h, --help      Show the help
+
+
+.. _sections doc:
+
+Creating sections
+.................
+
+Named parameters can be arranged into sections. You can create a section by
+having a paragraph end with a |colon| before a parameter definition:
+
+.. code-block:: python
+
+    from clize import run
+
+    def func(*, one, and_two, three):
+        """
+        Great parameters:
+
+        and_two: Documentation for the second parameter.
+
+        one: Documentation for the first parameter.
+
+        Not-so-great parameters:
+
+        three: Documentation for the third parameter.
+        """
+
+    run(func)
+
+.. code-block:: console
+
+    $ python docstring.py --help
+    Usage: docstring.py [OPTIONS]
+
+    Great parameters:
+      --and-two=STR   Documentation for the second parameter.
+      --one=STR       Documentation for the first parameter.
+
+    Not-so-great parameters:
+      --three=STR     Documentation for the third parameter.
+
+    Other actions:
+      -h, --help      Show the help
+
+
+.. _code block:
+
+Unformatted paragraphs
+......................
+
+You can insert unformatted text (for instance, :index:`code examples`) by
+finishing a paragraph with a |colon| and starting the unformatted text with at
+least one space of indentation:
+
+.. code-block:: python
+
+    from clize import run
+
+    def func():
+        """
+
+        This        text
+        is      automatically  formatted.
+        However, you may present code blocks like this:
+
+            Unformatted              text
+
+            More    unformatted
+            text.
+
+        """
+
+.. code-block:: console
+
+    $ python docstring.py --help
+    Usage: docstring.py
+
+    This text is automatically formatted. However, you may present code blocks
+    like this:
+
+        Unformatted              text
+
+        More    unformatted
+        text.
+
+    Other actions:
+      -h, --help   Show the help
+
+    run(func)
+
+A paragraph with just a |colon| will be omitted from the output, but still
+trigger unformatted text.

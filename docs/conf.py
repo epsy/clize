@@ -257,6 +257,9 @@ autodoc_default_flags = 'members', 'undoc-members'
 
 rst_prolog = """
 
+.. |nbsp| unicode:: 0xA0
+    :trim:
+
 .. |examples_url| replace:: examples
 .. _examples_url: https://github.com/epsy/clize/tree/master/examples
 
