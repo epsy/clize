@@ -6,6 +6,20 @@
 Extending the parser
 ====================
 
+Clize allows the parser to be extended through, most notably, new parameters.
+They allow you to introduce new argument parsing behaviour within the parser's
+contraints:
+
+* The finality of argument parsing in Clize is to determine ``func``, ``args``
+  and ``kwargs`` in order to do ``func(*args, **kwargs)``.
+* Arguments that start with ``-`` are looked up in the named parameters table
+  by their first letter when there is only one dash, or until the end of the
+  argument or ``=`` when there are two dashes.
+* Other arguments are processed by the positional parameters in the order they
+  are stored.
+
+This document will explain each step of the CLI inference and argument parsing process. An example then shows how you can add a new kind of parameter.
+
 
 .. _parser overview:
 
