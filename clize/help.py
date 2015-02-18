@@ -120,7 +120,7 @@ class ClizeHelp(Help):
         self._parse_help()
         s[LABEL_ALT] = s.pop(LABEL_ALT)
 
-    argdoc_re = re.compile('^([a-zA-Z_]+): ?(.+)$')
+    argdoc_re = re.compile(r'^(\w+): ?(.+)$')
     def parse_docstring(self, s):
         free_text = []
         header = []

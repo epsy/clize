@@ -358,6 +358,27 @@ class WholeHelpTests(object):
     """
 
 
+    num = "*, _6=False", """
+        Description
+
+        _6: Use IPv6?
+
+        Footer
+    """, ['func [-6]', USAGE_HELP], """
+        Usage: func [OPTIONS]
+
+        Description
+
+        Options:
+        -6  Use IPv6?
+
+        Other actions:
+        -h, --help  Show the help
+
+        Footer
+    """
+
+
 @repeated_test
 class WrappedFuncTests(object):
     def _test_func(self, sig, wrapper_sigs, doc, wrapper_docs, help_str):
