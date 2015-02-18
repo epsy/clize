@@ -96,7 +96,8 @@ You now pass these as annotations on the corresponding parameter. To keep compat
     from clize import run
 
     @autokwoargs
-    @annotate(one=int, two='second', three=('third', int)):
+    @annotate
+    def func(one=int, two='second', three=('third', int)):
         pass # ...
 
     if __name__ == '__main__':
