@@ -36,7 +36,7 @@ def annotated_sigtests(self, sig_info, in_args, args, kwargs):
     sig_str, annotation, str_rep = sig_info
     sig = support.s(sig_str, locals={'a': annotation})
     csig = parser.CliSignature.from_signature(sig)
-    ba = csig.read_arguments(in_args)
+    ba = util.read_arguments(csig, in_args)
     self.assertEqual(ba.args, args)
     self.assertEqual(ba.kwargs, kwargs)
 
@@ -47,7 +47,7 @@ def annotated_sigerror_tests(self, sig_info, in_args,
     sig_str, annotation, str_rep = sig_info
     sig = support.s(sig_str, locals={'a': annotation})
     csig = parser.CliSignature.from_signature(sig)
-    self.assertRaises(exc, csig.read_arguments, in_args)
+    self.assertRaises(exc, util.read_arguments, csig, in_args)
 
 
 @check_repr
@@ -216,7 +216,7 @@ class MappedTests(object):
     def test_show_list(self):
         sig = support.s('par:a', locals={'a': RepTests.mapped_basic[1]})
         csig = parser.CliSignature.from_signature(sig)
-        ba = csig.read_arguments(['list'])
+        ba = util.read_arguments(csig, ['list'])
         par = csig.positional[0]
         self.assertEqual(par.show_list, ba.func)
         self.assertEqual(
@@ -229,7 +229,7 @@ class MappedTests(object):
         sig = support.s('par:a',
                         locals={'a': RepTests.mapped_alternate_list[1]})
         csig = parser.CliSignature.from_signature(sig)
-        ba = csig.read_arguments(['options'])
+        ba = util.read_arguments(csig, ['options'])
         par = csig.positional[0]
         self.assertEqual(par.show_list, ba.func)
         self.assertEqual(
@@ -296,7 +296,7 @@ class OneOfTests(object):
     def test_show_list(self):
         sig = support.s('par:a', locals={'a': RepTests.oneof_help[1]})
         csig = parser.CliSignature.from_signature(sig)
-        ba = csig.read_arguments(['list'])
+        ba = util.read_arguments(csig, ['list'])
         par = csig.positional[0]
         self.assertEqual(par.show_list, ba.func)
         self.assertEqual(
@@ -369,12 +369,13 @@ class MultiErrorTests(object):
         csig = parser.CliSignature.from_signature(sig)
 
         try:
-            csig.read_arguments(('--par=1',))
+            util.read_arguments(csig, ('--par=1',))
         except errors.NotEnoughValues as e:
             self.assertEqual(e.message, "Received too few values for --par")
 
         try:
-            csig.read_arguments(('--par=1', '--par=2', '--par=3', '--par=4'))
+            util.read_arguments(csig,
+                                ('--par=1', '--par=2', '--par=3', '--par=4'))
         except errors.TooManyValues as e:
             self.assertEqual(e.message, "Received too many values for --par")
 

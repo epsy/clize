@@ -7,7 +7,9 @@ import sys
 import shutil
 import unittest
 
+from sigtools import modifiers
 from six.moves import cStringIO
+
 from clize.tests import util
 from clize import runner, errors
 
@@ -132,7 +134,7 @@ class GetCliTests(unittest.TestCase):
         try:
             runner.Clize.get_cli(
                 iter([iter([func1, func2]), iter([func3, func4])]))
-        except ValueError as e:
+        except ValueError:
             pass
         else:
             self.fail("AttributeError not raised")
@@ -368,3 +370,21 @@ class RunnerTests(unittest.TestCase):
         self.assertTrue(stderr.getvalue())
         self.assertFalse(stdout.getvalue())
 
+    def test_close(self):
+        class Mgr(object):
+            def __init__(self):
+                self.closed = False
+
+            def __enter__(self):
+                pass
+
+            def __exit__(self, typ, val, tb):
+                self.closed = True
+        m = Mgr()
+        def coerc(arg):
+            return m
+        @modifiers.annotate(arg=coerc)
+        def func(arg):
+            pass
+        runner.run(func, args=['test', 'arg'], exit=False)
+        self.assertTrue(m.closed)

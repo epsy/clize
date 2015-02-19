@@ -11,6 +11,7 @@ import operator
 import itertools
 import shutil
 
+import contextlib2
 from sigtools.modifiers import annotate, autokwoargs
 from sigtools.specifiers import forwards_to_method, signature
 from sigtools.signatures import mask
@@ -196,18 +197,20 @@ class Clize(object):
             yield param
 
     def __call__(self, *args):
-        with errors.SetUserErrorContext(cli=self, pname=args[0]):
-            func, name, posargs, kwargs = self.read_commandline(args)
+        with contextlib2.ExitStack() as stack:
+            stack.enter_context(
+                errors.SetUserErrorContext(cli=self, pname=args[0]))
+            func, name, posargs, kwargs = self.read_commandline(args, stack)
             return func(*posargs, **kwargs)
 
-    def read_commandline(self, args):
+    def read_commandline(self, args, stack):
         """Reads the command-line arguments from args and returns a tuple
         with the callable to run, the name of the program, the positional
         and named arguments to pass to the callable.
 
         :raises: `.ArgumentError`
         """
-        ba = self.signature.read_arguments(args[1:], args[0])
+        ba = self.signature.read_arguments(args[1:], args[0], stack)
         func, post, posargs, kwargs = ba
         name = ' '.join([args[0]] + post)
         if func or self.pass_name:

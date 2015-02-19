@@ -5,7 +5,7 @@
 from sigtools import support, modifiers, specifiers
 
 from clize import parser, errors, util
-from clize.tests.util import testfunc
+from clize.tests.util import testfunc, read_arguments
 
 
 @testfunc
@@ -120,7 +120,7 @@ class FromSigTests(object):
 def signaturetests(self, sig_str, str_rep, args, posargs, kwargs):
     sig = support.s(sig_str, locals={'P': parser.Parameter})
     csig = parser.CliSignature.from_signature(sig)
-    ba = csig.read_arguments(args)
+    ba = read_arguments(csig, args)
     self.assertEqual(str(csig), str_rep)
     self.assertEqual(ba.args, posargs)
     self.assertEqual(ba.kwargs, kwargs)
@@ -221,7 +221,7 @@ class SigTests(object):
 def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
     sig = support.s(sig_str)
     csig = parser.CliSignature.from_signature(sig, extra=extra)
-    ba = csig.read_arguments(args)
+    ba = read_arguments(csig, args)
     self.assertEqual(ba.args, posargs)
     self.assertEqual(ba.kwargs, kwargs)
     self.assertEqual(ba.func, func)
@@ -285,7 +285,7 @@ def sigerrortests(self, sig_str, args, exc_typ):
     sig = support.s(sig_str)
     csig = parser.CliSignature.from_signature(sig)
     try:
-        csig.read_arguments(args)
+        read_arguments(csig, args)
     except exc_typ:
         pass
     except: #pragma: no cover
@@ -315,7 +315,7 @@ class SigErrorTests(object):
         csig = parser.CliSignature.from_signature(
             specifiers.signature(func))
         try:
-            csig.read_arguments(())
+            read_arguments(csig, ())
         except errors.MissingRequiredArguments:
             pass
         except: # pragma: no cover

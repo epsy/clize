@@ -200,7 +200,13 @@ class ParameterWithValue(Parameter):
         `ValueError`.
         """
         try:
-            return self.typ(arg)
+            ret = self.typ(arg)
+            try:
+                type(ret).__enter__
+            except AttributeError:
+                return ret
+            else:
+                return ba.exitstack.enter_context(ret)
         except ValueError as e:
             exc = errors.BadArgumentFormat(self.typ, arg)
             exc.__cause__ = e
@@ -822,14 +828,14 @@ class CliSignature(object):
 
 
 
-    def read_arguments(self, args, name='unnamed'):
+    def read_arguments(self, args, name, exitstack):
         """Returns a `.CliBoundArguments` instance for this CLI signature
         bound to the given arguments.
 
         :param sequence args: The CLI arguments, minus the script name.
         :param str name: The script name.
         """
-        return CliBoundArguments(self, args, name)
+        return CliBoundArguments(self, args, name, exitstack)
 
     def __str__(self):
         return ' '.join(
@@ -938,7 +944,7 @@ class CliBoundArguments(object):
     """
 
 
-    def __init__(self, sig, args, name):
+    def __init__(self, sig, args, name, exitstack):
         self.sig = sig
         self.name = name
         self.in_args = tuple(args)
@@ -947,6 +953,7 @@ class CliBoundArguments(object):
         self.args = []
         self.kwargs = {}
         self.meta = {}
+        self.exitstack = exitstack
 
         self.sticky = None
         self.posarg_only = False
@@ -968,7 +975,8 @@ class CliBoundArguments(object):
                             try:
                                 param = next(posparam)
                             except StopIteration:
-                                exc = errors.TooManyArguments(self.in_args[i:])
+                                exc = errors.TooManyArguments(
+                                    self.in_args[i:])
                                 exc.__cause__ = None
                                 raise exc
                     elif arg == '--':
