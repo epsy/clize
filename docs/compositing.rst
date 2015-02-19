@@ -225,3 +225,8 @@ names of the composited parameters must not conflict:
     Connecting to (('abc', 80, True), ('def', 80, False)) to get /eggs
     $ python argdeco.py /eggs -6 abc def --port 8080 cheese
     Connecting to (('abc', 80, True), ('def', 80, False), ('cheese', 8080, False)) to get /eggs
+
+
+Congratulations, you've reached the end of the tutorials! You can check out the
+:ref:`parameter reference<parameter-reference>` or see how you can :ref:`extend
+the parser<extending parser>`.

@@ -72,5 +72,9 @@ feature.
     Sorry I forgot it all :(
 
 Alternatively, you can pass any iterable of functions or a mapping(`dict` or
-`collections.OrderedDict`) to `.run` like with :ref:`the alt parameter explained earlier <command-list>`.
+`collections.OrderedDict`) to `.run` like with :ref:`the alt parameter
+explained earlier <command-list>`.
 
+
+You'll often need to share a few characteristics between each function. See how
+Clize helps you do that in :ref:`function-compositing`.

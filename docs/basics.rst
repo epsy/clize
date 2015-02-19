@@ -348,3 +348,7 @@ one option is to raise an :class:`ArgumentError` from within your function:
 
 If you would like the usage line not to be printed, raise :class:`UserError`
 instead.
+
+
+Next up, we will look at how you can have Clize :ref:`dispatch to multiple
+functions<dispatching>` for you.
