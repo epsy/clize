@@ -76,7 +76,7 @@ class AnnotationFailures(unittest.TestCase):
             @clize
             @modifiers.annotate(one=(float, int))
             def fn(one):
-                return one
+                raise NotImplementedError
             fn.signature
         self.assertRaises(ValueError, test)
 
@@ -85,7 +85,7 @@ class AnnotationFailures(unittest.TestCase):
             @clize
             @modifiers.annotate(one='a b')
             def fn(one=1):
-                return one
+                raise NotImplementedError
             fn.signature
         self.assertRaises(ValueError, test)
 
@@ -94,7 +94,7 @@ class AnnotationFailures(unittest.TestCase):
             @clize
             @modifiers.annotate(one=1.0)
             def fn(one):
-                return one
+                raise NotImplementedError
             fn.signature
         self.assertRaises(ValueError, test)
 
@@ -114,7 +114,7 @@ class KwoargsParams(unittest.TestCase):
         @clize
         @modifiers.kwoargs('one')
         def fn(one):
-            return one
+            raise NotImplementedError
 
         self.assertRaises(errors.MissingRequiredArguments, fn, 'fn')
 
@@ -148,35 +148,3 @@ class KwoargsParams(unittest.TestCase):
             fn('fn', '1', '3'),
             ('1', 3)
             )
-
-class KwoargsHelpTests(object):
-    def test_kwoparam(self):
-        @modifiers.kwoargs('one')
-        def fn(one='1'):
-            """
-
-            one: one!
-            """
-            pass
-        self.assertHelpEquals(
-            fn, """\
-Usage: fn [OPTIONS] 
-
-Options:
-  --one=STR   one!(default: 1)
-""")
-
-    def test_kwoparam_required(self):
-        @modifiers.kwoargs('one')
-        def fn(one):
-            """
-            one: one!
-            """
-            pass
-        self.assertHelpEquals(
-            fn, """\
-Usage: fn [OPTIONS] 
-
-Options:
-  --one=STR   one!(required)
-""")
