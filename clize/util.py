@@ -53,7 +53,7 @@ def name_type2cli(typ):
     if typ is identity or typ in six.string_types:
         return 'STR'
     else:
-        return typ.__name__.upper()
+        return typ.__name__.strip('_').upper()
 
 def maybe_iter(x):
     try:
