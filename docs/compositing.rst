@@ -34,7 +34,7 @@ when passed a specific flag.
 ``with_uppercase`` function decorate other functions:
 
 .. literalinclude:: /../examples/decorators/add_param.py
-    :lines: 5,22-35
+    :lines: 5,22-36
 
 Each time the decorated function is run, ``with_uppercase`` will be run with
 the decorated function as first argument ``wrapped``.
