@@ -4,8 +4,6 @@
 
 from functools import partial
 
-from clize import util
-
 
 class UserError(ValueError):
     """An error to be printed to the user."""
@@ -116,14 +114,14 @@ class TooManyValues(ArgumentError):
 class BadArgumentFormat(ArgumentError):
     """Raised when an argument cannot be converted to the correct format."""
 
-    def __init__(self, typ, val):
-        self.typ = typ
+    def __init__(self, param, val):
+        self.param = param
         self.val = val
 
     @property
     def message(self):
-        return "Bad format for {0}: {1!r}".format(
-            util.name_type2cli(self.typ), self.val)
+        return "Bad value for {0.display_name}: {1!r}".format(
+            self.param, self.val)
 
 
 class ArgsBeforeAlternateCommand(ArgumentError):
