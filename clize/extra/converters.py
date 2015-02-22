@@ -6,6 +6,8 @@ import io
 
 from dateutil import parser as dparser
 
+from clize import errors
+
 
 def datetime(arg):
     return dparser.parse(arg)
@@ -13,6 +15,14 @@ def datetime(arg):
 
 def file(**kwargs):
     def file_(arg):
-        return io.open(arg, **kwargs)
+        try:
+            return io.open(arg, **kwargs)
+        except IOError as exc:
+            raise _convert_ioerror(arg, exc)
+
     return file_
 
+def _convert_ioerror(arg, exc):
+    nexc = errors.CliValueError('{0.strerror} {1!r}'.format(exc, arg))
+    nexc.__cause__ = exc
+    return nexc

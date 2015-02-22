@@ -66,6 +66,11 @@ class FileConverterTests(unittest.TestCase):
         self.assertEqual(arg.mode, 'w')
         self.assertTrue(arg.closed)
 
+    def test_file_missing(self):
+        path = os.path.join(self.temp, 'afile')
+        self.assertRaises(errors.BadArgumentFormat,
+                          self.run_conv, converters.file(), path)
+
 
 @util.repeated_test
 class ConverterErrorTests(object):

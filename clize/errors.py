@@ -111,17 +111,21 @@ class TooManyValues(ArgumentError):
                 self.param)
 
 
+class CliValueError(ValueError):
+    """Specialization of `ValueError` for showing a message to the user along
+    with the error rather than just the incorrect value."""
+
 class BadArgumentFormat(ArgumentError):
     """Raised when an argument cannot be converted to the correct format."""
 
-    def __init__(self, param, val):
+    def __init__(self, param, text):
         self.param = param
-        self.val = val
+        self.text = text
 
     @property
     def message(self):
-        return "Bad value for {0.display_name}: {1!r}".format(
-            self.param, self.val)
+        return "Bad value for {0.display_name}: {1}".format(
+            self.param, self.text)
 
 
 class ArgsBeforeAlternateCommand(ArgumentError):

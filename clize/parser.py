@@ -201,16 +201,21 @@ class ParameterWithValue(Parameter):
         """
         try:
             ret = self.typ(arg)
+        except errors.CliValueError as e:
+            exc = errors.BadArgumentFormat(self, e)
+            exc.__cause__ = e
+            raise exc
+        except ValueError as e:
+            exc = errors.BadArgumentFormat(self, repr(arg))
+            exc.__cause__ = e
+            raise exc
+        else:
             try:
                 type(ret).__enter__
             except AttributeError:
                 return ret
             else:
                 return ba.exitstack.enter_context(ret)
-        except ValueError as e:
-            exc = errors.BadArgumentFormat(self.typ, arg)
-            exc.__cause__ = e
-            raise exc
 
     def get_value(self, ba, i):
         """Retrieves the "value" part of the argument in ``ba`` at
