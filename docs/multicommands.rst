@@ -1,18 +1,18 @@
+.. currentmodule:: clize
 
 .. _dispatching:
 
-Multiple commands
-=================
+Dispatching to multiple functions
+=================================
 
-Clize provides two different approaches to presenting multiple actions in one
-command-line interface.
 
-Alternate actions
-    The program only has one primary action, but one or more auxilliary
-    functions.
-Multiple commands
-    The program has multiple subcommands most of which are a major function of
-    the program.
+So far the previous part of the tutorial showed you how to use clize to
+:ref:`run a single function <basics>`. Sometimes your program will need to
+perform diffferent related actions that involve different parameters. For
+instance, `git <http://git-scm.com/>`_ offers all kinds of commands related to
+managing a versionned code repository under the ``git`` command. Your
+program could have a few auxiliary functions, like verifying the format of a
+config file, or simply displaying the program's version.
 
 
 .. _alt-actions:
@@ -20,27 +20,80 @@ Multiple commands
 Alternate actions
 -----------------
 
-You can specify alternate functions to be run using the ``alt`` parameter on
-:func:`run` when specifying one function. Let's add a ``--version`` command to
-``echo.py``:
+These allow you to provide auxiliary functions to your program while one
+remains the main function. Let's write a program with an alternate command
+triggered by ``--version`` that prints the version.
+
+
+Here are the two functions we could have: ``do_nothing`` will be the main function while ``version`` will be provided as an alternate command.
 
 .. literalinclude:: /../examples/altcommands.py
-   :emphasize-lines: 13,18
+    :lines: 6-16
 
-::
+You use `run` as usual for the main function, but specify the alternate command
+in the ``alt=`` parameter:
 
-    $ python altcommands.py --version
-    echo version 0.2
+.. literalinclude:: /../examples/altcommands.py
+    :lines: 3-5, 19
 
-.. _command-list:
+The ``version`` function will be available as ``--version``:
 
-You can pass multiple aternate commands by passing a list to ``alt=``. Their
-names are drawn from the original function names. Underscores are converted to
-dashes and those on the extremities are stripped away.
+.. code-block:: console
 
-Alternatively, you can pass any iterable of functions or a mapping(`dict` or
-`collections.OrderedDict`) to `.run`. In the case of a mapping, the keys are
-used without transformation to create the command names.
+    $ python examples/altcommands.py --help
+    Usage: examples/altcommands.py
+
+    Does nothing
+
+    Other actions:
+      -h, --help   Show the help
+      --version    Show the version
+
+You can specify more alternate commands in a list. For instance,
+
+.. code-block:: python
+
+    from sigtools import modifiers
+
+
+    @modifiers.kwoargs('show_time')
+    def build_date(show_time=False):
+        """Show the build date for this version"""
+        print("Build date: 17 August 1979", end='')
+        if show_time:
+            print(" afternoon, about tea time")
+        print()
+
+
+    run(do_nothing, alt=[version, build_date])
+
+
+You can instead use a `dict` to specify their names if those automatically
+drawn from the function names don't suit you:
+
+.. code-block:: python
+
+    run(do_nothing, alt={
+        'totally-not-the-version': version,
+        'birthdate': build_date
+        })
+
+.. code-block:: console
+
+    $ python examples/altcommands.py --help                   
+    Usage: examples/altcommands.py
+
+    Does nothing
+
+    Other actions:
+      --birthdate   Show the build date for this version
+      -h, --help    Show the help
+      --totally-not-the-version
+                    Show the version
+
+Using a `collections.OrderedDict` instance rather than `dict` will guarantee
+the order they appear in the help.
+
 
 .. _multiple commands:
 
