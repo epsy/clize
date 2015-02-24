@@ -121,6 +121,7 @@ argument to `.run`:
 
 
 .. code-block:: console
+
     $ python examples/multicommands.py add A very important note.
     OK I will remember that.
     $ python examples/multicommands.py list
