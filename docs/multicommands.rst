@@ -15,7 +15,7 @@ program could have a few auxiliary functions, like verifying the format of a
 config file, or simply displaying the program's version.
 
 
-.. _alt-actions:
+.. _alternate commands:
 
 Alternate actions
 -----------------
@@ -100,16 +100,47 @@ the order they appear in the help.
 Multiple commands
 -----------------
 
-You can specify multiple commands by passing multiple functions to
-:func:`.run`.  Alternative actions are however not compatible with this
-feature.
+This allows you to keep multiple commands under a single program without
+singling one out as the main one. They become available by naming the
+subcommand directly after the program's name on the command line.
+
+Let's see how we can use it in a mock todo list application:
 
 .. literalinclude:: /../examples/multicommands.py
-   :emphasize-lines: 5,13,19-23
+    :lines: 5-15
 
-::
+You can specify multiple commands to run by passing each function as an
+argument to `.run`:
 
-    $ python multicommands.py --help
+.. code-block:: python
+
+    from clize import run
+
+
+    run(add, list_)
+
+
+.. code-block:: console
+    $ python examples/multicommands.py add A very important note.
+    OK I will remember that.
+    $ python examples/multicommands.py list
+    Sorry I forgot it all :(
+
+Alternatively, as with :ref:`alternate commands <alternate commands>`, you can
+pass in an :term:`python:iterable`, a `dict` or an `~collections.OrderedDict`.
+
+Because it isn't passed a regular function with a docstring, Clize can't
+determine an appropriate description from a docstring. You can give it a
+description explicitly with the ``description=`` parameter. Likewise, you an
+add footnotes with the ``footnotes=`` parameter. The format is the same as with
+other docstrings, without the need for documenting parameters.
+
+.. literalinclude:: /../examples/multicommands.py
+    :lines: 18-22
+
+.. code-block:: console
+
+    $ python examples/multicommands.py --help
     Usage: examples/multicommands.py command [args...]
 
     A reliable to-do list utility.
@@ -119,15 +150,7 @@ feature.
     Commands:
       add    Adds an entry to the to-do list.
       list   Lists the existing entries.
-    $ python multicommands.py add A very important note.
-    OK I will remember that.
-    $ python multicommands.py list
-    Sorry I forgot it all :(
 
-Alternatively, you can pass any iterable of functions or a mapping(`dict` or
-`collections.OrderedDict`) to `.run` like with :ref:`the alt parameter
-explained earlier <command-list>`.
-
-
-You'll often need to share a few characteristics between each function. See how
-Clize helps you do that in :ref:`function-compositing`.
+Often, you will need to share a few characteristics, for instance a set of
+parameters, between multiple functions. See how Clize helps you do that in
+:ref:`function-compositing`.

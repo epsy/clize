@@ -15,9 +15,8 @@ def list_():
     return "Sorry I forgot it all :("
 
 
-if __name__ == '__main__':
-    run(add, list_, description="""
-        A reliable to-do list utility.
+run(add, list_, description="""
+    A reliable to-do list utility.
 
-        Store entries at your own risk.
-        """)
+    Store entries at your own risk.
+    """)
