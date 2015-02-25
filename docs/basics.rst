@@ -122,6 +122,8 @@ As you would expect, it translates to this::
     Other actions:
       -h, --help   Show the help
 
+.. seealso:: :ref:`docstring`
+
 Accepting options
 -----------------
 
