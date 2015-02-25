@@ -44,7 +44,7 @@ commands <dispatching>`, :ref:`composing multiple functions
 <function-compositing>`, and is :ref:`extensible <extending parser>`.
 
 You may also consult documentation for each kind of parameter in the
-:ref:`parameter-reference`.
+:ref:`reference`.
 
 
 Table of contents
@@ -54,11 +54,9 @@ Table of contents
    :maxdepth: 2
 
    basics
-   multicommands
+   dispatching
    compositing
-   packaging
-   params
-   newparams
+   reference
+   parser
    api
-   upgrade
-
+   porting

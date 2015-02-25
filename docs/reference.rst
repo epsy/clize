@@ -2,10 +2,11 @@
 
 .. |colon| replace:: colon |nbsp| (``:``)
 
+.. _reference:
 .. _parameter-reference:
 
-Parameter reference
-===================
+User reference
+==============
 
 
 Clize deduces what kind of parameter to pick for the CLI depending on what kind
