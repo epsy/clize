@@ -617,6 +617,7 @@ To document a parameter, start a paragraph with the name of the parameter you
 want to document followed by a |colon|, followed by text:
 
 .. code-block:: python
+    :emphasize-lines: 5, 7
 
     from clize import run
 
@@ -630,6 +631,7 @@ want to document followed by a |colon|, followed by text:
     run(func)
 
 .. code-block:: console
+    :emphasize-lines: 5-6
 
     $ python docstring.py --help
     Usage: docstring.py one and-two
@@ -641,6 +643,8 @@ want to document followed by a |colon|, followed by text:
     Other actions:
       -h, --help   Show the help
 
+Documentation for positional parameters is always shown in the order they
+appear in the function signature.
 
 .. _desc doc:
 
@@ -650,6 +654,7 @@ Description and footnotes
 You can add a description as well as footnotes:
 
 .. code-block:: python
+    :emphasize-lines: 5, 11
 
     from clize import run
 
@@ -667,6 +672,7 @@ You can add a description as well as footnotes:
     run(func)
 
 .. code-block:: console
+    :emphasize-lines: 4, 13
 
     $ python docstring.py --help
     Usage: docstring.py one and-two
@@ -693,6 +699,7 @@ If you wish, you may add additional information about each parameter in a new
 paragraph below it:
 
 .. code-block:: python
+    :emphasize-lines: 9, 13
 
     from clize import run
 
@@ -719,6 +726,7 @@ To distinguish ``and_two``'s information and the footnotes, we inserted a dummy
 parameter description between them |nbsp| (``_:_``).
 
 .. code-block:: console
+    :emphasize-lines: 9, 13
 
     $ python docstring.py --help
     Usage: docstring.py one and-two
@@ -749,6 +757,7 @@ Unlike positional parameters, named parameters will be shown in the order they
 appear in the docstring:
 
 .. code-block:: python
+    :emphasize-lines: 5, 7
 
     from clize import run
 
@@ -762,6 +771,7 @@ appear in the docstring:
     run(func)
 
 .. code-block:: console
+    :emphasize-lines: 5-6
 
     $ python docstring.py --help
     Usage: docstring.py [OPTIONS]
@@ -783,6 +793,7 @@ Named parameters can be arranged into sections. You can create a section by
 having a paragraph end with a |colon| before a parameter definition:
 
 .. code-block:: python
+    :emphasize-lines: 5, 11
 
     from clize import run
 
@@ -802,6 +813,7 @@ having a paragraph end with a |colon| before a parameter definition:
     run(func)
 
 .. code-block:: console
+    :emphasize-lines: 4, 8
 
     $ python docstring.py --help
     Usage: docstring.py [OPTIONS]
