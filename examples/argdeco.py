@@ -1,5 +1,5 @@
 from clize import run
-from clize.extra.parameters import argument_decorator
+from clize.parameters import argument_decorator
 
 
 @argument_decorator

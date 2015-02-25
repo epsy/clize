@@ -113,12 +113,12 @@ You can then use the decorator like before:
 Using a composed function to process arguments to a parameter
 -------------------------------------------------------------
 
-You can use `clize.extra.parameters.argument_decorator` to have a second function process an argument while still being able to use parameters of its own:
+You can use `clize.parameters.argument_decorator` to have a second function process an argument while still being able to use parameters of its own:
 
 .. code-block:: python
 
     from clize import run
-    from clize.extra.parameters import argument_decorator
+    from clize.parameters import argument_decorator
 
 
     @argument_decorator
@@ -177,7 +177,7 @@ names of the composited parameters must not conflict:
 .. code-block:: python
 
     from clize import run
-    from clize.extra.parameters import argument_decorator
+    from clize.parameters import argument_decorator
 
 
     @argument_decorator

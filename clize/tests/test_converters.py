@@ -10,8 +10,7 @@ import os
 
 from sigtools import support
 
-from clize import parser, errors
-from clize.extra import converters
+from clize import parser, errors, converters
 from clize.tests import util
 
 

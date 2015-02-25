@@ -203,7 +203,7 @@ An ``*args``-like parameter in python becomes a repeatable positional parameter 
     When used on an ``*args`` parameter, requires at least one value to be
     provided.
 
-You can use `clize.extra.parameters.multi` for more options.
+You can use `clize.parameters.multi` for more options.
 
 
 .. _named param:
@@ -369,60 +369,60 @@ Additionally, you can chain their short form on the command line with other shor
 Mapped parameters
 -----------------
 
-.. autofunction:: clize.extra.parameters.mapped
+.. autofunction:: clize.parameters.mapped
 
     .. code-block:: console
 
-        $ python -m examples.extra.mapped -k list
-        python -m examples.extra.mapped: Possible values for --kind:
+        $ python -m examples.mapped -k list
+        python -m examples.mapped: Possible values for --kind:
 
           hello, hi      A welcoming message
           goodbye, bye   A parting message
-        $ python -m examples.extra.mapped -k hello
+        $ python -m examples.mapped -k hello
         Hello world!
-        $ python -m examples.extra.mapped -k hi
+        $ python -m examples.mapped -k hi
         Hello world!
-        $ python -m examples.extra.mapped -k bye
+        $ python -m examples.mapped -k bye
         Goodbye world!
-        $ python -m examples.extra.mapped
+        $ python -m examples.mapped
         Hello world!
 
 
-.. autofunction:: clize.extra.parameters.one_of
+.. autofunction:: clize.parameters.one_of
 
 
 Multi parameters
 ----------------
 
-.. autofunction:: clize.extra.parameters.multi
+.. autofunction:: clize.parameters.multi
 
     .. code-block:: console
 
-        $ python -m examples.extra.multi -l bacon                 
+        $ python -m examples.multi -l bacon
         Listening on bacon
-        $ python -m examples.extra.multi -l bacon -l ham -l eggs
+        $ python -m examples.multi -l bacon -l ham -l eggs
         Listening on bacon
         Listening on ham
         Listening on eggs
-        $ python -m examples.extra.multi -l bacon -l ham -l eggs -l spam
-        python -m examples.extra.multi: Received too many values for --listen
-        Usage: python -m examples.extra.multi [OPTIONS]
-        $ python -m examples.extra.multi                            
-        python -m examples.extra.multi: Missing required arguments: --listen
-        Usage: python -m examples.extra.multi [OPTIONS]
+        $ python -m examples.multi -l bacon -l ham -l eggs -l spam
+        python -m examples.multi: Received too many values for --listen
+        Usage: python -m examples.multi [OPTIONS]
+        $ python -m examples.multi
+        python -m examples.multi: Missing required arguments: --listen
+        Usage: python -m examples.multi [OPTIONS]
 
 
 
 Decorated arguments
 -------------------
 
-.. autofunction:: clize.extra.parameters.argument_decorator
+.. autofunction:: clize.parameters.argument_decorator
 
 
     .. code-block:: console
 
-        $ python -m examples.extra.argdeco --help
-        Usage: python -m examples.extra.argdeco [OPTIONS] [[-c] [-r] args...]
+        $ python -m examples.argdeco --help
+        Usage: python -m examples.argdeco [OPTIONS] [[-c] [-r] args...]
 
         Arguments:
           args...         stuff
@@ -434,7 +434,7 @@ Decorated arguments
 
         Other actions:
           -h, --help      Show the help
-        $ python -m examples.extra.argdeco abc -c def ghi
+        $ python -m examples.argdeco abc -c def ghi
         abc DEF ghi
 
 

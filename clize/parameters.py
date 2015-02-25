@@ -116,8 +116,8 @@ def mapped(values, list_name='list', case_sensitive=None):
     :param bool case_sensitive: Force case-sensitiveness for the input values.
         The default is to guess based on the contents of values.
 
-    .. literalinclude:: /../examples/extra/mapped.py
-        :lines: 6-20
+    .. literalinclude:: /../examples/mapped.py
+        :lines: 5-19
 
     """
     return parser.use_mixin(MappedParameter, kwargs={
@@ -174,8 +174,8 @@ def multi(min=0, max=None):
     command-line with an optional minimum or maximum. For ``*args``-like
     parameters, just adds the optional bounds.
 
-    .. literalinclude:: /../examples/extra/multi.py
-        :lines: 6-14
+    .. literalinclude:: /../examples/multi.py
+        :lines: 5-13
     """
 
     return parser.use_class(
@@ -390,7 +390,7 @@ def argument_decorator(f):
     """Decorates a function to create an annotation for adding parameters
     to qualify another.
 
-    .. literalinclude:: /../examples/extra/argdeco.py
+    .. literalinclude:: /../examples/argdeco.py
        :lines: 5-25
     """
     return parser.use_mixin(

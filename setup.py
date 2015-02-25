@@ -14,7 +14,7 @@ setup(
     extras_require={
         ':python_version in "2.6"': ['ordereddict'],
     },
-    packages=('clize', 'clize.extra'),
+    packages=('clize',),
     test_suite='clize.tests',
     keywords=[
         'CLI', 'options', 'arguments', 'getopts', 'getopt', 'argparse',

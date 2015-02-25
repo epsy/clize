@@ -4,8 +4,7 @@
 
 from sigtools import support, modifiers
 
-from clize import parser, errors, Parameter, runner
-from clize.extra import parameters
+from clize import parser, errors, Parameter, runner, parameters
 from clize.tests import util
 
 

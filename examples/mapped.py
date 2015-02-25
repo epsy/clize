@@ -1,6 +1,5 @@
 from sigtools import modifiers
-from clize import run
-from clize.extra import parameters
+from clize import run, parameters
 
 
 greeting = parameters.mapped([
