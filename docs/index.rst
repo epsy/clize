@@ -53,6 +53,7 @@ Table of contents
 .. toctree::
    :maxdepth: 2
 
+   why
    basics
    dispatching
    compositing
