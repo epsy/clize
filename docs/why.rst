@@ -145,9 +145,12 @@ to be split.
 
 The parameter annotation syntax from :pep:`3107` was fit to replace this
 nicely. You could tag the parameter directly with the alias or conversion
-function or whatever. Sure, it involved looking at the type of each annotation,
-but it was a lot more practical than spelling *alias*, *converter* and the
-parameter's name all over the place:
+function or whatever. It involved looking at the type of each annotation, but
+it was a lot more practical than spelling *alias*, *converter* and the
+parameter's name all over the place.
+
+It also allowed for keyword-only parameters from :pep:`3102` to map directly to
+named parameters while others would always be positional parameters.
 
 .. code-block:: python
 
@@ -157,7 +160,7 @@ parameter's name all over the place:
 
 
     @clize(require_excess=True)
-    def echo(reverse:'r'=False, *args):
+    def echo(*args, reverse:'r'=False):
         text = ' '.join(args)
         if reverse:
             text = text[::-1]
@@ -166,7 +169,7 @@ parameter's name all over the place:
 
     run(echo)
 
-Python 3 wasn't quite there yet, so this was just a feature on the side at the
+Python 3 wasn't quite there yet, so these were just features on the side at the
 time. I liked it a lot however and used it whenever I could, but had to use the
 older interface whenever I had to use Python 2.
 
@@ -176,3 +179,77 @@ older interface whenever I had to use Python 2.
 The rewrite
 ...........
 
+Python 3.3 introduced `inspect.signature`, an alternative to the rough
+`inspect.getfullargspec`. This provided an opportunity to start again from
+scratch to build something on a solid yet flexible base.
+
+For versions of Python below 3.3, a backport of `inspect.signature` existed on
+`PyPI <https://pypi.python.org/>`. This inspired a Python 3-first approach: The
+old interface was deprecated in favor of the one described just above.
+
+.. code-block:: python
+
+    from clize import run, parameter
+
+    def echo(*args: parameter.required, reverse:'r'=False):
+        text = ' '.join(args)
+        if reverse:
+            text = text[::-1]
+        print(text)
+
+    run(echo)
+
+Since the ``@clize`` decorator is gone, ``echo`` is not just a regular function
+that could theoretically be used in non-cli code or tests.
+
+Users looking to keep Python 2 compatibility would have to use a compability
+layer for keyword-only parameters and annotations: `sigtools.modifiers`.
+
+.. code-block:: python
+
+    from __future__ import print_function
+
+    from sigtools import modifiers
+    from clize import run, parameter
+
+    @modifiers.autokwoargs
+    @modifiers.annotate(args=parameter.REQUIRED, reverse='r')
+    def echo(reverse=False, *args):
+        text = ' '.join(args)
+        if reverse:
+            text = text[::-1]
+        print(text)
+
+    run(echo)
+
+
+`sigtools` was created specifically because of Clize, but it aims to be a
+generic library for manipulating function signatures. Because of Clize's
+reliance on accurate introspection data on functions and callables in general,
+`sigtools` also provided tools to fill the gap when `inspect.signature`
+stumbles.
+
+For instance, when a decorator replaces a function and complements its
+parameters, `inspect.signature` would only produce something like ``(spam,
+*args, ham, **kwargs)`` when Clize would need more information about what
+``*args`` and ``**kwargs`` mean.
+
+`sigtools` thus provided decorators such as `~sigtools.specifiers.forwards` and
+the higher-level `~sigtools.wrappers.wrapper_decorator` for specifying what
+these parameters meant. This allowed for :ref:`creating decorators for CLI
+functions <function-compositing>`, in a way analogous to regular decorators, in
+a way that other introspection-based tools had never done up until then. It
+greatly improved clize's usefulness with multiple commands.
+
+With the parser being completely rewritten, a large part of the argument
+parsing was moved away from the monolithic "iterate over `sys.argv` loop" to
+one that deferred much of the behaviour to previously-determined parameter
+objects. This allows for library authors to almost completely :ref:`customize
+how their parameters work <extending parser>`, including things like
+replicating ``--help``'s behavior of working even if there are errors
+beforehand, or other completely bizarre stuff.
+
+This is a departure from Clize's opiniated beginnings, but the defaults remain
+sane and it usually takes someone to create new `~clize.parser.Parameter`
+subclasses for bizarre stuff to be made. In return Clize gained a flexibility
+few other argument parsers offer.
