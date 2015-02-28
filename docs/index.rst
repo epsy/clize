@@ -1,12 +1,23 @@
-*******************************************************
-clize: Command-line argument parsing without the effort
-*******************************************************
+**************************************************
+clize: Turn functions into command-line interfaces
+**************************************************
 
-Clize procedurally turns your python functions into convenient command-line
-interfaces.
+Clize is an argument parser for `Python <https://www.python.org/>`:
+
+* Create command-line interfaces by passing your functions to `clize.run`
+* Automatic help generation sourced from the functions' docstrings
+* Subcommand dispatching
+* Decorator support
+* Support for extensions
+
+Example
+-------
 
 .. literalinclude:: /../examples/hello.py
    :emphasize-lines: 3,20-21
+
+`~clize.run` takes the function and automatically produces a command-line
+interface for it:
 
 .. code-block:: console
 
@@ -31,27 +42,19 @@ interfaces.
     $ python hello.py --no-capitalize
     Hello john!
 
-Clize distinguishes itself from other argument parsers in that it lets you
-focus on your program's main behavior rather than on its argument parsing. You
-simply write the function you could have written anyway and pass it to
-`clize.run`.
 
-You can check out the |examples_url|_ folder, or you can start the tutorial at
-the :ref:`basics`.
+Where to start?
+---------------
 
-Clize doesn't stop there however: It supports :ref:`dispatching to multiple
-commands <dispatching>`, :ref:`composing multiple functions
-<function-compositing>`, and is :ref:`extensible <extending parser>`.
+* Read about :ref:`the intentions behind clize<why>`
+* :ref:`Tutorial <basics>`
+* Browse the |examples_url|_.
+* :ref:`reference`
+* `GitHub <https://github.com/epsy/clize>`_
 
-You may also consult documentation for each kind of parameter in the
-:ref:`reference`.
-
-
-Table of contents
------------------
 
 .. toctree::
-   :maxdepth: 2
+   :hidden:
 
    why
    basics
