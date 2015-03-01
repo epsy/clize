@@ -4,14 +4,14 @@
 # See COPYING for details.
 
 
-import unittest
-
 from sigtools import modifiers
 from clize import clize, errors
 
+from clize.tests.test_legacy import OldInterfaceTests
+
 #from tests import HelpTester
 
-class AnnotationParams(unittest.TestCase):
+class AnnotationParams(OldInterfaceTests):
     def test_alias(self):
         @clize
         @modifiers.annotate(one='o')
@@ -70,7 +70,7 @@ class AnnotationParams(unittest.TestCase):
             1
             )
 
-class AnnotationFailures(unittest.TestCase):
+class AnnotationFailures(OldInterfaceTests):
     def test_coerce_twice(self):
         def test():
             @clize
@@ -98,7 +98,7 @@ class AnnotationFailures(unittest.TestCase):
             fn.signature
         self.assertRaises(ValueError, test)
 
-class KwoargsParams(unittest.TestCase):
+class KwoargsParams(OldInterfaceTests):
     def test_kwoparam(self):
         @clize
         @modifiers.kwoargs('one')
