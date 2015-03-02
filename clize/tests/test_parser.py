@@ -5,73 +5,78 @@
 from sigtools import support, modifiers, specifiers
 
 from clize import parser, errors, util
-from clize.tests.util import testfunc, read_arguments
+from clize.tests.util import repeated_test, testfunc, read_arguments
 
 
-@testfunc
-def fromsigtests(self, sig_str, typ, str_rep, attrs):
-    sig = support.s(sig_str, pre='from clize import Parameter')
-    param = list(sig.parameters.values())[0]
-    cparam = parser.CliSignature.convert_parameter(param)
-    self.assertEqual(type(cparam), typ)
-    self.assertEqual(str(cparam), str_rep)
-    p_attrs = dict(
-        (key, getattr(cparam, key))
-        for key in attrs
-        )
-    self.assertEqual(p_attrs, attrs)
+_ic = parser._implicit_converters
 
 
-@fromsigtests
+@repeated_test
 class FromSigTests(object):
+    def _test_func(self, sig_str, typ, str_rep, attrs):
+        sig = support.s(sig_str, pre='from clize import Parameter')
+        return self._do_test(sig, typ, str_rep, attrs)
+
+    def _do_test(self, sig, typ, str_rep, attrs):
+        param = list(sig.parameters.values())[0]
+        cparam = parser.CliSignature.convert_parameter(param)
+        self.assertEqual(type(cparam), typ)
+        self.assertEqual(str(cparam), str_rep)
+        p_attrs = dict(
+            (key, getattr(cparam, key))
+            for key in attrs
+            )
+        self.assertEqual(p_attrs, attrs)
+
+
     pos = 'one', parser.PositionalParameter, 'one', {
-        'typ': util.identity, 'default': util.UNSET, 'required': True,
+        'conv': parser.identity, 'default': util.UNSET, 'required': True,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
     pos_default_str = 'one="abc"', parser.PositionalParameter, '[one]', {
-        'typ': type("abc"), 'default': "abc", 'required': False,
+        'conv': parser.identity, 'default': "abc", 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
     pos_default_none = 'one=None', parser.PositionalParameter, '[one]', {
-        'typ': util.identity, 'default': None, 'required': False,
+        'conv': parser.identity, 'default': None, 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
     pos_default_int = 'one=3', parser.PositionalParameter, '[one]', {
-        'typ': int, 'default': 3, 'required': False,
+        'conv': _ic[int], 'default': 3, 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
     pos_default_but_required = (
         'one:Parameter.REQUIRED=3', parser.PositionalParameter, 'one', {
-            'typ': int, 'default': util.UNSET, 'required': True,
+            'conv': _ic[int], 'default': util.UNSET, 'required': True,
             'argument_name': 'one', 'display_name': 'one',
             'undocumented': False, 'last_option': None})
     pos_last_option = (
         'one:Parameter.LAST_OPTION', parser.PositionalParameter, 'one', {
-            'typ': util.identity, 'default': util.UNSET, 'required': True,
+            'conv': parser.identity, 'default': util.UNSET, 'required': True,
             'argument_name': 'one', 'display_name': 'one',
             'undocumented': False, 'last_option': True})
 
     collect = '*args', parser.ExtraPosArgsParameter, '[args...]', {
-        'typ': util.identity, 'default': util.UNSET, 'required': False,
+        'conv': parser.identity, 'default': util.UNSET, 'required': False,
         'argument_name': 'args', 'display_name': 'args',
         'undocumented': False, 'last_option': None}
     collect_int = '*args:int', parser.ExtraPosArgsParameter, '[args...]', {
-        'typ': int, 'default': util.UNSET, 'required': False,
+        'conv': _ic[int], 'default': util.UNSET, 'required': False,
         }
     collect_required = (
         '*args:Parameter.REQUIRED', parser.ExtraPosArgsParameter, 'args...', {
-            'typ': util.identity, 'default': util.UNSET, 'required': True,
+            'conv': parser.identity, 'default': util.UNSET, 'required': True,
             'argument_name': 'args', 'display_name': 'args',
             'undocumented': False, 'last_option': None})
 
     named = '*, one', parser.OptionParameter, '--one=STR', {
-        'typ': util.identity, 'default': util.UNSET, 'required': True,
+        'conv': parser.identity, 'default': util.UNSET, 'required': True,
         'argument_name': 'one', 'display_name': '--one', 'aliases': ['--one'],
         'undocumented': False, 'last_option': None}
     named_bool = '*, one=False', parser.FlagParameter, '[--one]', {
         }
     named_int = '*, one: int', parser.IntOptionParameter, '--one=INT', {
-        'typ': int, 'default': util.UNSET, 'required': True,
+        'conv': _ic[int], 'default': util.UNSET, 'required': True,
         'argument_name': 'one', 'display_name': '--one', 'aliases': ['--one'],
         'undocumented': False, 'last_option': None}
 
@@ -79,6 +84,38 @@ class FromSigTests(object):
         {'display_name': '--one', 'aliases': ['--one', '-a']})
     alias_shortest = ('*, one: "al"', parser.OptionParameter, '--al=STR',
         {'display_name': '--one', 'aliases': ['--one', '--al']})
+
+    def test_vconverter(self):
+        @parser.value_converter
+        def converter(value):
+            raise NotImplementedError
+        sig = support.s('*, par: conv', locals={'conv': converter})
+        self._do_test(sig, parser.OptionParameter, '--par=CONVERTER', {
+            'conv': converter,
+            })
+
+    def test_default_type(self):
+        @parser.value_converter
+        class FancyDefault(object):
+            def __init__(self, arg):
+                self.arg = arg
+        deft = FancyDefault('ham')
+        sig = support.s('*, par=default', locals={'default': deft})
+        self._do_test(sig, parser.OptionParameter, '[--par=FANCYDEFAULT]', {
+            'conv': FancyDefault,
+            'default': deft,
+        })
+
+    def test_bad_default_good_conv(self):
+        class UnknownDefault(object):
+            pass
+        deft = UnknownDefault()
+        sig = support.s('*, par:str=default', locals={'default': deft})
+        self._do_test(sig, parser.OptionParameter, '[--par=STR]', {
+            'conv': parser.identity,
+            'default': deft,
+        })
+
 
     def test_alias_multi(self):
         sig = support.s('*, one: a', locals={'a': ('a', 'b', 'abc')})
@@ -96,7 +133,7 @@ class FromSigTests(object):
         cparam = parser.CliSignature.convert_parameter(sparam)
         self.assertTrue(cparam is param)
 
-    def test_converter(self):
+    def test_pconverter(self):
         class CustExc(Exception):
             pass
         @parser.parameter_converter
@@ -344,12 +381,19 @@ class UnknownAnnotation(object):
     pass
 
 
+class UnknownDefault(object):
+    def __init__(self, arg):
+        self.arg = arg
+
+
 @badparam
 class BadParamTests(object):
     alias_superfluous = 'one: "a"',
     alias_spaces = '*, one: "a b"',
     alias_duplicate = '*, one: dup', {'dup': ('a', 'a')}
     unknown_annotation = 'one: ua', {'ua': UnknownAnnotation()}
+    unknown_callable = 'one: uc', {'uc': lambda s: s}
+    bad_custom_default = 'one=bd', {'bd': UnknownDefault('stuff')}
     coerce_twice = 'one: co', {'co': (str, int)}
     dup_pconverter = 'one: a', {'a': (parser.default_converter,
                                       parser.default_converter)}

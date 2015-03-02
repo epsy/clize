@@ -142,6 +142,28 @@ class ParamTests(OldInterfaceTests):
             raise NotImplementedError
         self.assertRaises(errors.BadArgumentFormat, fn, 'fn', '--one=nan')
 
+    def test_custom_coerc(self):
+        def coerc(arg):
+            return 42
+        @clize(coerce={'one': coerc})
+        def fn(one):
+            return one
+        self.assertEqual(fn('fn', 'spam'), 42)
+
+    def test_custom_type_default(self):
+        class FancyDefault(object):
+            def __init__(self, arg):
+                self.arg = arg
+        @clize
+        def fn(one=FancyDefault('ham')):
+            return one
+        ret = fn('fn')
+        self.assertEqual(type(ret), FancyDefault)
+        self.assertEqual(ret.arg, 'ham')
+        ret = fn('fn', '--one=spam')
+        self.assertEqual(type(ret), FancyDefault)
+        self.assertEqual(ret.arg, 'spam')
+
 def run_group(functions, args):
     disp = runner.SubcommandDispatcher(functions)
     return disp.cli(*args)

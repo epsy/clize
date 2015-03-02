@@ -6,14 +6,16 @@ import io
 
 from dateutil import parser as dparser
 
-from clize import errors
+from clize import parser, errors
 
 
+@parser.value_converter(name='TIME')
 def datetime(arg):
     return dparser.parse(arg)
 
 
 def file(**kwargs):
+    @parser.value_converter(name='FILE')
     def file_(arg):
         try:
             return io.open(arg, **kwargs)

@@ -7,11 +7,9 @@ from __future__ import print_function
 import sys
 import os
 from functools import partial, update_wrapper
-import operator
 import itertools
 import shutil
 
-import contextlib2
 from sigtools.modifiers import annotate, autokwoargs
 from sigtools.specifiers import forwards_to_method, signature
 from sigtools.signatures import mask
@@ -197,20 +195,18 @@ class Clize(object):
             yield param
 
     def __call__(self, *args):
-        with contextlib2.ExitStack() as stack:
-            stack.enter_context(
-                errors.SetUserErrorContext(cli=self, pname=args[0]))
-            func, name, posargs, kwargs = self.read_commandline(args, stack)
+        with errors.SetUserErrorContext(cli=self, pname=args[0]):
+            func, name, posargs, kwargs = self.read_commandline(args)
             return func(*posargs, **kwargs)
 
-    def read_commandline(self, args, stack):
+    def read_commandline(self, args):
         """Reads the command-line arguments from args and returns a tuple
         with the callable to run, the name of the program, the positional
         and named arguments to pass to the callable.
 
         :raises: `.ArgumentError`
         """
-        ba = self.signature.read_arguments(args[1:], args[0], stack)
+        ba = self.signature.read_arguments(args[1:], args[0])
         func, post, posargs, kwargs = ba
         name = ' '.join([args[0]] + post)
         if func or self.pass_name:
@@ -226,6 +222,12 @@ def make_dispatcher_helper(*args, **kwargs):
     from clize.help import DispatcherHelper
     return DispatcherHelper(*args, **kwargs)
 
+
+@parser.value_converter(name='STR')
+def lowercase(arg):
+    return arg.lower()
+
+
 class SubcommandDispatcher(object):
     clizer = Clize
 
@@ -236,8 +238,7 @@ class SubcommandDispatcher(object):
         self.footnotes = footnotes
 
     @Clize(pass_name=True, helper_class=make_dispatcher_helper)
-    @annotate(command=(operator.methodcaller('lower'),
-                       parser.Parameter.LAST_OPTION))
+    @annotate(command=(lowercase, parser.Parameter.LAST_OPTION))
     def cli(self, name, command, *args):
         try:
             func = self.cmds_by_name[command]

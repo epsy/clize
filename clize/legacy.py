@@ -12,6 +12,11 @@ from sigtools import modifiers, specifiers
 from clize import runner, parser, util
 
 
+def _convert_coerce(func):
+    if func not in parser._implicit_converters:
+        func = parser.value_converter(func)
+    return func
+
 def _clize(fn, alias={}, force_positional=(), coerce={},
            require_excess=False, extra=(),
            use_kwoargs=None):
@@ -20,20 +25,31 @@ def _clize(fn, alias={}, force_positional=(), coerce={},
     annotations = defaultdict(list)
     ann_positional = []
     for param in sig.parameters.values():
+        coerce_set = False
         if param.kind == param.KEYWORD_ONLY:
             has_kwoargs = True
         elif require_excess and param.kind == param.VAR_POSITIONAL:
             annotations[param.name].append(parser.Parameter.REQUIRED)
         if param.annotation != param.empty:
-            ann = util.maybe_iter(param.annotation)
-            annotations[param.name].extend(ann)
-            if clize.POSITIONAL in ann:
-                ann_positional.append(param.name)
-                annotations[param.name].remove(clize.POSITIONAL)
-    for name, aliases in alias.items():
-        annotations[name].extend(aliases)
-    for name, func in coerce.items():
-        annotations[name].append(func)
+            for thing in util.maybe_iter(param.annotation):
+                if thing == clize.POSITIONAL:
+                    ann_positional.append(param.name)
+                    continue
+                elif callable(thing):
+                    coerce_set = True
+                    thing = _convert_coerce(thing)
+                annotations[param.name].append(thing)
+        try:
+            func = coerce[param.name]
+        except KeyError:
+            pass
+        else:
+            annotations[param.name].append(_convert_coerce(func))
+            coerce_set = True
+        annotations[param.name].extend(alias.get(param.name, ()))
+        if not coerce_set and param.default != param.empty:
+            annotations[param.name].append(
+                _convert_coerce(type(param.default)))
     fn = modifiers.annotate(**annotations)(fn)
     use_kwoargs = has_kwoargs if use_kwoargs is None else use_kwoargs
     if not use_kwoargs:

@@ -5,8 +5,6 @@
 from functools import partial
 import unittest
 
-import contextlib2
-
 class Tests(unittest.TestCase):
     def assertRaises(self, _exc, _func, *args, **kwargs):
         try:
@@ -43,5 +41,4 @@ repeated_test = partial(build_sigtests, None)
 
 
 def read_arguments(sig, args):
-    with contextlib2.ExitStack() as stack:
-        return sig.read_arguments(args, 'test', stack)
+    return sig.read_arguments(args, 'test')

@@ -21,7 +21,7 @@ class ConverterRepTests(object):
         csig = parser.CliSignature.from_signature(sig)
         self.assertEqual(str(csig), rep)
 
-    datetime = converters.datetime, '--par=DATETIME'
+    datetime = converters.datetime, '--par=TIME'
     file = converters.file(), '--par=FILE'
 
 

@@ -7,7 +7,7 @@ interpret function signatures and read commandline arguments
 """
 
 import itertools
-from functools import partial
+from functools import partial, wraps
 
 import six
 from sigtools import modifiers
@@ -168,21 +168,63 @@ class HelperParameter(Parameter):
             display_name='<internal>', **kwargs)
 
 
-def _is_default_type(typ):
-    return typ is util.identity or issubclass(typ, six.string_types)
+@modifiers.kwoargs(start='name')
+def value_converter(func=None, name=None):
+    def decorate(func):
+        info = {
+            'name': util.name_type2cli(func) if name is None else name,
+        }
+        try:
+            func._clize__value_converter = info
+            return func
+        except (TypeError, AttributeError):
+            @wraps(func)
+            def _wrapper(*args, **kwargs):
+                return func(*args, **kwargs)
+            _wrapper._clize__value_converter = info
+            return _wrapper
+    if func is not None:
+        return decorate(func)
+    return decorate
+
+
+@value_converter(name='STR')
+def identity(x=None):
+    return x
+
+
+_implicit_converters = {
+    int: int,
+    float: float,
+    bool: bool,
+    six.text_type: identity,
+    six.binary_type: identity,
+}
+
+
+def get_value_converter(annotation):
+    try:
+        return _implicit_converters[annotation]
+    except KeyError:
+        pass
+    if not getattr(annotation, '_clize__value_converter', False):
+        raise ValueError('{0!r} is not a value converter'.format(annotation))
+    return annotation
+
 
 class ParameterWithValue(Parameter):
     """A parameter that takes a value from the arguments, with possible
     default and/or conversion.
 
-    :param callable typ: A callable to convert the value or raise `ValueError`.
-        Defaults to `.util.identity`.
+    :param callable conv: A callable to convert the value or raise `ValueError`.
+        Defaults to `.identity`.
     :param default: A default value for the parameter or `.util.UNSET`.
     """
 
-    def __init__(self, typ=util.identity, default=util.UNSET, **kwargs):
+    def __init__(self, conv=identity, default=util.UNSET,
+                       **kwargs):
         super(ParameterWithValue, self).__init__(**kwargs)
-        self.typ = typ
+        self.conv = conv
         """The function used for coercing the value into the desired format or
         type."""
         self.default = default
@@ -195,12 +237,12 @@ class ParameterWithValue(Parameter):
         return self.default is util.UNSET
 
     def coerce_value(self, arg, ba):
-        """Coerces ``arg`` using the `.typ` function. Raises
+        """Coerces ``arg`` using the `.conv` function. Raises
         `.errors.BadArgumentFormat` if the coercion function raises
         `ValueError`.
         """
         try:
-            ret = self.typ(arg)
+            ret = self.conv(arg)
         except errors.CliValueError as e:
             exc = errors.BadArgumentFormat(self, e)
             exc.__cause__ = e
@@ -210,12 +252,7 @@ class ParameterWithValue(Parameter):
             exc.__cause__ = e
             raise exc
         else:
-            try:
-                type(ret).__enter__
-            except AttributeError:
-                return ret
-            else:
-                return ba.exitstack.enter_context(ret)
+            return ret
 
     def get_value(self, ba, i):
         """Retrieves the "value" part of the argument in ``ba`` at
@@ -367,7 +404,7 @@ class OptionParameter(NamedParameter, ParameterWithValue,
 
     def format_type(self):
         """Returns a string designation of the value type."""
-        return util.name_type2cli(self.typ)
+        return util.name_type2cli(self.conv)
 
     def get_all_names(self):
         """Appends the value type to all aliases."""
@@ -419,8 +456,8 @@ class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
     def help_parens(self):
         """Puts the value type in parenthesis since it isn't shown in
         the parameter's signature."""
-        if not _is_default_type(self.typ):
-            yield 'type: ' + util.name_type2cli(self.typ)
+        if self.conv is not identity:
+            yield 'type: ' + util.name_type2cli(self.conv)
         for s in super(PositionalParameter, self).help_parens():
             yield s
 
@@ -629,7 +666,7 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
     named = param.kind in (param.KEYWORD_ONLY, param.VAR_KEYWORD)
     aliases = [param.name]
     default = util.UNSET
-    typ = util.identity
+    conv = identity
 
     kwargs = dict(
         kwargs,
@@ -638,10 +675,7 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
         )
 
     if param.default is not param.empty:
-        if Parameter.REQUIRED not in annotations:
-            default = param.default
-        if default is not None:
-            typ = type(param.default)
+        default = param.default
 
     if Parameter.REQUIRED in annotations:
         kwargs['required'] = True
@@ -653,18 +687,24 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
     for thing in annotations:
         if isinstance(thing, Parameter):
             return thing
-        elif callable(thing):
+        if callable(thing):
             if is_parameter_converter(thing):
                 raise ValueError(
                     "A custom parameter converter must be the first element "
                     "of a parameter's annotation")
-            if set_coerce:
-                raise ValueError(
-                    "Coercion function specified twice in annotation: "
-                    "{0.__name__} {1.__name__}".format(typ, thing))
-            typ = thing
-            set_coerce = True
-        elif isinstance(thing, six.string_types):
+            try:
+                conv = get_value_converter(thing)
+            except ValueError:
+                pass
+            else:
+                if set_coerce:
+                    raise ValueError(
+                        "Coercion function specified twice in annotation: "
+                        "{0.__name__} {1.__name__}".format(conv, thing))
+                conv = conv
+                set_coerce = True
+                continue
+        if isinstance(thing, six.string_types):
             if not named:
                 raise ValueError("Cannot give aliases for a positional "
                                  "parameter.")
@@ -673,13 +713,15 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
             if thing in aliases:
                 raise ValueError("Duplicate alias " + repr(thing))
             aliases.append(thing)
-        elif isinstance(thing, ParameterFlag):
-            pass
-        else:
-            raise ValueError(thing)
+            continue
+        if isinstance(thing, ParameterFlag):
+            continue
+        raise ValueError(thing)
 
-    kwargs['default'] = default
-    kwargs['typ'] = typ
+    kwargs['default'] = default if not kwargs.get('required') else util.UNSET
+    kwargs['conv'] = conv
+    if not set_coerce and default is not util.UNSET and default is not None:
+        kwargs['conv'] = get_value_converter(type(default))
 
     if named:
         kwargs['aliases'] = [
@@ -698,10 +740,10 @@ def pos_parameter(required=False, **kwargs):
     return PositionalParameter(**kwargs)
 
 def named_parameter(**kwargs):
-    if kwargs['default'] is False and kwargs['typ'] is bool:
-        del kwargs['default'], kwargs['typ']
+    if kwargs['default'] is False and kwargs['conv'] is bool:
+        del kwargs['default'], kwargs['conv']
         return FlagParameter(value=True, false_value=False, **kwargs)
-    elif kwargs['typ'] is int:
+    elif kwargs['conv'] is _implicit_converters[int]:
         return IntOptionParameter(**kwargs)
     else:
         return OptionParameter(**kwargs)
@@ -833,14 +875,14 @@ class CliSignature(object):
 
 
 
-    def read_arguments(self, args, name, exitstack):
+    def read_arguments(self, args, name):
         """Returns a `.CliBoundArguments` instance for this CLI signature
         bound to the given arguments.
 
         :param sequence args: The CLI arguments, minus the script name.
         :param str name: The script name.
         """
-        return CliBoundArguments(self, args, name, exitstack)
+        return CliBoundArguments(self, args, name)
 
     def __str__(self):
         return ' '.join(
@@ -949,7 +991,7 @@ class CliBoundArguments(object):
     """
 
 
-    def __init__(self, sig, args, name, exitstack):
+    def __init__(self, sig, args, name):
         self.sig = sig
         self.name = name
         self.in_args = tuple(args)
@@ -958,7 +1000,6 @@ class CliBoundArguments(object):
         self.args = []
         self.kwargs = {}
         self.meta = {}
-        self.exitstack = exitstack
 
         self.sticky = None
         self.posarg_only = False

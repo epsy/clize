@@ -29,9 +29,6 @@ try:
 except AttributeError:
     zip_longest = itertools.izip_longest
 
-def identity(x=None):
-    return x
-
 def name_py2cli(name, kw=False):
     name = name.strip('_').replace('_', '-')
     if kw:
@@ -47,13 +44,11 @@ def name_cli2py(name, kw=False):
 
 def name_type2cli(typ):
     try:
-        return typ.clize_type_name
+        convinfo = typ._clize__value_converter
     except AttributeError:
-        pass
-    if typ is identity or typ in six.string_types:
-        return 'STR'
-    else:
         return typ.__name__.strip('_').upper()
+    else:
+        return convinfo['name']
 
 def maybe_iter(x):
     try:
@@ -65,7 +60,7 @@ def maybe_iter(x):
             return x,
     return x
 
-def dict_from_names(obj, receiver=None, func=identity):
+def dict_from_names(obj, receiver=None):
     try:
         obj.items
     except AttributeError:
@@ -78,7 +73,7 @@ def dict_from_names(obj, receiver=None, func=identity):
             return receiver
     if receiver is None:
         receiver = OrderedDict()
-    receiver.update((func(x.__name__), x) for x in maybe_iter(obj))
+    receiver.update((x.__name__, x) for x in maybe_iter(obj))
     return receiver
 
 class property_once(object):
