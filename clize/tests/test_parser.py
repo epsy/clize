@@ -116,6 +116,20 @@ class FromSigTests(object):
             'default': deft,
         })
 
+    def test_method_conv(self):
+        class Spam(object):
+            def method(self, arg):
+                return self
+        s = Spam()
+        conv = parser.value_converter(s.method, name='TCONV')
+        sig = support.s('*, par: conv', locals={'conv': conv})
+        self._do_test(sig, parser.OptionParameter, '--par=TCONV', {
+            'conv': conv
+        })
+        csig = parser.CliSignature.from_signature(sig)
+        ba = read_arguments(csig, ['--par=arg'])
+        arg = ba.kwargs['par']
+        self.assertTrue(arg is s)
 
     def test_alias_multi(self):
         sig = support.s('*, one: a', locals={'a': ('a', 'b', 'abc')})
@@ -151,6 +165,12 @@ class FromSigTests(object):
         for sig in sigs:
             sparam = list(sig.parameters.values())[0]
             self.assertRaises(CustExc, parser.CliSignature.convert_parameter, sparam)
+
+    def test_parameterflag_repr(self):
+        f1 = parser.ParameterFlag('someflag')
+        self.assertEqual(repr(f1), 'clize.Parameter.someflag')
+        f2 = parser.ParameterFlag('someflag', 'someobject')
+        self.assertEqual(repr(f2), 'someobject.someflag')
 
 
 @testfunc
@@ -253,6 +273,26 @@ class SigTests(object):
         csig = parser.CliSignature.from_signature(sig)
         self.assertEqual(str(csig), '')
 
+    def test_flag_activation(self):
+        par = parser.FlagParameter(
+            True, False,
+            aliases=['--abc', '-a'],
+            argument_name='abc',
+            display_name='--abc',
+            )
+        self.assertTrue(par.is_flag_activation('-a'))
+        self.assertTrue(par.is_flag_activation('-agz'))
+        self.assertTrue(par.is_flag_activation('--abc'))
+        self.assertTrue(par.is_flag_activation('--abc=anything'))
+        self.assertFalse(par.is_flag_activation('--abc=0'))
+        self.assertFalse(par.is_flag_activation('--abc=no'))
+        self.assertFalse(par.is_flag_activation('--abc=NO'))
+        self.assertFalse(par.is_flag_activation('--abc=n'))
+        self.assertFalse(par.is_flag_activation('--abc=no'))
+        self.assertFalse(par.is_flag_activation('--abc=False'))
+        self.assertFalse(par.is_flag_activation('--abc=false'))
+        self.assertFalse(par.is_flag_activation('--abc=f'))
+
 
 @testfunc
 def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
@@ -267,6 +307,7 @@ def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
 @extraparamstests
 class ExtraParamsTests(object):
     _func = support.f('')
+    _func2 = support.f('')
     alt_cmd = (
         '', [parser.AlternateCommandParameter(func=_func, aliases=['--alt'])],
         ('--alt', 'a', '-b', '--third'), ['a', '-b', '--third'], {}, _func
@@ -291,6 +332,14 @@ class ExtraParamsTests(object):
         'a: int, b',
         [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
         ('xyz', 'abc', '--alt', 'def', '-g', '--hij'), [], {}, _func
+        )
+    flb_after_alt = (
+        'a: int, b',
+        [
+            parser.AlternateCommandParameter(func=_func, aliases=['--alt']),
+            parser.FallbackCommandParameter(func=_func2, aliases=['--flb']),
+        ],
+        ('--invalid', '--alt', '--flb'), [], {}, _func2
         )
 
     def test_alt_middle(self):
@@ -337,8 +386,10 @@ class SigErrorTests(object):
     too_many_pos = 'one', ['1', '2'], errors.TooManyArguments
 
     missing_kw = '*, one', [], errors.MissingRequiredArguments
-    duplicate_kw = (
+    duplicate_opt = (
         '*, one', ['--one', '1', '--one=1'], errors.DuplicateNamedArgument)
+    duplicate_intopt = (
+        '*, one=1', ['--one', '1', '--one=1'], errors.DuplicateNamedArgument)
     unknown_kw = '', ['--one'], errors.UnknownOption
     unknown_kw_after_short_flag = '*, o=False', ['-oa'], errors.UnknownOption
     missing_value = '*, one', ['--one'], errors.MissingValue

@@ -18,7 +18,10 @@ class WholeHelpTests(object):
         func = f(sig, pre="from clize import Parameter as P")
         func.__doc__ = doc
         r = runner.Clize(func)
-        h = help.ClizeHelp(r, None)
+        self._do_test(r, usage, help_str)
+
+    def _do_test(self, runner, usage, help_str):
+        h = help.ClizeHelp(runner, None)
         h.prepare()
         p_usage = list(h.show_full_usage('func'))
         p_help_str = str(h.show('func'))
@@ -377,6 +380,21 @@ class WholeHelpTests(object):
 
         Footer
     """
+
+    def test_nonclize_alt(self):
+        @runner.Clize.as_is
+        def alt(script):
+            raise NotImplementedError
+        def func():
+            raise NotImplementedError
+        r = runner.Clize(func, alt=alt)
+        self._do_test(r, ['func ', USAGE_HELP], """
+            Usage: func
+
+            Other actions:
+            --alt
+            -h, --help  Show the help
+        """)
 
 
 @repeated_test

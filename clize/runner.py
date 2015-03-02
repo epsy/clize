@@ -18,11 +18,8 @@ from clize import util, errors, parser
 
 class _CliWrapper(object):
     def __init__(self, obj):
-        self.obj = obj
-
-    @property
-    def cli(self):
-        return self.obj
+        update_wrapper(self, obj)
+        self.cli = obj
 
 def cli_commands(obj, namef, clizer):
     cmds = util.OrderedDict()
