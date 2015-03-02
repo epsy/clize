@@ -7,11 +7,10 @@ import sys
 import shutil
 import unittest
 
-from sigtools import modifiers
 from six.moves import cStringIO
 
 from clize.tests import util
-from clize import parser, runner, errors
+from clize import runner, errors
 
 
 class MockModule(object):
@@ -369,24 +368,3 @@ class RunnerTests(unittest.TestCase):
                    out=stdout, err=stderr, exit=False)
         self.assertTrue(stderr.getvalue())
         self.assertFalse(stdout.getvalue())
-
-    def setup_cm(self):
-        class Mgr(object):
-            def __init__(self):
-                self.opened = False
-                self.closed = False
-
-            def __enter__(self):
-                self.opened = True
-
-            def __exit__(self, typ, val, tb):
-                self.closed = True
-        m =  Mgr()
-        @parser.value_converter
-        def coerc(arg):
-            return m
-        @modifiers.annotate(arg=coerc)
-        def func(arg):
-            self.assertFalse(m.opened)
-        runner.run(func, args=['test', 'arg'], exit=False)
-        self.assertFalse(m.closed)
