@@ -3,11 +3,12 @@
 # See COPYING for details.
 
 import inspect
+from functools import update_wrapper
 
 import six
 from sigtools import modifiers, specifiers, signatures
 
-from clize import parser, errors, util, help
+from clize import parser, errors, util
 
 
 class _ShowList(BaseException):
@@ -373,6 +374,7 @@ class DecoratedArgumentParameter(parser.ParameterWithSourceEquivalent):
             return False
 
     def prepare_help(self, helper):
+        from clize import help # prevent circular import
         for p in self.cli.parameters.values():
             if not p.undocumented:
                 helper.sections[help.LABEL_OPT][p.argument_name] = (p, '')
@@ -395,3 +397,62 @@ def argument_decorator(f):
     """
     return parser.use_mixin(
         DecoratedArgumentParameter, kwargs={'decorator': f})
+
+
+class ConstantParameter(parser.ParameterWithSourceEquivalent):
+    """Parameter that provides an argument to the called function without
+    requiring an argument on the command line."""
+
+    def __init__(self, value_factory,
+                 undocumented, default, conv, aliases=None,
+                 display_name='constant_parameter',
+                 **kwargs):
+        super(ConstantParameter, self).__init__(
+            undocumented=True, display_name=display_name, **kwargs)
+        self.required = True
+        self.value_factory = value_factory
+
+
+class ConstantPositionalParameter(ConstantParameter):
+    def read_argument(self, ba, i):
+        ba.args.append(self.value_factory(ba))
+        # Get the next pos parameter to process this argument
+        try:
+            param = next(ba.posparam)
+        except StopIteration:
+            raise errors.TooManyArguments(ba.in_args[i])
+        with errors.SetArgumentErrorContext(param=param):
+            param.read_argument(ba, i)
+            param.apply_generic_flags(ba)
+
+    def unsatisfied(self, ba):
+        ba.args.append(self.value_factory(ba))
+
+
+class ConstantNamedParameter(ConstantParameter):
+    def unsatisfied(self, ba):
+        ba.kwargs[self.argument_name] = self.value_factory(ba)
+
+
+def constant_value(value_factory):
+    """Create an annotation that hides a parameter from the command-line
+    and always gives it the result of a function.
+
+    :param function value_factory: Called to determine the value to provide
+        for the parameter. The current `.parser.CliBoundArguments` instance
+        is passed as argument, ie. ``value_factory(ba)``.
+    """
+    uc = parser.use_class(
+        pos=ConstantPositionalParameter, named=ConstantNamedParameter,
+        kwargs={'value_factory': value_factory}
+        )
+    update_wrapper(uc, value_factory)
+    return uc
+
+
+@constant_value
+def pass_name(ba):
+    """Parameters decorated with this will receive the script name as
+    argument."""
+    return ba.name
+

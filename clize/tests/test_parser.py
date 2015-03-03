@@ -310,28 +310,34 @@ class ExtraParamsTests(object):
     _func2 = support.f('')
     alt_cmd = (
         '', [parser.AlternateCommandParameter(func=_func, aliases=['--alt'])],
-        ('--alt', 'a', '-b', '--third'), ['a', '-b', '--third'], {}, _func
+        ('--alt', 'a', '-b', '--third'),
+        ['test --alt', 'a', '-b', '--third'], {}, _func
         )
     alt_cmd2 = (
         '', [parser.AlternateCommandParameter(func=_func, aliases=['--alt'])],
-        ('--alt', '--alpha', '-b'), ['--alpha', '-b'], {}, _func
+        ('--alt', '--alpha', '-b'),
+        ['test --alt', '--alpha', '-b'], {}, _func
         )
     flb_cmd_start = (
         '', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
-        ('--alt', '-a', 'b', '--third'), ['-a', 'b', '--third'], {}, _func
+        ('--alt', '-a', 'b', '--third'),
+        ['test --alt', '-a', 'b', '--third'], {}, _func
         )
     flb_cmd_valid = (
         '*a', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
-        ('a', '--alt', 'b', '-c', '--fourth'), [], {}, _func
+        ('a', '--alt', 'b', '-c', '--fourth'),
+        ['test --alt'], {}, _func
         )
     flb_cmd_invalid = (
         '', [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
-        ('a', '--alt', 'a', '-b'), [], {}, _func
+        ('a', '--alt', 'a', '-b'),
+        ['test --alt'], {}, _func
         )
     flb_cmd_invalid_valid = (
         'a: int, b',
         [parser.FallbackCommandParameter(func=_func, aliases=['--alt'])],
-        ('xyz', 'abc', '--alt', 'def', '-g', '--hij'), [], {}, _func
+        ('xyz', 'abc', '--alt', 'def', '-g', '--hij'),
+        ['test --alt'], {}, _func
         )
     flb_after_alt = (
         'a: int, b',
@@ -339,7 +345,8 @@ class ExtraParamsTests(object):
             parser.AlternateCommandParameter(func=_func, aliases=['--alt']),
             parser.FallbackCommandParameter(func=_func2, aliases=['--flb']),
         ],
-        ('--invalid', '--alt', '--flb'), [], {}, _func2
+        ('--invalid', '--alt', '--flb'),
+        ['test --flb'], {}, _func2
         )
 
     def test_alt_middle(self):

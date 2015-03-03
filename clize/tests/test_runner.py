@@ -210,13 +210,13 @@ class GetCliTests(unittest.TestCase):
 
     def test_keep_args(self):
         def func(): pass
-        c = runner.Clize.keep(pass_name=True)(func)
+        c = runner.Clize.keep(hide_help=True)(func)
         ru = runner.Clize.get_cli(c)
         repr(ru)
         self.assertTrue(c is func)
         self.assertTrue(isinstance(c.cli, runner.Clize))
         self.assertTrue(c.cli.func is func)
-        self.assertTrue(c.cli.pass_name)
+        self.assertTrue(c.cli.hide_help)
         self.assertTrue(ru.func is func)
 
     def test_decorated(self):
@@ -274,12 +274,6 @@ class GetCliTests(unittest.TestCase):
         self.assertRaises(TypeError, runner.Clize.get_cli, obj)
 
 class RunnerTests(unittest.TestCase):
-    def test_pass_name(self):
-        def func(name):
-            return name
-        ru = runner.Clize.get_cli(func, pass_name=True)
-        self.assertEqual(ru('test'), 'test')
-
     def test_subcommand(self):
         def func1(x):
             return x+' world'

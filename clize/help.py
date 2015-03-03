@@ -13,7 +13,7 @@ import six
 from sigtools.modifiers import annotate, kwoargs
 from sigtools.wrappers import wrappers
 
-from clize import runner, parser, util
+from clize import runner, parser, util, parameters
 
 def lines_to_paragraphs(L):
     return list(itertools.chain.from_iterable((x, '') for x in L))
@@ -34,9 +34,9 @@ class Help(object):
         if not self.prepared:
             self.prepare()
 
-    @runner.Clize(pass_name=True, hide_help=True)
+    @runner.Clize(hide_help=True)
     @kwoargs('usage')
-    @annotate(args=parser.Parameter.UNDOCUMENTED)
+    @annotate(name=parameters.pass_name, args=parser.Parameter.UNDOCUMENTED)
     def cli(self, name, usage=False, *args):
         """Show the help
 

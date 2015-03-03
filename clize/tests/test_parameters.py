@@ -182,6 +182,11 @@ class RepTests(object):
     deco_nest_kwd = '*, par:a="d"', _nest, '[' + _nest_rep + '--par=STR]'
     deco_nest_args = '*par:a', _nest, '[' + _nest_rep + 'par...]'
 
+    pn_pos = 'par:a', parameters.pass_name, ''
+    pn_pos_first = 'par:a, other', parameters.pass_name, 'other'
+    pn_pos_nextpicky = 'par:a, other:int', parameters.pass_name, 'other'
+    pn_kw = '*, par:a', parameters.pass_name, ''
+
 
 @test_bad_param
 class BadParamTests(object):
@@ -189,6 +194,9 @@ class BadParamTests(object):
     def _with_pokarg(arg, invalid):
         raise NotImplementedError
     deco_with_pokarg = 'par: a', _with_pokarg
+
+    pn_varargs = '*par: a', parameters.pass_name
+    pn_varkwargs = '**par: a', parameters.pass_name
 
 
 @annotated_sigtests
@@ -646,3 +654,25 @@ class DecoHelpTests(object):
         Other actions:
             -h, --help  Show the help
     """
+
+@annotated_sigtests
+class PnTests(object):
+    pn_pos_solo = RepTests.pn_pos, (), ['test'], {}
+    pn_pos_first = RepTests.pn_pos_first, ('arg',), ['test', 'arg'], {}
+    pn_kw_solo = RepTests.pn_kw, (), [], {'par': 'test'}
+
+@annotated_sigerror_tests
+class PnErrorTests(object):
+    pn_pos_toomany = RepTests.pn_pos, ('arg',), errors.TooManyArguments
+    pn_pos_errinnext = (
+        RepTests.pn_pos_nextpicky, ('bad',), errors.BadArgumentFormat
+        )
+
+    def test_pn_pos_errinnext_context(self):
+        sig_str, annotation, str_rep = RepTests.pn_pos_nextpicky
+        sig = support.s(sig_str, locals={'a': annotation})
+        csig = parser.CliSignature.from_signature(sig)
+        try:
+            util.read_arguments(csig, ('bad',))
+        except errors.BadArgumentFormat as exc:
+            self.assertEqual(exc.param.display_name, 'other')

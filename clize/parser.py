@@ -578,7 +578,7 @@ class FallbackCommandParameter(NamedParameter):
         """Clears all processed arguments, sets up `.func` to be called later,
         and lets all remaining arguments be collected as positional if this
         was the first argument."""
-        ba.args[:] = []
+        ba.args[:] = [ba.name + ' ' + self.display_name]
         ba.kwargs.clear()
         ba.post_name.append(ba.in_args[i])
         ba.func = self.func
@@ -966,6 +966,12 @@ class CliBoundArguments(object):
 
     The following attributes only exist while arguments are being processed:
 
+    .. attribute:: posparam
+       :annotation: = iter(sig.positional)
+
+       The iterator over the positional parameters used to process positional
+       arguments.
+
     .. attribute:: sticky
        :annotation: = None
 
@@ -1001,12 +1007,11 @@ class CliBoundArguments(object):
         self.kwargs = {}
         self.meta = {}
 
+        self.posparam = iter(self.sig.positional)
         self.sticky = None
         self.posarg_only = False
         self.skip = 0
         self.unsatisfied = set(self.sig.required)
-
-        posparam = iter(self.sig.positional)
 
         with _SeekFallbackCommand():
             for i, arg in enumerate(self.in_args):
@@ -1019,7 +1024,7 @@ class CliBoundArguments(object):
                             param = self.sticky
                         else:
                             try:
-                                param = next(posparam)
+                                param = next(self.posparam)
                             except StopIteration:
                                 exc = errors.TooManyArguments(
                                     self.in_args[i:])

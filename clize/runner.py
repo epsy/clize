@@ -12,9 +12,8 @@ import shutil
 
 from sigtools.modifiers import annotate, autokwoargs
 from sigtools.specifiers import forwards_to_method, signature
-from sigtools.signatures import mask
 
-from clize import util, errors, parser
+from clize import util, errors, parser, parameters
 
 class _CliWrapper(object):
     def __init__(self, obj):
@@ -50,12 +49,10 @@ class Clize(object):
         else:
             return super(Clize, cls).__new__(cls)
 
-    def __init__(self, fn, owner=None, alt=(), extra=(), pass_name=False,
+    def __init__(self, fn, owner=None, alt=(), extra=(),
                  help_names=('help', 'h'), helper_class=None, hide_help=False):
         """
         :param sequence alt: Alternate actions the CLI will handle.
-        :param bool pass_name: Pass the command name as first argument to the
-            wrapped function.
         :param help_names: Names to use to trigger the help.
         :type help_names: sequence of strings
         :param helper_class: A callable to produce a helper object to be
@@ -69,7 +66,6 @@ class Clize(object):
         self.owner = owner
         self.alt = util.maybe_iter(alt)
         self.extra = extra
-        self.pass_name = pass_name
         self.help_names = help_names
         self.help_aliases = [util.name_py2cli(s, kw=True) for s in help_names]
         self.helper_class = helper_class
@@ -81,7 +77,6 @@ class Clize(object):
         return {
             'owner': self.owner,
             'alt': self.alt,
-            'pass_name': self.pass_name,
             'help_names': self.help_names,
             'helper_class': self.helper_class,
             'hide_help': self.hide_help,
@@ -174,7 +169,7 @@ class Clize(object):
     def signature(self):
         """The `.parser.CliSignature` object used to parse arguments."""
         return parser.CliSignature.from_signature(
-            mask(signature(self.func), self.pass_name),
+            signature(self.func),
             extra=itertools.chain(self._process_alt(self.alt), self.extra))
 
     def _process_alt(self, alt):
@@ -206,8 +201,6 @@ class Clize(object):
         ba = self.signature.read_arguments(args[1:], args[0])
         func, post, posargs, kwargs = ba
         name = ' '.join([args[0]] + post)
-        if func or self.pass_name:
-            posargs.insert(0, name)
         return func or self.func, name, posargs, kwargs
 
 def _dispatcher_helper(*args, **kwargs):
@@ -234,8 +227,9 @@ class SubcommandDispatcher(object):
         self.description = description
         self.footnotes = footnotes
 
-    @Clize(pass_name=True, helper_class=make_dispatcher_helper)
-    @annotate(command=(lowercase, parser.Parameter.LAST_OPTION))
+    @Clize(helper_class=make_dispatcher_helper)
+    @annotate(name=parameters.pass_name,
+              command=(lowercase, parser.Parameter.LAST_OPTION))
     def cli(self, name, command, *args):
         try:
             func = self.cmds_by_name[command]
