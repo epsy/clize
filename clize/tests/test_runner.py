@@ -324,47 +324,39 @@ class RunnerTests(unittest.TestCase):
     def test_run_silent(self):
         def func():
             pass
-        stdout = cStringIO()
-        stderr = cStringIO()
-        runner.run(func, args=['test'], out=stdout, err=stderr, exit=False)
+        stdout, stderr = util.run(func, args=['test'])
         self.assertFalse(stdout.getvalue())
         self.assertFalse(stderr.getvalue())
 
     def test_run_multi(self):
         def func1(): return '1'
         def func2(): return '2'
+        stdout, stderr = util.run([func1, func2], args=['test', 'func1'])
+        self.assertFalse(stderr.getvalue())
+        self.assertEqual(stdout.getvalue(), '1\n')
+        stdout, stderr = util.run([func1, func2], args=['test', 'func2'])
+        self.assertFalse(stderr.getvalue())
+        self.assertEqual(stdout.getvalue(), '2\n')
         stdout = cStringIO()
         stderr = cStringIO()
         runner.run(func1, func2, args=['test', 'func1'],
                    out=stdout, err=stderr, exit=False)
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '1\n')
-        stdout = cStringIO()
-        runner.run(func1, func2, args=['test', 'func2'],
-                   out=stdout, err=stderr, exit=False)
-        self.assertFalse(stderr.getvalue())
-        self.assertEqual(stdout.getvalue(), '2\n')
 
     def test_alt(self):
         def func1(): return '1'
         def func2(): return '2'
-        stdout = cStringIO()
-        stderr = cStringIO()
-        runner.run(func1, alt=func2, args=['test'],
-                   out=stdout, err=stderr, exit=False)
+        stdout, stderr = util.run(func1, alt=func2, args=['test'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '1\n')
-        stdout = cStringIO()
-        runner.run(func1, alt=func2, args=['test', '--func2'],
-                   out=stdout, err=stderr, exit=False)
+        stdout, stderr = util.run(func1, alt=func2, args=['test', '--func2'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '2\n')
 
     def test_disable_help(self):
         def func1(): return '1'
-        stdout = cStringIO()
-        stderr = cStringIO()
-        runner.run(func1, help_names=[], args=['test', '--help'],
-                   out=stdout, err=stderr, exit=False)
+        stdout, stderr = util.run(
+            func1, help_names=[], args=['test', '--help'])
         self.assertTrue(stderr.getvalue())
         self.assertFalse(stdout.getvalue())

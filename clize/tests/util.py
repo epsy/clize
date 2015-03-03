@@ -5,6 +5,11 @@
 from functools import partial
 import unittest
 
+from six.moves import cStringIO
+
+from clize import runner
+
+
 class Tests(unittest.TestCase):
     def assertRaises(self, _exc, _func, *args, **kwargs):
         try:
@@ -42,3 +47,10 @@ repeated_test = partial(build_sigtests, None)
 
 def read_arguments(sig, args):
     return sig.read_arguments(args, 'test')
+
+
+def run(func, args, **kwargs):
+    stdout = cStringIO()
+    stderr = cStringIO()
+    runner.run(func, args=args, exit=False, out=stdout, err=stderr, **kwargs)
+    return stdout, stderr
