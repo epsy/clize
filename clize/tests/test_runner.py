@@ -35,10 +35,10 @@ class ModuleNameTests(object):
         module = MockModule(filename, name, package)
         self.assertEqual(result, runner.main_module_name(module))
 
-    if sys.version_info >= (2,7):
-        _dmainret = 'pack'
-    else:
+    if sys.version_info < (2,7):
         _dmainret = 'pack.__main__'
+    else:
+        _dmainret = 'pack'
     dunder_main = sp+'pack/__main__.py', '__main__', 'pack', _dmainret
     free_module = sp+'free.py', '__main__', '', 'free'
     submodule = sp+'pack/sub.py', '__main__', 'pack', 'pack.sub'
@@ -46,6 +46,7 @@ class ModuleNameTests(object):
     def test_pudb_script(self):
         module = BadModule(sp+'pack/cli.py', '__main__')
         self.assertRaises(AttributeError, runner.main_module_name, module)
+
 
 @util.repeated_test
 class GetExcecutableTests(object):
@@ -77,6 +78,20 @@ class GetExcecutableTests(object):
     relpath = 'myapp/bin/myapp', None, 'myapp/bin/myapp', ''
     parentpath = '../myapp/bin/myapp', None, '../myapp/bin/myapp', ''
     parentpath_2 = '../myapp/bin/myapp', None, '../myapp/bin/myapp', None
+
+    def test_run_with_no_which(self):
+        try:
+            which_backup = shutil.which
+        except AttributeError: # pragma: no cover
+            return
+        del shutil.which
+        try:
+            self._test_func(*GetExcecutableTests.empty)
+            self.assertFalse(hasattr(shutil, 'which'))
+            self._test_func(*GetExcecutableTests.in_path_2)
+            self.assertFalse(hasattr(shutil, 'which'))
+        finally:
+            shutil.which = which_backup
 
 
 def get_executable(path, default):
@@ -146,22 +161,22 @@ class FixArgvTests(object):
 class GetCliTests(unittest.TestCase):
     def test_simple(self):
         def func():
-            pass
+            raise NotImplementedError
         ru = runner.Clize.get_cli(func)
         self.assertTrue(isinstance(ru, runner.Clize))
         self.assertTrue(ru.func is func)
 
     def test_cliattr(self):
         def func():
-            pass
+            raise NotImplementedError
         func.cli = object()
         ru = runner.Clize.get_cli(func)
         repr(ru)
         self.assertTrue(ru is func.cli)
 
     def test_sub_ita(self):
-        def func1(): pass
-        def func2(): pass
+        def func1(): raise NotImplementedError
+        def func2(): raise NotImplementedError
         ru = runner.Clize.get_cli(iter([func1, func2]))
         repr(ru)
         sd = ru.func.__self__
@@ -172,8 +187,8 @@ class GetCliTests(unittest.TestCase):
         self.assertEqual(sd.cmds_by_name['func2'].func, func2)
 
     def test_sub_dict(self):
-        def func1(): pass
-        def func2(): pass
+        def func1(): raise NotImplementedError
+        def func2(): raise NotImplementedError
         ru = runner.Clize.get_cli({'abc': func1, 'def': func2})
         repr(ru)
         sd = ru.func.__self__
@@ -184,23 +199,20 @@ class GetCliTests(unittest.TestCase):
         self.assertEqual(sd.cmds_by_name['def'].func, func2)
 
     def test_nested_ita_error(self):
-        def func1(): pass
-        def func2(): pass
-        def func3(): pass
-        def func4(): pass
-        try:
-            runner.Clize.get_cli(
-                iter([iter([func1, func2]), iter([func3, func4])]))
-        except ValueError:
-            pass
-        else:
-            self.fail("AttributeError not raised")
+        def func1(): raise NotImplementedError
+        def func2(): raise NotImplementedError
+        def func3(): raise NotImplementedError
+        def func4(): raise NotImplementedError
+        self.assertRaises(
+            ValueError,
+            runner.Clize.get_cli,
+            iter([iter([func1, func2]), iter([func3, func4])]))
 
     def test_nested_dict_ita(self):
-        def func1(): pass
-        def func2(): pass
-        def func3(): pass
-        def func4(): pass
+        def func1(): raise NotImplementedError
+        def func2(): raise NotImplementedError
+        def func3(): raise NotImplementedError
+        def func4(): raise NotImplementedError
         ru = runner.Clize.get_cli(
             {'gr1': iter([func1, func2]), 'gr2': iter([func3, func4])})
         repr(ru)
@@ -216,10 +228,10 @@ class GetCliTests(unittest.TestCase):
         self.assertEqual(sd2.cmds_by_name['func4'].func, func4)
 
     def test_nested_dict_dict(self):
-        def func1(): pass
-        def func2(): pass
-        def func3(): pass
-        def func4(): pass
+        def func1(): raise NotImplementedError
+        def func2(): raise NotImplementedError
+        def func3(): raise NotImplementedError
+        def func4(): raise NotImplementedError
         ru = runner.Clize.get_cli(
             {'gr1': {'a': func1, 'b': func2},
              'gr2': {'c': func3, 'd' : func4}})
@@ -236,9 +248,9 @@ class GetCliTests(unittest.TestCase):
         self.assertEqual(sd2.cmds_by_name['d'].func, func4)
 
     def test_sub_empty_key(self):
-        def func1(): pass
-        def func2(): pass
-        def func3(): pass
+        def func1(): raise NotImplementedError
+        def func2(): raise NotImplementedError
+        def func3(): raise NotImplementedError
         ru = runner.Clize.get_cli({
                 '': func1,
                 '2': func2,
@@ -251,13 +263,13 @@ class GetCliTests(unittest.TestCase):
         self.assertEqual(set(sd.cmds_by_name), set(['2', '3']))
 
     def test_as_is(self):
-        def func(): pass
+        def func(): raise NotImplementedError
         ru = runner.Clize.get_cli(runner.Clize.as_is(func))
         repr(ru)
         self.assertEqual(ru, func)
 
     def test_keep(self):
-        def func(): pass
+        def func(): raise NotImplementedError
         c = runner.Clize.keep(func)
         ru = runner.Clize.get_cli(c)
         repr(ru)
@@ -267,7 +279,7 @@ class GetCliTests(unittest.TestCase):
         self.assertTrue(ru.func is func)
 
     def test_keep_args(self):
-        def func(): pass
+        def func(): raise NotImplementedError
         c = runner.Clize.keep(hide_help=True)(func)
         ru = runner.Clize.get_cli(c)
         repr(ru)
@@ -279,7 +291,7 @@ class GetCliTests(unittest.TestCase):
 
     def test_decorated(self):
         @runner.Clize
-        def func(): pass
+        def func(): raise NotImplementedError
         ru = runner.Clize.get_cli(func)
         repr(ru)
         self.assertTrue(ru is func)
@@ -343,17 +355,36 @@ class RunnerTests(unittest.TestCase):
         self.assertRaises(errors.ArgumentError, ru, 'test', 'func2', 'abc')
         self.assertRaises(errors.ArgumentError, ru, 'test', 'func3')
 
+    def assert_systemexit(self, __code, __func, *args, **kwargs):
+        try:
+            __func(*args, **kwargs)
+        except SystemExit as e:
+            self.assertEqual(e.code, __code)
+        else:
+            self.fail('SystemExit not raised')
+
+    def test_assert_systemexit(self):
+        def raiseSysexitIfArg(arg):
+            if arg:
+                sys.exit()
+        self.assert_systemexit(None, raiseSysexitIfArg, True)
+        raiseSysexitIfArg(False)
+        self.assertRaises(
+            AssertionError, self.assert_systemexit, None,
+            raiseSysexitIfArg, False)
+        def raiseSysexitWithCode():
+            sys.exit(2)
+        self.assert_systemexit(2, raiseSysexitWithCode)
+        self.assertRaises(
+            AssertionError, self.assert_systemexit, 1, raiseSysexitWithCode)
+
     def test_run_fail_exit(self):
         def func():
             raise errors.ArgumentError("test_run_fail_exit")
         stdout = cStringIO()
         stderr = cStringIO()
-        try:
-            runner.run(func, args=['test'], out=stdout, err=stderr)
-        except SystemExit as e:
-            self.assertEqual(e.code, 2)
-        else:
-            self.fail("ArgumentError not raised")
+        self.assert_systemexit(
+            2, runner.run, func, args=['test'], out=stdout, err=stderr)
         self.assertFalse(stdout.getvalue())
         self.assertTrue(stderr.getvalue())
         runner.run(func, args=['test'], out=stdout, err=stderr, exit=False)
@@ -363,12 +394,8 @@ class RunnerTests(unittest.TestCase):
             return "test_run_success_exit"
         stdout = cStringIO()
         stderr = cStringIO()
-        try:
-            runner.run(func, args=['test'], out=stdout, err=stderr)
-        except SystemExit as e:
-            self.assertFalse(e.code)
-        else:
-            self.fail("ArgumentError not raised")
+        self.assert_systemexit(
+            None, runner.run, func, args=['test'], out=stdout, err=stderr)
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), 'test_run_success_exit\n')
         runner.run(func, args=['test'], out=stdout, err=stderr, exit=False)
@@ -407,7 +434,7 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(stdout.getvalue(), '2\n')
 
     def test_disable_help(self):
-        def func1(): return '1'
+        def func1(): raise NotImplementedError
         stdout, stderr = util.run(
             func1, help_names=[], args=['test', '--help'])
         self.assertTrue(stderr.getvalue())
