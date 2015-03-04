@@ -78,6 +78,11 @@ class GetExcecutableTests(object):
     parentpath = '../myapp/bin/myapp', None, '../myapp/bin/myapp', ''
     parentpath_2 = '../myapp/bin/myapp', None, '../myapp/bin/myapp', None
 
+
+def get_executable(path, default):
+    return default
+
+
 @util.repeated_test
 class FixArgvTests(object):
     def _test_func(self, argv, path, main, expect, py27=True):
@@ -126,8 +131,6 @@ class FixArgvTests(object):
         )
 
     def test_bad_fakemodule(self):
-        def get_executable(path, default):
-            return default
         back = runner.get_executable
         runner.get_executable = get_executable
         try:
@@ -138,7 +141,6 @@ class FixArgvTests(object):
                              runner.fix_argv(argv, path, module))
         finally:
             runner.get_executable = back
-
 
 
 class GetCliTests(unittest.TestCase):
@@ -410,3 +412,55 @@ class RunnerTests(unittest.TestCase):
             func1, help_names=[], args=['test', '--help'])
         self.assertTrue(stderr.getvalue())
         self.assertFalse(stdout.getvalue())
+
+    def test_run_sysargv(self):
+        bmodules = sys.modules
+        bargv = sys.argv
+        bpath = sys.path
+        bget_executable = runner.get_executable
+        try:
+            sys.modules = {
+                '__main__':
+                    MockModule('/path/to/cwd/afile.py', '__main__', '')
+                }
+            sys.argv = ['afile.py', '...']
+            sys.path = ['', sys.path[1]]
+            runner.get_executable = get_executable
+            def func(arg=1):
+                raise NotImplementedError
+            out = cStringIO()
+            err = cStringIO()
+            runner.run(func, exit=False, out=out, err=err)
+            self.assertFalse(out.getvalue())
+            self.assertEqual(err.getvalue(),
+                "python -m afile: Bad value for arg: '...'\n"
+                "Usage: python -m afile [arg]\n")
+        finally:
+            sys.modules = bmodules
+            sys.argv = bargv
+            sys.path = bpath
+            runner.get_executable = bget_executable
+
+    def test_run_out(self):
+        bout = sys.stdout
+        try:
+            sys.stdout = out = cStringIO()
+            def func():
+                return 'hello'
+            runner.run(func, args=['test'], exit=False)
+            self.assertEqual(out.getvalue(), 'hello\n')
+        finally:
+            sys.stdout = bout
+
+    def test_run_err(self):
+        berr = sys.stderr
+        try:
+            sys.stderr = err = cStringIO()
+            def func(arg=1):
+                raise NotImplementedError
+            runner.run(func, args=['test', '...'], exit=False)
+            self.assertEqual(err.getvalue(),
+                "test: Bad value for arg: '...'\n"
+                "Usage: test [arg]\n")
+        finally:
+            sys.stderr = berr
