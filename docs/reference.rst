@@ -593,6 +593,54 @@ Forcing arguments to be treated as positional
     the parameter ``d`` which had the annotation.
 
 
+.. _pass name:
+
+Retrieving the executable name
+..............................
+
+.. autofunction:: clize.parameters.pass_name
+
+    .. code-block:: python
+
+        from clize import run, parameters
+
+        def main(name:parameters.pass_name, arg):
+            print('name:', name)
+            print('arg:', arg)
+
+        def alt(arg, *, name:parameters.pass_name):
+            print('arg:', arg)
+            print('name:', name)
+
+        run(main, alt=alt)
+
+    .. x*
+
+    .. code-block:: console
+
+        $ python pn.py ham
+        name: pn.py
+        arg: ham
+        $ python -m pn ham
+        name: python -m pn
+        arg: ham
+        $ python pn.py --alt spam
+        arg: spam
+        name: pn.py --alt
+        $ python -m pn --alt spam
+        arg: spam
+        name: python -m pn --alt
+
+
+.. _constant value:
+
+Inserting arbitrary values
+..........................
+
+.. autofunction:: clize.parameters.constant_value
+
+
+
 .. _docstring:
 
 Customizing the help using the docstring

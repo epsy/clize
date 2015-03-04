@@ -399,7 +399,7 @@ def argument_decorator(f):
         DecoratedArgumentParameter, kwargs={'decorator': f})
 
 
-class ConstantParameter(parser.ParameterWithSourceEquivalent):
+class InserterParameter(parser.ParameterWithSourceEquivalent):
     """Parameter that provides an argument to the called function without
     requiring an argument on the command line."""
 
@@ -407,13 +407,13 @@ class ConstantParameter(parser.ParameterWithSourceEquivalent):
                  undocumented, default, conv, aliases=None,
                  display_name='constant_parameter',
                  **kwargs):
-        super(ConstantParameter, self).__init__(
+        super(InserterParameter, self).__init__(
             undocumented=True, display_name=display_name, **kwargs)
         self.required = True
         self.value_factory = value_factory
 
 
-class ConstantPositionalParameter(ConstantParameter):
+class InserterPositionalParameter(InserterParameter):
     def read_argument(self, ba, i):
         ba.args.append(self.value_factory(ba))
         # Get the next pos parameter to process this argument
@@ -429,12 +429,12 @@ class ConstantPositionalParameter(ConstantParameter):
         ba.args.append(self.value_factory(ba))
 
 
-class ConstantNamedParameter(ConstantParameter):
+class InserterNamedParameter(InserterParameter):
     def unsatisfied(self, ba):
         ba.kwargs[self.argument_name] = self.value_factory(ba)
 
 
-def constant_value(value_factory):
+def value_inserter(value_factory):
     """Create an annotation that hides a parameter from the command-line
     and always gives it the result of a function.
 
@@ -443,16 +443,19 @@ def constant_value(value_factory):
         is passed as argument, ie. ``value_factory(ba)``.
     """
     uc = parser.use_class(
-        pos=ConstantPositionalParameter, named=ConstantNamedParameter,
+        pos=InserterPositionalParameter, named=InserterNamedParameter,
         kwargs={'value_factory': value_factory}
         )
     update_wrapper(uc, value_factory)
     return uc
 
 
-@constant_value
+@value_inserter
 def pass_name(ba):
-    """Parameters decorated with this will receive the script name as
-    argument."""
+    """Parameters decorated with this will receive the executable name as
+    argument.
+
+    This can be either the path to a python file, or ``python -m some.module``.    It is also appended with sub-command names.
+    """
     return ba.name
 
