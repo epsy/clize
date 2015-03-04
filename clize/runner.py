@@ -312,6 +312,9 @@ def run(args=None, catch=(), exit=True, out=None, err=None, *fn, **kwargs):
     cli = Clize.get_cli(fn, **kwargs)
 
     if args is None:
+        # import __main__ causes double imports when
+        # python2.7 -m apackage
+        # is used
         module = sys.modules['__main__']
         args = fix_argv(sys.argv, sys.path, module)
     if out is None:
