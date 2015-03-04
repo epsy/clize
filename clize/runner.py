@@ -250,7 +250,7 @@ def fix_argv(argv, path, main):
             argv[0] = '{0} -m {1}'.format(
                 get_executable(sys.executable, 'python'), name)
     else:
-        name = get_executable(sys.argv[0], sys.argv[0])
+        name = get_executable(argv[0], argv[0])
         argv = argv[:]
         argv[0] = name
     return argv
@@ -277,9 +277,12 @@ def get_executable(path, default):
     return rel
 
 
+_py27 = sys.version_info >= (2,7)
+
+
 def main_module_name(module):
     modname = os.path.splitext(os.path.basename(module.__file__))[0]
-    if modname == '__main__' and sys.version_info >= (2,7):
+    if modname == '__main__' and _py27:
         return module.__package__
     elif not module.__package__:
         return modname

@@ -80,9 +80,65 @@ class GetExcecutableTests(object):
 
 @util.repeated_test
 class FixArgvTests(object):
-    def _test_func(self, argv, path, main, expect):
-        module = MockModule(*main)
-        self.assertEqual(expect, runner.fix_argv(argv, path, module))
+    def _test_func(self, argv, path, main, expect, py27=True):
+        def get_executable(path, default):
+            return default
+        _get_executable = runner.get_executable
+        _py27 = runner._py27
+        runner.get_executable = get_executable
+        runner._py27 = py27
+        try:
+            module = MockModule(*main)
+            self.assertEqual(expect, runner.fix_argv(argv, path, module))
+        finally:
+            runner.get_executable = _get_executable
+            runner._py27 = _py27
+
+    plainfile = (
+        ['afile.py', '...'], ['/path/to/cwd', '/usr/lib/pythonX.Y'],
+        ['afile.py', '__main__', None],
+        ['afile.py', '...']
+        )
+    asmodule = (
+        ['/path/to/cwd/afile.py', '...'], ['', '/usr/lib/pythonX.Y'],
+        ['/path/to/cwd/afile.py', '__main__', ''],
+        ['python -m afile', '...']
+        )
+    packedmodule = (
+        ['/path/to/cwd/apkg/afile.py', '...'], ['', '/usr/lib/pythonX.Y'],
+        ['/path/to/cwd/apkg/afile.py', '__main__', 'apkg'],
+        ['python -m apkg.afile', '...']
+        )
+    packedmain26 = (
+        ['/path/to/cwd/apkg/__main__.py', '...'], ['', '/usr/lib/pythonX.Y'],
+        ['/path/to/cwd/apkg/__main__.py', 'apkg.__main__', 'apkg'],
+        ['python -m apkg.__main__', '...'], False
+        )
+    packedmain2 = (
+        ['/path/to/cwd/apkg/__main__.py', '...'], ['', '/usr/lib/pythonX.Y'],
+        ['/path/to/cwd/apkg/__main__.py', 'apkg.__main__', 'apkg'],
+        ['python -m apkg', '...']
+        )
+    packedmain3 = (
+        ['/path/to/cwd/apkg/__main__.py', '...'], ['', '/usr/lib/pythonX.Y'],
+        ['/path/to/cwd/apkg/__main__.py', '__main__', 'apkg'],
+        ['python -m apkg', '...']
+        )
+
+    def test_bad_fakemodule(self):
+        def get_executable(path, default):
+            return default
+        back = runner.get_executable
+        runner.get_executable = get_executable
+        try:
+            module = BadModule('/path/to/cwd/afile.py', '__main__')
+            argv = ['afile.py', '...']
+            path = ['', '/usr/lib/pythonX.Y']
+            self.assertEqual(['afile.py', '...'],
+                             runner.fix_argv(argv, path, module))
+        finally:
+            runner.get_executable = back
+
 
 
 class GetCliTests(unittest.TestCase):
