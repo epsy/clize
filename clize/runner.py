@@ -208,10 +208,6 @@ def _dispatcher_helper(*args, **kwargs):
     from clize.help import DispatcherHelper
     return DispatcherHelper(*args, **kwargs)
 
-def make_dispatcher_helper(*args, **kwargs):
-    from clize.help import DispatcherHelper
-    return DispatcherHelper(*args, **kwargs)
-
 
 @parser.value_converter(name='STR')
 def lowercase(arg):
@@ -227,7 +223,7 @@ class SubcommandDispatcher(object):
         self.description = description
         self.footnotes = footnotes
 
-    @Clize(helper_class=make_dispatcher_helper)
+    @Clize(helper_class=_dispatcher_helper)
     @annotate(name=parameters.pass_name,
               command=(lowercase, parser.Parameter.LAST_OPTION))
     def cli(self, name, command, *args):
