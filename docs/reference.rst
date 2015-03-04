@@ -637,8 +637,27 @@ Retrieving the executable name
 Inserting arbitrary values
 ..........................
 
-.. autofunction:: clize.parameters.constant_value
+.. autofunction:: clize.parameters.value_inserter
 
+    .. code-block:: python
+
+        from clize import run, parameters
+
+        @parameters.value_inserter
+        def insert_ultimate_answer(ba):
+            return 42
+
+        def main(arg, ans:insert_ultimate_answer):
+            print('arg:', arg)
+            print('ans:', ans)
+
+        run(main)
+
+    .. code-block:: console
+
+        $ python ins.py eggs
+        arg: eggs
+        ans: 42
 
 
 .. _docstring:
