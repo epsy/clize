@@ -63,7 +63,10 @@ def clize(fn=None, **kwargs):
     """Compatibility with clize<3.0 releases. Decorates a function in order
     to be passed to `clize.run`. See :ref:`porting-2`."""
     warnings.warn('Use clize.Clize instead of clize.clize, or pass the '
-                  'function directly to run(), undecorated.',
+                  'function directly to run(), undecorated. See '
+                  'http://clize.readthedocs.org/en/latest/'
+                  'porting.html#porting-clize-decorator '
+                  'for more information.',
                   DeprecationWarning, stacklevel=2)
     if fn is None:
         return partial(_clize, **kwargs)
@@ -101,9 +104,10 @@ def make_flag(source, names, default=False, type=bool,
               help='', takes_argument=0):
     """Compatibility with clize<3.0 releases. Creates a parameter instance.
     See :ref:`porting-2`."""
-    warnings.warn('Compatibility with clize<3.0 releases. Helper function to '
-                  'create alternate actions. See :ref:`porting-2`.',
-                  DeprecationWarning, stacklevel=1)
+    warnings.warn('clize.legacy.make_flag is deprecated. See '
+                  'http://clize.readthedocs.org/en/latest/'
+                  'porting.html#porting-make-flag',
+                  DeprecationWarning, stacklevel=2)
     kwargs = {}
     kwargs['aliases'] = [util.name_py2cli(alias, kw=True)
                          for alias in names]

@@ -17,8 +17,7 @@ from clize import clize, errors, runner, make_flag
 class OldInterfaceTests(unittest.TestCase):
     @classmethod
     def setUpClass(self):
-        warnings.filterwarnings('ignore', 'Use clize\.Clize',
-                                DeprecationWarning)
+        warnings.filterwarnings('ignore', '.*clize', DeprecationWarning)
 
     @classmethod
     def tearDownClass(self):

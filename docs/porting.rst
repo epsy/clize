@@ -17,6 +17,9 @@ are the recommended way to set these up in a way compatible with Python 2.
 
 However, `clize.clize` is provided: it imitates the old behaviour but adds a deprecation warning when used.
 
+
+.. _porting clize decorator:
+
 Porting code using the ``@clize`` decorator with no arguments
 _____________________________________________________________
 
@@ -47,6 +50,9 @@ Decorating the function with ``@autokwoargs`` will still let you call it
 normally, except that any parameter with a default value(here just ``option``)
 will only be accepted as a named argument.
 
+
+.. _porting force_positional:
+
 ``force_positional``
 ____________________
 
@@ -73,6 +79,10 @@ has the same purpose here::
 
     if __name__ == '__main__':
         run(func)
+
+
+.. _porting alias:
+.. _porting coerce:
 
 Porting code that used ``alias`` or ``coerce``
 ______________________________________________
@@ -103,6 +113,9 @@ You now pass these as annotations on the corresponding parameter. To keep compat
     if __name__ == '__main__':
         run(func)
 
+
+.. _porting require_excess:
+
 ``require_excess``
 __________________
 
@@ -117,6 +130,9 @@ Indicating that an ``*args``-like parameter is required is now done by annotatin
 
     if __name__ == '__main__':
         run(func)
+
+
+.. _porting make_flag:
 
 ``extra`` and ``make_flag``
 ___________________________
