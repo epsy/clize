@@ -85,21 +85,16 @@ class MakeflagParameter(parser.NamedParameter):
     def noop(self, *args, **kwargs):
         pass
 
-    def read_argument(self, args, i, ba):
-        try:
-            val = args[i + 1]
-            skip = 1
-        except IndexError:
-            val = True
-            skip = 0
+    def read_argument(self, ba, i):
+        # try:
+        #     val = ba.in_args[i + 1]
+        #     ba.skip = 1
+        # except IndexError:
+        val = True
         ret = self.func(name=ba.name, command=ba.sig,
                         val=val, params=ba.kwargs)
         if ret:
-            func = self.noop
-        else:
-            func = None
-        return skip, None, None, func
-
+            ba.func = self.noop
 
 
 def make_flag(source, names, default=False, type=bool,

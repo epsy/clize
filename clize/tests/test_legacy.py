@@ -5,10 +5,14 @@
 # See COPYING for details.
 
 
+import sys
 import unittest
 import warnings
 
-from clize import clize, errors, runner
+from six.moves import cStringIO
+
+from clize import clize, errors, runner, make_flag
+
 
 class OldInterfaceTests(unittest.TestCase):
     @classmethod
@@ -213,4 +217,60 @@ class SubcommandTests(OldInterfaceTests):
             errors.ArgumentError,
             run_group, (fn1,), ('group', '--opt')
             )
+
+class MakeFlagTests(OldInterfaceTests):
+    def run_cli(self, func, args):
+        orig_out = sys.stdout
+        orig_err = sys.stderr
+        try:
+            sys.stdout = out = cStringIO()
+            sys.stderr = err = cStringIO()
+            ret = func(*args)
+        finally:
+            sys.stdout = orig_out
+            sys.stderr = orig_err
+        return ret, out, err
+
+    def test_version(self):
+        def show_version(name, **kwargs):
+            print('this is the version')
+            return True
+
+        @clize(
+            extra=(
+                    make_flag(
+                        source=show_version,
+                        names=('version', 'v'),
+                        help="Show the version",
+                    ),
+                )
+            )
+        def fn():
+            raise NotImplementedError
+        ret, out, err = self.run_cli(fn, ['test', '--version'])
+        self.assertEqual(out.getvalue(), 'this is the version\n')
+        self.assertEqual(err.getvalue(), '')
+        ret, out, err = self.run_cli(fn, ['test', '-v'])
+        self.assertEqual(out.getvalue(), 'this is the version\n')
+        self.assertEqual(err.getvalue(), '')
+
+    def test_keepgoing(self):
+        def extra(name, command, val, params):
+            print(name, command, val, params)
+            params['added'] = 'added'
+
+        @clize(
+            extra=(
+                    make_flag(
+                        source=extra,
+                        names=('extra',),
+                    ),
+                )
+            )
+        def fn(arg1, arg2, added=''):
+            self.assertEqual(arg1, 'arg1')
+            self.assertEqual(arg2, 'arg2')
+            self.assertEqual(added, 'added')
+        self.run_cli(fn, ['test', 'arg1', 'arg2', '--extra'])
+        self.run_cli(fn, ['test', 'arg1', '--extra', 'arg2'])
 
