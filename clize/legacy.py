@@ -126,7 +126,7 @@ class MakeflagIntOptionParameter(MakeflagParameter, parser.IntOptionParameter):
     pass
 
 
-def make_flag(source, names, default=False, type=bool,
+def make_flag(source, names, default=False, type=None,
               help='', takes_argument=0):
     """Compatibility with clize<3.0 releases. Creates a parameter instance.
     See :ref:`porting-2`."""
@@ -142,10 +142,10 @@ def make_flag(source, names, default=False, type=bool,
                                      **kwargs)
     cls = MakeflagOptionParameter
     kwargs['argument_name'] = source
+    kwargs['conv'] = type or parser.is_true
     if not takes_argument:
-        return parser.FlagParameter(value=True, false_value=False, **kwargs)
+        return parser.FlagParameter(value=True, **kwargs)
     kwargs['default'] = default
-    kwargs['conv'] = type
     kwargs['takes_argument'] = takes_argument
     if takes_argument == 1 and type is int:
         cls = MakeflagIntOptionParameter

@@ -197,10 +197,15 @@ def identity(x=None):
     return x
 
 
+@value_converter(name='BOOL')
+def is_true(arg):
+    return arg.lower() not in ('', '0', 'n', 'no', 'f', 'false')
+
+
 _implicit_converters = {
     int: int,
     float: float,
-    bool: bool,
+    bool: is_true,
     six.text_type: identity,
     six.binary_type: identity,
 }
@@ -347,53 +352,6 @@ class NamedParameter(Parameter):
         return val
 
 
-class FlagParameter(NamedParameter, ParameterWithSourceEquivalent):
-    """A named parameter that takes no argument.
-
-    :param value: The value when the argument is present.
-    :param false_value: The value when the argument is given one of the
-        false value triggers using ``--param=xyz``.
-    """
-
-    false_triggers = '0', 'n', 'no', 'f', 'false'
-    """Values for which ``--flag=X`` will consider the argument false and
-    will pass `.false_value` to the function. In all other cases `.value`
-    is passed."""
-
-    def __init__(self, value, false_value, **kwargs):
-        super(FlagParameter, self).__init__(**kwargs)
-        self.value = value
-        """The value passed to the function if the flag is activated,
-        usually `True`."""
-        self.false_value = false_value
-        """The value passed to the function if the flag is not activated,
-        usually `False`."""
-
-    def read_argument(self, ba, i):
-        """Overrides `NamedParameter`'s value-getting behavior to allow no
-        argument to be passed after the flag is named."""
-        arg = ba.in_args[i]
-        if arg[1] == '-':
-            ba.kwargs[self.argument_name] = (
-                self.value if self.is_flag_activation(arg)
-                else self.false_value
-                )
-        else:
-            ba.kwargs[self.argument_name] = self.value
-            self.redispatch_short_arg(arg[2:], ba, i)
-
-
-    def is_flag_activation(self, arg):
-        """Checks if an argument triggers the true or false value."""
-        if arg[1] != '-':
-            return True
-        arg, sep, val = arg.partition('=')
-        return (
-            not sep or
-            val and val.lower() not in self.false_triggers
-            )
-
-
 class OptionParameter(NamedParameter, ParameterWithValue,
                       ParameterWithSourceEquivalent):
     """A named parameter that takes an argument."""
@@ -410,21 +368,68 @@ class OptionParameter(NamedParameter, ParameterWithValue,
         """Returns a string designation of the value type."""
         return util.name_type2cli(self.conv)
 
+    def format_argument(self, long_alias):
+        return ('=' if long_alias else ' ') + self.format_type()
+
     def get_all_names(self):
         """Appends the value type to all aliases."""
         names = super(OptionParameter, self).get_all_names()
-        return names + (' ' if len(names) == 2 else '=') + self.format_type()
+        long_alias = any(alias.startswith('--') for alias in self.aliases)
+        return names + self.format_argument(long_alias)
 
     def get_full_name(self):
         """Appends the value type to the shortest alias."""
         sn = super(OptionParameter, self).get_full_name()
-        return (' ' if len(sn) == 2 else '=').join((sn, self.format_type()))
+        short_alias = any(
+            not alias.startswith('--') for alias in self.aliases)
+        return sn + self.format_argument(not short_alias)
+
+
+class FlagParameter(OptionParameter):
+    """A named parameter that takes no argument.
+
+    :param value: The value when the argument is present.
+    :param false_value: The value when the argument is given one of the
+        false value triggers using ``--param=xyz``.
+    """
+
+    required = False
+
+    false_triggers = '0', 'n', 'no', 'f', 'false'
+    """Values for which ``--flag=X`` will consider the argument false and
+    will pass `.false_value` to the function. In all other cases `.value`
+    is passed."""
+
+    def __init__(self, value, **kwargs):
+        super(FlagParameter, self).__init__(**kwargs)
+        self.value = value
+        """The value passed to the function if the flag is triggered without
+        a specified value."""
+
+    def read_argument(self, ba, i):
+        """Overrides `NamedParameter`'s value-getting behavior to allow no
+        argument to be passed after the flag is named."""
+        arg = ba.in_args[i]
+        if arg[1] == '-':
+            name, sep, val = arg.partition('=')
+            ba.kwargs[self.argument_name] = (
+                self.coerce_value(val, ba) if sep else self.value)
+        else:
+            ba.kwargs[self.argument_name] = self.value
+            self.redispatch_short_arg(arg[2:], ba, i)
+
+    def format_argument(self, long_alias):
+        if not long_alias or self.conv == is_true:
+            return ''
+        return ('[=' if long_alias else ' [') + self.format_type() + ']'
+
 
 def split_int_rest(s):
     for i, c, in enumerate(s):
         if not c.isdigit() and c != '-':
             return s[:i], s[i:]
     return s, ''
+
 
 class IntOptionParameter(OptionParameter):
     """A named parameter that takes an integer as argument. The short form
@@ -746,9 +751,9 @@ def pos_parameter(required=False, **kwargs):
     return PositionalParameter(**kwargs)
 
 def named_parameter(**kwargs):
-    if kwargs['default'] is False and kwargs['conv'] is bool:
-        del kwargs['default'], kwargs['conv']
-        return FlagParameter(value=True, false_value=False, **kwargs)
+    if kwargs['default'] is False and kwargs['conv'] is is_true:
+        del kwargs['default']
+        return FlagParameter(value=True, **kwargs)
     elif kwargs['conv'] is _implicit_converters[int]:
         return IntOptionParameter(**kwargs)
     else:

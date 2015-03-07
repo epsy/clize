@@ -131,6 +131,48 @@ class FromSigTests(object):
         arg = ba.kwargs['par']
         self.assertTrue(arg is s)
 
+    def test_flagp_conv_long(self):
+        @parser.value_converter
+        def conv(arg):
+            return arg
+        param = parser.FlagParameter(
+            argument_name='par',
+            value='eggs', conv=conv,
+            aliases=['--par']
+            )
+        self.assertEqual(param.get_all_names(), '--par[=CONV]')
+        sig = support.s('*, par: p, o=False', locals={'p': param})
+        self._do_test(sig, parser.FlagParameter, '[--par[=CONV]]', {
+            'conv': conv,
+        })
+        csig = parser.CliSignature.from_signature(sig)
+        self.assertEqual(read_arguments(csig, []).kwargs, {})
+        self.assertEqual(read_arguments(csig, ['--par']).kwargs,
+                         {'par': 'eggs'})
+        self.assertEqual(read_arguments(csig, ['--par=ham']).kwargs,
+                         {'par': 'ham'})
+
+    def test_flagp_conv_short(self):
+        @parser.value_converter
+        def conv(arg):
+            return arg
+        param = parser.FlagParameter(
+            argument_name='par',
+            value='eggs', conv=conv,
+            aliases=['--par', '-p']
+            )
+        self.assertEqual(param.get_all_names(), '-p, --par[=CONV]')
+        sig = support.s('*, par: p, o=False', locals={'p': param})
+        self._do_test(sig, parser.FlagParameter, '[-p]', {
+            'conv': conv,
+        })
+        csig = parser.CliSignature.from_signature(sig)
+        self.assertEqual(read_arguments(csig, []).kwargs, {})
+        self.assertEqual(read_arguments(csig, ['-p']).kwargs,
+                         {'par': 'eggs'})
+        self.assertEqual(read_arguments(csig, ['-po']).kwargs,
+                         {'par': 'eggs', 'o': True})
+
     def test_alias_multi(self):
         sig = support.s('*, one: a', locals={'a': ('a', 'b', 'abc')})
         param = list(sig.parameters.values())[0]
@@ -276,26 +318,6 @@ class SigTests(object):
         csig = parser.CliSignature.from_signature(sig)
         self.assertEqual(str(csig), '')
 
-    def test_flag_activation(self):
-        par = parser.FlagParameter(
-            True, False,
-            aliases=['--abc', '-a'],
-            argument_name='abc',
-            display_name='--abc',
-            )
-        self.assertTrue(par.is_flag_activation('-a'))
-        self.assertTrue(par.is_flag_activation('-agz'))
-        self.assertTrue(par.is_flag_activation('--abc'))
-        self.assertTrue(par.is_flag_activation('--abc=anything'))
-        self.assertFalse(par.is_flag_activation('--abc=0'))
-        self.assertFalse(par.is_flag_activation('--abc=no'))
-        self.assertFalse(par.is_flag_activation('--abc=NO'))
-        self.assertFalse(par.is_flag_activation('--abc=n'))
-        self.assertFalse(par.is_flag_activation('--abc=no'))
-        self.assertFalse(par.is_flag_activation('--abc=False'))
-        self.assertFalse(par.is_flag_activation('--abc=false'))
-        self.assertFalse(par.is_flag_activation('--abc=f'))
-
 
 @testfunc
 def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
@@ -366,7 +388,7 @@ class ExtraParamsTests(object):
     def test_param_extras(self):
         extra_params = [
             parser.FlagParameter(
-                value=True, false_value=False,
+                value=True, conv=parser.is_true,
                 aliases=['-' + name], argument_name=name)
             for name in 'abc']
         param = parser.PositionalParameter(
