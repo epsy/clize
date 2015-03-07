@@ -255,6 +255,10 @@ class MakeFlagTests(OldInterfaceTests):
 
     def test_keepgoing(self):
         def extra(name, command, val, params):
+            if check_xyz:
+                self.assertEqual(params['xyz'], 'xyz')
+            else:
+                self.assertFalse('xyz' in params)
             params['added'] = 'added'
 
         @clize(
@@ -265,10 +269,13 @@ class MakeFlagTests(OldInterfaceTests):
                     ),
                 )
             )
-        def fn(arg1, arg2, added=''):
+        def fn(arg1, arg2, added='', xyz=''):
             self.assertEqual(arg1, 'arg1')
             self.assertEqual(arg2, 'arg2')
+            self.assertEqual(xyz, 'xyz')
             self.assertEqual(added, 'added')
-        self.run_cli(fn, ['test', 'arg1', 'arg2', '--extra'])
-        self.run_cli(fn, ['test', 'arg1', '--extra', 'arg2'])
-
+        check_xyz = True
+        self.run_cli(fn, ['test', 'arg1', '--xyz', 'xyz', 'arg2', '--extra'])
+        check_xyz = False
+        ret, out, err = self.run_cli(
+            fn, ['test', 'arg1', '--extra', 'arg2', '--xyz', 'xyz'])
