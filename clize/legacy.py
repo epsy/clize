@@ -9,7 +9,7 @@ from collections import defaultdict
 
 from sigtools import modifiers, specifiers
 
-from clize import runner, parser, util
+from clize import runner, parser, util, errors
 
 
 def _convert_coerce(func):
@@ -81,25 +81,49 @@ clize.POSITIONAL = clize.P = parser.ParameterFlag('POSITIONAL',
 
 
 class MakeflagParameter(parser.NamedParameter):
+    def __init__(self, takes_argument, **kwargs):
+        super(MakeflagParameter, self).__init__(**kwargs)
+        self.takes_argument = takes_argument
+
+    def get_value(self, ba, i):
+        assert self.takes_argument != 0
+        arg = ba.in_args[i]
+        if (
+                self.takes_argument == 1
+                or arg[1] != '-' and len(arg) > 2
+                or '=' in arg
+                ):
+            return super(MakeflagParameter, self).get_value(ba, i)
+        args = ba.in_args[i+1:i+1+self.takes_argument]
+        if len(args) != self.takes_argument:
+            raise errors.NotEnoughValues
+        ba.skip = self.takes_argument
+        return ' '.join(args)
+
+class MakeflagFuncParameter(MakeflagParameter):
     """Parameter class that imitates those returned by Clize 2's `make_flag`
     when passed a callable for source. See :ref:`porting-2`."""
     def __init__(self, func, **kwargs):
-        super(MakeflagParameter, self).__init__(**kwargs)
+        super(MakeflagFuncParameter, self).__init__(**kwargs)
         self.func = func
 
     def noop(self, *args, **kwargs):
         pass
 
     def read_argument(self, ba, i):
-        # try:
-        #     val = ba.in_args[i + 1]
-        #     ba.skip = 1
-        # except IndexError:
         val = True
         ret = self.func(name=ba.name, command=ba.sig,
                         val=val, params=ba.kwargs)
         if ret:
             ba.func = self.noop
+
+
+class MakeflagOptionParameter(MakeflagParameter, parser.OptionParameter):
+    pass
+
+
+class MakeflagIntOptionParameter(MakeflagParameter, parser.IntOptionParameter):
+    pass
 
 
 def make_flag(source, names, default=False, type=bool,
@@ -114,13 +138,15 @@ def make_flag(source, names, default=False, type=bool,
     kwargs['aliases'] = [util.name_py2cli(alias, kw=True)
                          for alias in names]
     if callable(source):
-        return MakeflagParameter(source, **kwargs)
-    cls = parser.OptionParameter
+        return MakeflagFuncParameter(source, takes_argument=takes_argument,
+                                     **kwargs)
+    cls = MakeflagOptionParameter
     kwargs['argument_name'] = source
-    kwargs['default'] = default
     if not takes_argument:
-        return parser.FlagParameter(value=True, **kwargs)
-    kwargs['typ'] = type
-    if type is int:
-        cls = parser.IntOptionParameter
+        return parser.FlagParameter(value=True, false_value=False, **kwargs)
+    kwargs['default'] = default
+    kwargs['conv'] = type
+    kwargs['takes_argument'] = takes_argument
+    if takes_argument == 1 and type is int:
+        cls = MakeflagIntOptionParameter
     return cls(**kwargs)

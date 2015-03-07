@@ -288,3 +288,119 @@ class MakeFlagTests(OldInterfaceTests):
         check_xyz = False
         ret, out, err = self.run_cli(
             fn, ['test', 'arg1', '--extra', 'arg2', '--xyz', 'xyz'])
+
+    def test_flag(self):
+        @clize(
+            extra=(
+                make_flag(
+                    source='extra',
+                    names=('extra',)
+                    ),
+                )
+            )
+        def fn(arg1, arg2, **kwargs):
+            return arg1, arg2, kwargs
+        arg1, arg2, kwargs = fn('test', 'arg1', '--extra', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': True})
+
+    def test_opt(self):
+        @clize(
+            extra=(
+                make_flag(
+                    source='extra',
+                    names=('extra',),
+                    type=str,
+                    takes_argument=1
+                    ),
+                )
+            )
+        def fn(arg1, arg2, **kwargs):
+            return arg1, arg2, kwargs
+        arg1, arg2, kwargs = fn('test', 'arg1', '--extra', 'extra', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': 'extra'})
+
+    def test_intopt(self):
+        @clize(
+            extra=(
+                make_flag(
+                    source='extra',
+                    names=('extra', 'e'),
+                    type=int,
+                    takes_argument=1
+                    ),
+                )
+            )
+        def fn(arg1, arg2, **kwargs):
+            return arg1, arg2, kwargs
+        arg1, arg2, kwargs = fn('test', 'arg1', '--extra', '42', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': 42})
+        arg1, arg2, kwargs = fn('test', 'arg1', '-e42', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': 42})
+
+    def test_moreargs(self):
+        @clize(
+            extra=(
+                make_flag(
+                    source='extra',
+                    names=('extra', 'e'),
+                    type=str,
+                    takes_argument=3
+                    ),
+                )
+            )
+        def fn(arg1, arg2, **kwargs):
+            return arg1, arg2, kwargs
+        arg1, arg2, kwargs = fn(
+            'test', 'arg1', '--extra', 'extra1', 'extra2', 'extra3', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': 'extra1 extra2 extra3'})
+        arg1, arg2, kwargs = fn(
+            'test', 'arg1', '-e', 'extra1', 'extra2', 'extra3', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': 'extra1 extra2 extra3'})
+        arg1, arg2, kwargs = fn('test', 'arg1', '--extra=extra', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': 'extra'})
+        arg1, arg2, kwargs = fn('test', 'arg1', '-eextra', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': 'extra'})
+        self.assertRaises(errors.NotEnoughValues,
+                          fn, 'test', 'arg1', 'arg2', '--extra', 'extra')
+
+    def test_intopt_moreargs(self):
+        @clize(
+            extra=(
+                make_flag(
+                    source='extra',
+                    names=('extra', 'e'),
+                    type=int,
+                    takes_argument=2
+                    ),
+                )
+            )
+        def fn(arg1, arg2, **kwargs):
+            return arg1, arg2, kwargs
+        arg1, arg2, kwargs = fn('test', 'arg1', '-e42', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': 42})
+        arg1, arg2, kwargs = fn('test', 'arg1', '--extra=42', 'arg2')
+        self.assertEqual(arg1, 'arg1')
+        self.assertEqual(arg2, 'arg2')
+        self.assertEqual(kwargs, {'extra': 42})
+        self.assertRaises(errors.BadArgumentFormat,
+                          fn, 'test', '-e', 'extra1', 'extra2')
+        self.assertRaises(errors.BadArgumentFormat,
+                          fn, 'test', '--extra', 'extra1', 'extra2')
