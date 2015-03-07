@@ -167,6 +167,15 @@ class ParamTests(OldInterfaceTests):
         self.assertEqual(type(ret), FancyDefault)
         self.assertEqual(ret.arg, 'spam')
 
+    def test_ignore_kwargs(self):
+        @clize
+        def fn(abc, xyz=0, **kwargs):
+            return abc, xyz, kwargs
+        abc, xyz, kwargs = fn('fn', 'abc')
+        self.assertEqual(abc, 'abc')
+        self.assertEqual(xyz, 0)
+        self.assertEqual(kwargs, {})
+
 def run_group(functions, args):
     disp = runner.SubcommandDispatcher(functions)
     return disp.cli(*args)

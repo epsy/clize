@@ -28,6 +28,8 @@ def _clize(fn, alias={}, force_positional=(), coerce={},
         coerce_set = False
         if param.kind == param.KEYWORD_ONLY:
             has_kwoargs = True
+        elif param.kind == param.VAR_KEYWORD:
+            annotations[param.name].append(parser.Parameter.IGNORE)
         elif require_excess and param.kind == param.VAR_POSITIONAL:
             annotations[param.name].append(parser.Parameter.REQUIRED)
         if param.annotation != param.empty:
