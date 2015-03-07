@@ -58,6 +58,10 @@ class Parameter(object):
     required = False
     """Is this parameter required?"""
 
+    is_alternate_action = False
+    """Should this parameter appear as an alternate action or as a regular
+    parameter?"""
+
     extras = ()
     """Iterable of extra parameters this parameter incurs"""
 
@@ -560,6 +564,8 @@ class FallbackCommandParameter(NamedParameter):
     """Parameter that sets an alternative function when triggered. When used
     as an argument other than the first all arguments are discarded."""
 
+    is_alternate_action = True
+
     def __init__(self, func, **kwargs):
         super(FallbackCommandParameter, self).__init__(**kwargs)
         self.func = func
@@ -812,7 +818,6 @@ class CliSignature(object):
         required = self.required = set()
         for param in _develop_extras(parameters):
             required_ = getattr(param, 'required', False)
-            func = getattr(param, 'func', None)
             aliases_ = getattr(param, 'aliases', None)
 
             if required_:
@@ -829,7 +834,7 @@ class CliSignature(object):
                             )
                     aliases[alias] = param
 
-            if func:
+            if param.is_alternate_action:
                 alt.append(param)
             elif aliases_ is not None:
                 named.append(param)
