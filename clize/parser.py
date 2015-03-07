@@ -422,7 +422,7 @@ class OptionParameter(NamedParameter, ParameterWithValue,
 
 def split_int_rest(s):
     for i, c, in enumerate(s):
-        if not c.isdigit():
+        if not c.isdigit() and c != '-':
             return s[:i], s[i:]
     return s, ''
 
