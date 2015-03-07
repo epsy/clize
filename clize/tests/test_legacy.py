@@ -255,7 +255,6 @@ class MakeFlagTests(OldInterfaceTests):
 
     def test_keepgoing(self):
         def extra(name, command, val, params):
-            print(name, command, val, params)
             params['added'] = 'added'
 
         @clize(
