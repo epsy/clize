@@ -155,7 +155,7 @@ class FromSigTests(object):
     def test_flagp_conv_short(self):
         @parser.value_converter
         def conv(arg):
-            return arg
+            raise NotImplementedError
         param = parser.FlagParameter(
             argument_name='par',
             value='eggs', conv=conv,
@@ -197,12 +197,11 @@ class FromSigTests(object):
             raise CustExc
         @parser.parameter_converter
         def noop_converter(param, annotations):
-            pass
+            raise NotImplementedError
 
         sigs = [
-            support.s('o: c', locals={'c': converter, 'n': noop_converter}),
-            support.s('*, o: a',
-                      locals={'a': ("abc", converter, noop_converter)})
+            support.s('o: c', locals={'c': converter}),
+            support.s('*, o: a', locals={'a': ("abc", converter)})
             ]
         for sig in sigs:
             sparam = list(sig.parameters.values())[0]
@@ -402,14 +401,7 @@ class ExtraParamsTests(object):
 def sigerrortests(self, sig_str, args, exc_typ):
     sig = support.s(sig_str)
     csig = parser.CliSignature.from_signature(sig)
-    try:
-        read_arguments(csig, args)
-    except exc_typ:
-        pass
-    except: #pragma: no cover
-        raise
-    else: #pragma: no cover
-        self.fail('{0.__name__} not raised'.format(exc_typ))
+    self.assertRaises(exc_typ, read_arguments, csig, args)
 
 
 @sigerrortests
@@ -434,14 +426,10 @@ class SigErrorTests(object):
             raise NotImplementedError
         csig = parser.CliSignature.from_signature(
             specifiers.signature(func))
-        try:
-            read_arguments(csig, ())
-        except errors.MissingRequiredArguments:
-            pass
-        except: # pragma: no cover
-            raise
-        else:
-            self.fail('MissingRequiredArguments not raised') # pragma: no cover
+        self.assertRaises(
+            errors.MissingRequiredArguments,
+            read_arguments, csig, ()
+            )
 
 
 @testfunc
@@ -450,14 +438,8 @@ def badparam(self, sig_str, locals=None):
         locals = {}
     sig = support.s(sig_str, pre='from clize import Parameter', locals=locals)
     params = list(sig.parameters.values())
-    if len(params) != 1:
-        raise ValueError("badparam requires exactly one parameter")
-    try:
-        parser.CliSignature.convert_parameter(params[0])
-    except ValueError:
-        pass
-    else:
-        self.fail('ValueError not raised')
+    self.assertRaises(
+        ValueError, parser.CliSignature.convert_parameter, params[0])
 
 
 class UnknownAnnotation(object):
@@ -475,7 +457,9 @@ class BadParamTests(object):
     alias_spaces = '*, one: "a b"',
     alias_duplicate = '*, one: dup', {'dup': ('a', 'a')}
     unknown_annotation = 'one: ua', {'ua': UnknownAnnotation()}
-    unknown_callable = 'one: uc', {'uc': lambda s: s}
+    def _uc(arg):
+        raise NotImplementedError
+    unknown_callable = 'one: uc', {'uc': _uc}
     bad_custom_default = 'one=bd', {'bd': UnknownDefault('stuff')}
     coerce_twice = 'one: co', {'co': (str, int)}
     dup_pconverter = 'one: a', {'a': (parser.default_converter,
@@ -484,16 +468,9 @@ class BadParamTests(object):
 
 
 @testfunc
-def badsig(self, sig_str, locals=None):
-    if locals is None:
-        locals = {}
-    sig = support.s(sig_str, pre='from clize import Parameter', locals=locals)
-    try:
-        parser.CliSignature.from_signature(sig)
-    except ValueError:
-        pass
-    else:
-        self.fail('ValueError not raised')
+def badsig(self, sig_str):
+    sig = support.s(sig_str, pre='from clize import Parameter')
+    self.assertRaises(ValueError, parser.CliSignature.from_signature, sig)
 
 
 @badsig
