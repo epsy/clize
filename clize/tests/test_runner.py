@@ -491,3 +491,36 @@ class RunnerTests(unittest.TestCase):
                 "Usage: test [arg]\n")
         finally:
             sys.stderr = berr
+
+    def test_catch_usererror(self):
+        def func():
+            raise errors.UserError('test_catch_usererror')
+        out, err = util.run(func, ['test'])
+        self.assertEqual(out.getvalue(), '')
+        self.assertEqual(err.getvalue(), 'test: test_catch_usererror\n')
+
+    def test_catch_argumenterror(self):
+        def func():
+            raise errors.ArgumentError('test_catch_argumenterror')
+        out, err = util.run(func, ['test'])
+        self.assertEqual(out.getvalue(), '')
+        self.assertEqual(err.getvalue(), 'test: test_catch_argumenterror\n'
+                                         'Usage: test\n')
+
+    def test_catch_customerror(self):
+        class MyError(Exception):
+            pass
+        def func():
+            raise MyError('test_catch_customerror')
+        out, err = util.run(func, ['test'], catch=[MyError])
+        self.assertEqual(out.getvalue(), '')
+        self.assertEqual(err.getvalue(), 'test_catch_customerror\n')
+
+    def test_catch_argerror_cust(self):
+        class MyError(Exception):
+            pass
+        def func():
+            raise errors.UserError('test_catch_argerror_cust')
+        out, err = util.run(func, ['test'], catch=[MyError])
+        self.assertEqual(out.getvalue(), '')
+        self.assertEqual(err.getvalue(), 'test: test_catch_argerror_cust\n')
