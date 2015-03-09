@@ -375,14 +375,21 @@ class ExtraParamsTests(object):
 
     def test_alt_middle(self):
         _func = support.f('')
-        self.assertRaises(
-            errors.ArgsBeforeAlternateCommand,
-            self._test_func,
+        args = [
             '*a', [
                 parser.AlternateCommandParameter(
                     func=_func, aliases=['--alt'])],
             ('a', '--alt', 'a', 'b'), ['a', 'b'], {}, _func
-        )
+            ]
+        self.assertRaises(
+            errors.ArgsBeforeAlternateCommand,
+            self._test_func, *args)
+        try:
+            self._test_func(*args)
+        except errors.ArgsBeforeAlternateCommand as e:
+            self.assertEqual(
+                'Error: Arguments found before alternate '
+                'action parameter --alt', str(e))
 
     def test_param_extras(self):
         extra_params = [
@@ -398,27 +405,46 @@ class ExtraParamsTests(object):
 
 
 @testfunc
-def sigerrortests(self, sig_str, args, exc_typ):
+def sigerrortests(self, sig_str, args, exc_typ, message):
     sig = support.s(sig_str)
     csig = parser.CliSignature.from_signature(sig)
     self.assertRaises(exc_typ, read_arguments, csig, args)
+    try:
+        read_arguments(csig, args)
+    except exc_typ as e:
+        self.assertEqual('Error: ' + message, str(e))
 
 
 @sigerrortests
 class SigErrorTests(object):
-    not_enough_pos = 'one, two', ['1'], errors.MissingRequiredArguments
-    too_many_pos = 'one', ['1', '2'], errors.TooManyArguments
+    not_enough_pos = (
+        'one, two', ['1'], errors.MissingRequiredArguments,
+        'Missing required arguments: two')
+    too_many_pos = (
+        'one', ['1', '2'], errors.TooManyArguments,
+        'Received extra arguments: 2')
 
-    missing_kw = '*, one', [], errors.MissingRequiredArguments
+    missing_kw = (
+        '*, one', [], errors.MissingRequiredArguments,
+        'Missing required arguments: --one')
     duplicate_opt = (
-        '*, one', ['--one', '1', '--one=1'], errors.DuplicateNamedArgument)
+        '*, one', ['--one', '1', '--one=1'], errors.DuplicateNamedArgument,
+        '--one was specified more than once')
     duplicate_intopt = (
-        '*, one=1', ['--one', '1', '--one=1'], errors.DuplicateNamedArgument)
-    unknown_kw = '', ['--one'], errors.UnknownOption
-    unknown_kw_after_short_flag = '*, o=False', ['-oa'], errors.UnknownOption
-    missing_value = '*, one', ['--one'], errors.MissingValue
+        '*, one=1', ['--one', '1', '--one=1'], errors.DuplicateNamedArgument,
+        '--one was specified more than once')
+    unknown_kw = (
+        '', ['--one'], errors.UnknownOption,
+        'Unknown option \'--one\'')
+    unknown_kw_after_short_flag = (
+        '*, o=False', ['-oa'], errors.UnknownOption,
+        'Unknown option \'-a\'')
+    missing_value = (
+        '*, one', ['--one'], errors.MissingValue,
+        'No value found after --one')
 
-    bad_format = 'one=1', ['a'], errors.BadArgumentFormat
+    bad_format = (
+        'one=1', ['a'], errors.BadArgumentFormat, 'Bad value for one: \'a\'')
 
     def test_not_enough_pos_collect(self):
         @modifiers.annotate(args=parser.Parameter.REQUIRED)

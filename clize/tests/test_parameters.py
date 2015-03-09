@@ -42,11 +42,16 @@ def annotated_sigtests(self, sig_info, in_args, args, kwargs):
 
 @util.testfunc
 def annotated_sigerror_tests(self, sig_info, in_args,
-                             exc=errors.BadArgumentFormat):
+                             exc=errors.BadArgumentFormat, message=None):
     sig_str, annotation, str_rep = sig_info
     sig = support.s(sig_str, locals={'a': annotation})
     csig = parser.CliSignature.from_signature(sig)
     self.assertRaises(exc, util.read_arguments, csig, in_args)
+    if message is not None:
+        try:
+            util.read_arguments(csig, in_args)
+        except exc as e:
+            self.assertEqual('Error: ' + message, str(e))
 
 
 @check_repr
@@ -365,32 +370,18 @@ class MultiErrorTests(object):
 
     max_passed_1 = (
         RepTests.multi_max, ('--par=1', '--par=2', '--par=3'),
-        errors.TooManyValues)
+        errors.TooManyValues, 'Received too many values for --par')
     max_passed_2 = (
         RepTests.multi_max, ('--par=1', '--par=2', '--par=3', '--par=4'),
-        errors.TooManyValues)
-
-    def test_message(self):
-        sig_str, annotation, str_rep = RepTests.multi_bound
-        sig = support.s(sig_str, locals={'a': annotation})
-        csig = parser.CliSignature.from_signature(sig)
-
-        try:
-            util.read_arguments(csig, ('--par=1',))
-        except errors.NotEnoughValues as e:
-            self.assertEqual(e.message, "Received too few values for --par")
-
-        try:
-            util.read_arguments(csig,
-                                ('--par=1', '--par=2', '--par=3', '--par=4'))
-        except errors.TooManyValues as e:
-            self.assertEqual(e.message, "Received too many values for --par")
+        errors.TooManyValues, 'Received too many values for --par')
 
     a_req_not_met = RepTests.margs_req, (), errors.MissingRequiredArguments
     a_min_not_met_1 = (
-        RepTests.margs_min, ('one',), errors.NotEnoughValues)
+        RepTests.margs_min, ('one',), errors.NotEnoughValues,
+        'Received too few values for args')
     a_min_not_met_2 = (
-        RepTests.margs_min, ('one',), errors.NotEnoughValues)
+        RepTests.margs_min, ('one',), errors.NotEnoughValues,
+        'Received too few values for args')
 
     a_max_passed_1 = RepTests.margs_max, ('1', '2', '3'), errors.TooManyValues
     a_max_passed_2 = (
