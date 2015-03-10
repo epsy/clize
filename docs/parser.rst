@@ -258,12 +258,12 @@ We added an `~object.__init__` method that sets up ``implicit_value`` to `loggin
 6. If any of the above fails, we return our implicit value, ``logging.INFO``.
 
 
-Forcing a coercion function
-...........................
+Forcing a value converter
+.........................
 
 
 Converting levels from a named level to an integer can be done by writing a
-classic conversion function:
+:ref:`value conversion <value converter>` function:
 
 
 .. code-block:: python
@@ -278,6 +278,7 @@ classic conversion function:
     }
 
 
+    @parser.value_converter
     def loglevel(arg):
         try:
             return int(arg)
@@ -295,8 +296,8 @@ be redundant we force it in ``LogLevelParameter.__init__``:
 .. code-block:: python
 
     class LogLevelParameter(parser.OptionParameter):
-        def __init__(self, typ, implicit_value=logging.INFO, **kwargs):
-            super().__init__(typ=loglevel, **kwargs)
+        def __init__(self, conv, implicit_value=logging.INFO, **kwargs):
+            super().__init__(conv=loglevel, **kwargs)
             self.implicit_value = implicit_value
 
         ...

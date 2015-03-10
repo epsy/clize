@@ -14,6 +14,7 @@ levels = {
 }
 
 
+@parser.value_converter
 def loglevel(arg):
     try:
         return int(arg)
@@ -25,8 +26,8 @@ def loglevel(arg):
 
 
 class LogLevelParameter(parser.OptionParameter):
-    def __init__(self, typ, implicit_value=logging.INFO, **kwargs):
-        super(LogLevelParameter, self).__init__(typ=loglevel, **kwargs)
+    def __init__(self, conv, implicit_value=logging.INFO, **kwargs):
+        super(LogLevelParameter, self).__init__(conv=loglevel, **kwargs)
         self.implicit_value = implicit_value
 
     def get_value(self, ba, i):
