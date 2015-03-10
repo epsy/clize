@@ -55,6 +55,8 @@ Parser
 .. autoclass:: clize.parser.ParameterWithValue
    :show-inheritance:
 
+.. autofunction:: value_converter
+
 .. autoclass:: clize.parser.NamedParameter
    :show-inheritance:
 

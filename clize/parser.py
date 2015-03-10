@@ -174,6 +174,10 @@ class HelperParameter(Parameter):
 
 @modifiers.kwoargs(start='name')
 def value_converter(func=None, name=None):
+    """Callables decorated with this can be used as a value converter.
+
+    See :ref:`value converter`.
+    """
     def decorate(func):
         info = {
             'name': util.name_type2cli(func) if name is None else name,
