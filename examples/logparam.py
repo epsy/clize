@@ -25,18 +25,10 @@ def loglevel(arg):
             raise ValueError(arg)
 
 
-class LogLevelParameter(parser.OptionParameter):
-    def __init__(self, conv, implicit_value=logging.INFO, **kwargs):
-        super(LogLevelParameter, self).__init__(conv=loglevel, **kwargs)
-        self.implicit_value = implicit_value
-
-    def get_value(self, ba, i):
-        arg = ba.in_args[i]
-        if arg.startswith('--'):
-            name, eq, val = arg.partition('=')
-            if eq:
-                return val
-        return self.implicit_value
+class LogLevelParameter(parser.FlagParameter):
+    def __init__(self, conv, value=logging.INFO, **kwargs):
+        super(LogLevelParameter, self).__init__(
+            conv=loglevel, value=value, **kwargs)
 
     def help_parens(self):
         if self.default is not util.UNSET:
