@@ -62,25 +62,40 @@ Annotations for parameters that handle a value
 
 The positional and options parameters detailed later both handle the following features:
 
-.. _value converter:
-
 .. index:: value conversion, value converter
+
+.. _value converter:
 
 Specifying a value converter
 ............................
 
-A function or callable passed as annotation will be used to convert the
-value passed as argument::
+A function or callable decorated with `parser.value_converter` passed as
+annotation will be used during parsing to convert the value from the string
+found in `sys.argv` into a value suitable for the annotated function.
 
-    >>> from clize import run, Parameter
-    >>> def func(a, b:int):
-    ...     print(repr(a), repr(b))
-    ...
-    >>> run(func, exit=False, args=['func', '42', '46'])
-    '42' 46
+.. code-block:: python
 
-You'll notice that 46 doesn't appear in quotes since `int` was used to
-convert it.
+    from clize import run, parser
+
+
+    @parser.value_converter
+    def wrap_xy(arg):
+        return 'x' + arg + 'y'
+
+    def func(a, b:wrap_xy):
+        print(repr(a), repr(b))
+
+    run(func)
+
+
+.. code-block:: console
+
+    $ python valconv.py abc def
+    'abc' 'xdefy'
+
+``def`` was transformed into ``xdefy`` because of the value converter.
+
+Besides callables decorated with `parser.value converter`, the built-in functions `int`, `float` and `bool` are also recognized as value converters.
 
 
 .. _default value:
