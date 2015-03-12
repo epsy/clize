@@ -226,29 +226,25 @@ class MappedTests(object):
     forced_scase_1 = RepTests.mapped_force_scase, ['Thing'], [1], {}
 
     def test_show_list(self):
-        sig = support.s('par:a', locals={'a': RepTests.mapped_basic[1]})
-        csig = parser.CliSignature.from_signature(sig)
-        ba = util.read_arguments(csig, ['list'])
-        par = csig.positional[0]
-        self.assertEqual(par.show_list, ba.func)
+        func = support.f('par:a', locals={'a': RepTests.mapped_basic[1]})
+        out, err = util.run(func, ['name', 'list'])
+        self.assertEqual('', err.getvalue())
         self.assertEqual(
             """name: Possible values for par:
             hello h1
             goodbye h2""".split(),
-            ba.func('name', *ba.args, **ba.kwargs).split())
+            out.getvalue().split())
 
     def test_show_list_alt(self):
-        sig = support.s('par:a',
+        func = support.f('par:a',
                         locals={'a': RepTests.mapped_alternate_list[1]})
-        csig = parser.CliSignature.from_signature(sig)
-        ba = util.read_arguments(csig, ['options'])
-        par = csig.positional[0]
-        self.assertEqual(par.show_list, ba.func)
+        out, err = util.run(func, ['name', 'options'])
+        self.assertEqual('', err.getvalue())
         self.assertEqual(
             """name: Possible values for par:
             hello h1
             goodbye h2""".split(),
-            ba.func('name', *ba.args, **ba.kwargs).split())
+            out.getvalue().split())
 
 
 baf = errors.BadArgumentFormat
@@ -313,16 +309,14 @@ class OneOfTests(object):
     icase = RepTests.oneof_basic, ('Hello',), ['hello'], {}
 
     def test_show_list(self):
-        sig = support.s('par:a', locals={'a': RepTests.oneof_help[1]})
-        csig = parser.CliSignature.from_signature(sig)
-        ba = util.read_arguments(csig, ['list'])
-        par = csig.positional[0]
-        self.assertEqual(par.show_list, ba.func)
+        func = support.f('par:a', locals={'a': RepTests.oneof_help[1]})
+        out, err = util.run(func, ['name', 'list'])
+        self.assertEqual('', err.getvalue())
         self.assertEqual(
             """name: Possible values for par:
             hello h1
             bye h2""".split(),
-            ba.func('name', *ba.args, **ba.kwargs).split())
+            out.getvalue().split())
 
 
 @annotated_sigtests

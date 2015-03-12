@@ -68,7 +68,7 @@ class MappedParameter(parser.ParameterWithValue):
         try:
             super(MappedParameter, self).read_argument(ba, i)
         except _ShowList:
-            ba.args[:] = []
+            ba.args[:] = [ba.name]
             ba.kwargs.clear()
             ba.func = self.show_list
             ba.sticky = parser.IgnoreAllArguments()
