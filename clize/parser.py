@@ -257,11 +257,11 @@ class ParameterWithValue(Parameter):
         try:
             ret = self.conv(arg)
         except errors.CliValueError as e:
-            exc = errors.BadArgumentFormat(self, e)
+            exc = errors.BadArgumentFormat(e)
             exc.__cause__ = e
             raise exc
         except ValueError as e:
-            exc = errors.BadArgumentFormat(self, repr(arg))
+            exc = errors.BadArgumentFormat(repr(arg))
             exc.__cause__ = e
             raise exc
         else:

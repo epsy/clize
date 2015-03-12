@@ -251,13 +251,20 @@ class MappedTests(object):
             ba.func('name', *ba.args, **ba.kwargs).split())
 
 
+baf = errors.BadArgumentFormat
+
+
 @annotated_sigerror_tests
 class MappedErrorTests(object):
-    not_found = RepTests.mapped_basic, ['dog']
-    forced_scase = RepTests.mapped_force_scase, ['thing']
+    not_found = RepTests.mapped_basic, ['dog'], baf, 'Bad value for par: dog'
+    forced_scase = (
+        RepTests.mapped_force_scase, ['thing'],
+        baf, 'Bad value for par: thing')
     bas_icase = RepTests.mapped_bad_icase, ['anything'], ValueError
-    alternate = RepTests.mapped_alternate_list, ['list']
-    none = RepTests.mapped_no_list, ['list']
+    alternate = (
+        RepTests.mapped_alternate_list, ['list'],
+        baf, 'Bad value for par: list')
+    none = RepTests.mapped_no_list, ['list'], baf, 'Bad value for par: list'
 
 
 @test_help

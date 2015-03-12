@@ -62,8 +62,7 @@ class MappedParameter(parser.ParameterWithValue):
         try:
             return table[key]
         except KeyError:
-            raise errors.BadArgumentFormat(
-                _DummyType(repr(self.display_name)), value)
+            raise errors.BadArgumentFormat(value)
 
     def read_argument(self, ba, i):
         try:

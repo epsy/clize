@@ -118,8 +118,7 @@ class CliValueError(ValueError):
 class BadArgumentFormat(ArgumentError):
     """Raised when an argument cannot be converted to the correct format."""
 
-    def __init__(self, param, text):
-        self.param = param
+    def __init__(self, text):
         self.text = text
 
     @property
