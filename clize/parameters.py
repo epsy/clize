@@ -72,6 +72,7 @@ class MappedParameter(parser.ParameterWithValue):
             ba.kwargs.clear()
             ba.func = self.show_list
             ba.sticky = parser.IgnoreAllArguments()
+            ba.posarg_only = True
 
     def show_list(self, name):
         f = util.Formatter()

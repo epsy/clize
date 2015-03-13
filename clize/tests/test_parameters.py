@@ -246,6 +246,16 @@ class MappedTests(object):
             goodbye h2""".split(),
             out.getvalue().split())
 
+    def test_show_list_morekw(self):
+        func = support.f('par:a', locals={'a': RepTests.mapped_basic[1]})
+        out, err = util.run(func, ['name', 'list', '-k', 'xyz'])
+        self.assertEqual('', err.getvalue())
+        self.assertEqual(
+            """name: Possible values for par:
+            hello h1
+            goodbye h2""".split(),
+            out.getvalue().split())
+
 
 baf = errors.BadArgumentFormat
 
