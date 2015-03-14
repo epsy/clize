@@ -132,245 +132,253 @@ modified to change the ongoing argument reading process.
 
 .. _new param example:
 
-Example: Creating a parameter class for specifying log levels
--------------------------------------------------------------
+Example: Implementing `~.parameters.one_of`
+-------------------------------------------
 
-For demonstration purposes, we will use a ``try_log`` function that takes a
-`logging.Logger` object. Our ``main`` function will create a logger, set its
-logging level using `~logging.Logger.setLevel` and call this function. For
-those who don't know the `logging` module, only log messages whose levels are
-equal or over the defined level are printed.
+`clize.parameters.one_of` creates a parameter annotation that modifies the
+parameter to only allow values from a given list:
+
+.. code-block::  python
+
+    from clize import run, parameters
+
+
+    def func(breakfast:parameters.one_of('ham', 'spam')):
+        """Serves breakfast
+
+        breakfast: what food to serve
+        """
+        print("{0} is served!".format(breakfast))
+
+
+    run(func)
+
+The ``breakfast`` parameter now only allows ``ham`` and ``spam``:
+
+.. code-block:: console
+
+    $ python breakfast.py ham
+    ham is served!
+    $ python breakfast.py spam
+    spam is served!
+    $ python breakfast.py eggs
+    breakfast.py: Bad value for breakfast: eggs
+    Usage: breakfast.py breakfast
+
+A list is produced when ``list`` is supplied:
+
+.. code-block:: console
+
+    $ python breakfast.py list
+    breakfast.py: Possible values for breakfast:
+
+      ham
+      spam
+
+Also, it hints at the ``list`` keyword on the help page:
+
+.. code-block:: console
+
+    $ python breakfast.py --help
+    Usage: breakfast.py breakfast
+
+    Serves breakfast
+
+    Arguments:
+      breakfast    what food to serve (use "list" for options)
+
+    Other actions:
+      -h, --help   Show the help
+
+`~clize.parameters.one_of` is implemented in Clize as a wrapper around
+`~parameters.mapped` which offers several more features. In this example we
+will reimplement the features described above.
+
+
+.. _ex parameter converter:
+
+Creating a parameter class for us to edit
+.........................................
 
 .. code-block:: python
+    :emphasize-lines: 11
 
-    def try_log(logger):
-        logger.debug("Debug")
-        logger.info("Info")
-        logger.warning("Warning")
-        logger.error("Error")
-        logger.critical("Critical")
-
-For instance, if the log level of ``logger`` is set to `logging.WARNING`, the
-function would print::
-
-    Warning
-    Error
-    Critical
-
-The easy way out
-................
-
-Since log levels can be any integer and not just one of the constants in
-`logging`, the simplest way we can program this is to take an `int` argument:
-
-.. code-block:: python
-
-    from clize import run
+    from clize import run, parser
 
 
-    def main(*, log=50):
-        """Tries out the logging system
-
-        log: The desired log level"""
-        logger = logging.getLogger('myapp')
-        logger.setLevel(log)
-        logger.addHandler(logging.StreamHandler())
-        try_log(logger)
+    class OneOfParameter(object):
+        def __init__(self, values, **kwargs):
+            super().__init__(**kwargs)
+            self.values = values
 
 
-    run(main)
+    def one_of(*values):
+        return parser.use_mixin(OneOfParameter, kwargs={'values': values})
 
-The above program can take ``--log=30`` or similar as argument, but defaults at
-``50``, which is equivalent to `logging.CRITICAL`. Nothing fancy here.
 
-.. note::
+    def func(breakfast:one_of('ham', 'spam')):
+        """Serves breakfast
 
-    The above example uses the Python 3 syntax for keyword-only arguments. Use
-    `sigtools.modifiers.kwoargs` appropriately if you wish to adapt it for
-    Python 2.
+        breakfast: what food to serve
+        """
+        print("{0} is served!".format(breakfast))
 
-However, we would like to use a named log level as argument, or omit a value to
-have the log level set to `logging.INFO`. While the first could be achieved by
-supplying a value converter for the parameter, the second requires us to change
-how this parameter processes arguments.
 
-Creating a parameter class and a converter
-..........................................
+    run(func)
 
-The behavior we want resembles that of `clize.parser.OptionParameter`'s, so we
-will subclass that.
+Here we used `.parser.use_mixin` to implement the parameter annotation. It will
+create a parameter instance that inherits from both ``OneOfParameter`` and the
+appropriate class for the parameter being annotated:
+`parser.PositionalParameter`, `parser.OptionParameter` or
+`parser.ExtraPosArgsParameter`. This means our class will be able to override
+some of those classes' methods.
+
+For now, it works just like a regular parameter:
+
+.. code-block:: console
+
+    $ python breakfast.py abcdef
+    abcdef is served!
+
+
+.. _ex change coerce_value:
+
+Changing `~.ParameterWithValue.coerce_value` to validate the value
+..................................................................
+
+`parser.PositionalParameter`, `parser.OptionParameter` and
+`parser.ExtraPosArgsParameter` all use `ParameterWithValue.coerce_value`. We
+override it to only accept the values we recorded:
 
 .. code-block:: python
+    :emphasize-lines: 4, 9
 
-    from clize import parser
+    from clize import errors
 
 
-    class LogLevelParameter(parser.OptionParameter):
+    class OneOfParameter(parser.ParameterWithValue):
+        def __init__(self, values, **kwargs):
+            super().__init__(**kwargs)
+            self.values = set(values)
+
+        def coerce_value(self, arg, ba):
+            if arg in self.values:
+                return arg
+            else:
+                raise errors.BadArgumentFormat(arg)
+
+It now only accepts the provided values:
+
+.. code-block:: console
+
+    $ python breakfast.py ham
+    ham is served!
+    $ python breakfast.py spam
+    spam is served!
+    $ python breakfast.py eggs
+    breakfast.py: Bad value for breakfast: eggs
+    Usage: breakfast.py breakfast
+
+
+.. _ex wrap read_arguments:
+
+Displaying the list of choices
+..............................
+
+We can check if the passed value is ``list`` within ``coerce_value``. When that
+is the case, we change `~parser.CliBoundArguments.func` and swallow the
+following arguments. However, to ensure that the `~.parser.read_arguments`
+method doesn't alter this, we need to skip its execution. In order to do this
+we will raise an exception from ``coerce_value`` and catch it in
+``read_arguments``:
+
+.. code-block:: python
+   :emphasize-lines: 12, 21-26
+
+    class _ShowList(Exception):
         pass
 
 
-    log_level = parser.use_class(named=LogLevelParameter)
-
-
-    def main(*, log: log_level=logging.CRITICAL):
-        ...
-
-This hasn't changed much of what the program does, but our parameter is now
-implemented with a class of our own that we can edit.
-
-We used `~.parser.use_class` to create a parameter converter, ``log_level``.
-That object can be used as an annotation of the ``main`` function's parameters,
-and it will be used to determine what will implement the corresponding behavior
-on the CLI. In this case, it will give an instance of ``LogLevelParameter`` if
-the parameter is a keyword-only parameter, and raise an error otherwise.
-
-Overriding `~.parser.NamedParameter.get_value`
-...............................................
-
-`.OptionParameter.read_argument` uses the `~.parser.NamedParameter.get_value`
-method to retrieve a value from the arguments before adding it to ``main``'s
-arguments. We can override it so that our parameter has an implicit value:
-
-.. code-block:: python
-
-    class LogLevelParameter(parser.OptionParameter):
-        def __init__(self, implicit_value=logging.INFO, **kwargs):
+    class OneOfParameter(parser.ParameterWithValue):
+        def __init__(self, values, **kwargs):
             super().__init__(**kwargs)
-            self.implicit_value = implicit_value
+            self.values = values
 
-        def get_value(self, ba, i):
-            arg = ba.in_args[i]
-            if arg.startswith('--'):
-                name, eq, val = arg.partition('=')
-                if eq:
-                    return val
-            return self.implicit_value
+        def coerce_value(self, arg, ba):
+            if arg == 'list':
+                raise _ShowList
+            elif arg in self.values:
+                return arg
+            else:
+                raise errors.BadArgumentFormat(arg)
 
-We added an `~object.__init__` method that sets up ``implicit_value`` to `logging.INFO`, and override `~.NamedParameter.get_value` as follows:
-
-1. Fetches the given argument by looking at ``ba``'s
-   `~.CliBoundArguments.in_args` attribute.
-2. If we've been named using the parameter's long form (eg. ``--log`` instead
-   of ``-l``, then
-3. We try to split the argument at ``=``.
-4. If the split is succesful, then
-5. We return the part after ``=``
-6. If any of the above fails, we return our implicit value, ``logging.INFO``.
-
-
-Forcing a value converter
-.........................
-
-
-Converting levels from a named level to an integer can be done by writing a
-:ref:`value conversion <value converter>` function:
-
-
-.. code-block:: python
-
-    levels = {
-        'CRITICAL': logging.CRITICAL,
-        'ERROR': logging.ERROR,
-        'WARNING': logging.WARNING,
-        'INFO': logging.INFO,
-        'DEBUG': logging.DEBUG,
-        'NOTSET': logging.NOTSET
-    }
-
-
-    @parser.value_converter
-    def loglevel(arg):
-        try:
-            return int(arg)
-        except ValueError:
+        def read_argument(self, ba, i):
             try:
-                return levels[arg.upper()]
-            except KeyError:
-                raise ValueError(arg)
+                super(OneOfParameter, self).read_argument(ba, i)
+            except _ShowList:
+                ba.func = self.show_list
+                ba.args[:] = []
+                ba.kwargs.clear()
+                ba.sticky = parser.IgnoreAllArguments()
+                ba.posarg_only = True
+
+        def show_list(self):
+            for val in self.values:
+                print(val)
+
+On ``ba``, setting `~CliBoundArguments.func` overrides the function to be run
+(normally the function passed to `run`). `~CliBoundArguments.args` and
+`~CliBoundArguments.kwargs` are the positional and keyword argument that will
+be passed to that function. Setting `sticky` to an `IgnoreAllArguments`
+instance swallows all positional arguments instead of adding them to
+`~CliBoundArguments.args`, and `posarg_only` makes keyword arguments be
+processed as if they were positional arguments so they get ignored too.
+
+.. code-block:: console
+
+    $ python breakfast.py list
+    ham
+    spam
+    $ python breakfast.py list --ERROR
+    ham
+    spam
+
+The list is printed, even if erroneous arguments follow.
 
 
-We could either use this as an annotation to the parameter but since that would
-be redundant we force it in ``LogLevelParameter.__init__``:
+.. _ex complement_help_parens:
 
+Adding a hint to the help page
+..............................
+
+Clize uses `Parameter.show_help` to produce the text used to describe
+parameters. It uses `Parameter.help_parens` to provide the content inside the
+parenthesis after the parameter description.
 
 .. code-block:: python
 
-    class LogLevelParameter(parser.OptionParameter):
-        def __init__(self, conv, implicit_value=logging.INFO, **kwargs):
-            super().__init__(conv=loglevel, **kwargs)
-            self.implicit_value = implicit_value
+    class OneOfParameter(parser.ParameterWithValue):
 
-        ...
-
-The only thing that's left to do is customizing the ``--help`` output for the
-parameter.
-
-Complementing the description in the help
-.........................................
-
-
-Here is the current ``--help`` output::
-
-    Usage: python3 -m logparam [OPTIONS]
-
-    Tries out the logging system
-
-    Options:
-      --log=LOGLEVEL   The desired log level (default: 50)
-
-    Other actions:
-      -h, --help       Show the help
-
-It looks almost perfect, except the default value is shown as its numerical
-value, which doesn't express much to the user. We can override the
-`ParameterWithValue.help_parens` method to show a different value:
-
-
-.. code-block:: python
-
-    class LogLevelParameter(parser.OptionParameter):
         ...
 
         def help_parens(self):
-            if self.default is not util.UNSET:
-                for k, v in levels.items():
-                    if v == self.default:
-                        default = k
-                        break
-                else:
-                    default = self.default
-                yield 'default: {0}'.format(default)
+            for s in super(OneOfParameter, self).help_parens():
+                yield s
+            yield 'use "list" for options'
 
+The help page now shows the hint:
 
-The help now shows ``CRITICAL`` instead of 50.
+.. code-block:: console
 
+    $ python breakfast.py --help
+    Usage: breakfast.py breakfast
 
-Leaving the logger logic to a separate function
-...............................................
+    Serves breakfast
 
-Following what we did in :ref:`function-compositing`, we can move the logger set up logic away from our main function:
+    Arguments:
+      breakfast    what food to serve (use "list" for options)
 
-.. code-block:: python
+    Other actions:
+      -h, --help   Show the help
 
-    from sigtools import wrappers
-
-    @wrappers.wrapper_decorator(0, 'logger')
-    def with_logger(wrapped, *args, log: log_level=logging.CRITICAL, **kwargs):
-        """
-        Logging options:
-
-        log: The desired log level"""
-        logger = logging.getLogger('myapp')
-        logger.setLevel(log)
-        logger.addHandler(logging.StreamHandler())
-        return wrapped(*args, logger=logger, **kwargs)
-
-
-    @with_logger
-    def main(*, logger):
-        """Tries out the logging system
-
-        log: The desired log level"""
-        try_log(logger)
-
-The full example is available in ``examples/logparam.py``.
+The full example is available in ``examples/bfparam.py``.
