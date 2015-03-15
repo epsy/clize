@@ -27,13 +27,13 @@ Using a decorator to add new parameters and modify the return value
 Let's create a decorator that transforms the output of the wrapped function
 when passed a specific flag.
 
-.. literalinclude:: /../examples/decorators/add_param.py
+.. literalinclude:: /../examples/deco_add_param.py
     :lines: 1-2,5-18
 
 |wrapper_decorator| lets our ``with_uppercase`` function decorate other
 functions:
 
-.. literalinclude:: /../examples/decorators/add_param.py
+.. literalinclude:: /../examples/deco_add_param.py
     :lines: 3,20-34
 
 Each time the decorated function is run, ``with_uppercase`` will be run with
@@ -95,7 +95,7 @@ named argument that you pass to the wrapped function.
     `sigtools.specifiers.forwards`, so you may use this section for further
     information.
 
-.. literalinclude:: /../examples/decorators/provide.py
+.. literalinclude:: /../examples/deco_provide_arg.py
     :lines: 1-2,4-22
 
 Here we pass ``0, 'branch'`` to |wrapper_decorator| because we call wrapped
@@ -104,7 +104,7 @@ argument.
 
 You can then use the decorator like before:
 
-.. literalinclude:: /../examples/decorators/provide.py
+.. literalinclude:: /../examples/deco_provide_arg.py
     :lines: 3,23-47
 
 
