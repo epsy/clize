@@ -14,7 +14,7 @@ Example
 -------
 
 .. literalinclude:: /../examples/hello.py
-   :emphasize-lines: 3,20-21
+   :emphasize-lines: 2,20
 
 `~clize.run` takes the function and automatically produces a command-line
 interface for it:

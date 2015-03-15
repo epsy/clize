@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from sigtools.modifiers import kwoargs
 from clize import run
 

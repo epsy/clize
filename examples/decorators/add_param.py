@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from sigtools.modifiers import autokwoargs
 from sigtools.wrappers import wrapper_decorator
 from clize import run

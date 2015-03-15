@@ -28,13 +28,13 @@ Let's create a decorator that transforms the output of the wrapped function
 when passed a specific flag.
 
 .. literalinclude:: /../examples/decorators/add_param.py
-    :lines: 3-4,7-20
+    :lines: 1-2,5-18
 
-|wrapper_decorator| lets our
-``with_uppercase`` function decorate other functions:
+|wrapper_decorator| lets our ``with_uppercase`` function decorate other
+functions:
 
 .. literalinclude:: /../examples/decorators/add_param.py
-    :lines: 5,22-36
+    :lines: 3,20-34
 
 Each time the decorated function is run, ``with_uppercase`` will be run with
 the decorated function as first argument ``wrapped``.

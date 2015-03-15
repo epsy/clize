@@ -28,13 +28,13 @@ triggered by ``--version`` that prints the version.
 Here are the two functions we could have: ``do_nothing`` will be the main function while ``version`` will be provided as an alternate command.
 
 .. literalinclude:: /../examples/altcommands.py
-    :lines: 6-16
+    :lines: 4-14
 
 You use `run` as usual for the main function, but specify the alternate command
 in the ``alt=`` parameter:
 
 .. literalinclude:: /../examples/altcommands.py
-    :lines: 3-5, 19
+    :lines: 1-3, 17
 
 The ``version`` function will be available as ``--version``:
 
@@ -107,7 +107,7 @@ subcommand directly after the program's name on the command line.
 Let's see how we can use it in a mock todo list application:
 
 .. literalinclude:: /../examples/multicommands.py
-    :lines: 5-15
+    :lines: 4-14
 
 You can specify multiple commands to run by passing each function as an
 argument to `.run`:
@@ -137,7 +137,7 @@ add footnotes with the ``footnotes=`` parameter. The format is the same as with
 other docstrings, without the need for documenting parameters.
 
 .. literalinclude:: /../examples/multicommands.py
-    :lines: 18-22
+    :lines: 17-21
 
 .. code-block:: console
 

@@ -340,7 +340,7 @@ Let's say we want to give an error if the word *spam* is in the text. To do so,
 one option is to raise an :class:`ArgumentError` from within your function:
 
 .. literalinclude:: /../examples/echo.py
-   :emphasize-lines: 23-24
+   :emphasize-lines: 22-23
 
 ::
 

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 from sigtools.modifiers import annotate, autokwoargs
 from clize import ArgumentError, Parameter, run
 
