@@ -108,7 +108,7 @@ You can then use the decorator like before:
     :lines: 3,23-47
 
 
-.. _arg deco:
+.. _ex arg deco:
 
 Using a composed function to process arguments to a parameter
 -------------------------------------------------------------

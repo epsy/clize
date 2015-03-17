@@ -98,9 +98,9 @@ found in `sys.argv` into a value suitable for the annotated function.
 Besides callables decorated with `parser.value converter`, the built-in functions `int`, `float` and `bool` are also recognized as value converters.
 
 
-.. _default value:
-
 .. index:: default value
+
+.. _default value:
 
 Specifying a default value
 ..........................
@@ -190,6 +190,8 @@ Plain arguments on the command line (those that don't start with a ``-``) are pr
 
 It also shares the features detailed in :ref:`param with value`.
 
+
+.. _extra posargs:
 
 Parameter that collects remaining positional arguments
 ------------------------------------------------------
@@ -381,6 +383,7 @@ Additionally, you can chain their short form on the command line with other shor
     opt arg
 
 
+.. _mapped param:
 
 Mapped parameters
 -----------------
@@ -407,8 +410,10 @@ Mapped parameters
 .. autofunction:: clize.parameters.one_of
 
 
-Multi parameters
-----------------
+.. _multi param:
+
+Repeatable parameters
+---------------------
 
 .. autofunction:: clize.parameters.multi
 
@@ -428,6 +433,7 @@ Multi parameters
         Usage: python -m examples.multi [OPTIONS]
 
 
+.. _arg deco:
 
 Decorated arguments
 -------------------
@@ -463,9 +469,10 @@ Annotations that work on any parameter
 The following objects can be used as annotation on any parameter:
 
 
-.. _parameter converters:
-
 .. index:: parameter converter
+
+.. _parameter converter:
+.. _parameter converters:
 
 Parameter converters
 ....................
