@@ -10,8 +10,8 @@ Clize is an argument parser for `Python <https://www.python.org/>`_:
 * Reuse functionality through Python decorators
 * Extend it to suit unusual kinds of parameters
 
-Example
--------
+
+.. rubric:: Example
 
 .. literalinclude:: /../examples/hello.py
    :emphasize-lines: 2,20
@@ -43,23 +43,47 @@ interface for it:
     Hello john!
 
 
-Where to start?
----------------
+.. rubric:: Where to start?
 
 * Follow the :ref:`tutorial <basics>`
 * Browse the |examples_url|_
 * Read about :ref:`the intentions behind clize<why>`
-* Star, watch or fork Clize on `GitHub <https://github.com/epsy/clize>`_
+* Star, watch or fork `Clize on GitHub <https://github.com/epsy/clize>`_
 
+
+About Clize
+-----------
 
 .. toctree::
-   :hidden:
 
-   why
+    why
+    compared
+    history
+
+
+Tutorial
+--------
+
+.. toctree::
+
    basics
    dispatching
    compositing
-   reference
+
+
+Guides
+------
+
+.. toctree::
+
    parser
-   api
    porting
+
+
+Reference
+---------
+
+.. toctree::
+
+   reference
+   api
