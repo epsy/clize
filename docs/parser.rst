@@ -367,7 +367,7 @@ Clize uses `Parameter.show_help` to produce the text used to describe
 parameters. It uses `Parameter.help_parens` to provide the content inside the
 parenthesis after the parameter description.
 
-.. code-block:: pythonz
+.. code-block:: python
 
     class OneOfParameter(parser.ParameterWithValue):
 
