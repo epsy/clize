@@ -3,6 +3,21 @@
 An illustrated history
 ----------------------
 
+This documents recounts the story of each clize version. Here's the short
+version first:
+
+======= =================== =========================
+Version Release date        New features
+======= =================== =========================
+1.0b    April 4th 2011      First release
+2.0     October 7th 2012    Subcommands, Python 3 syntax support
+2.2     August 31st 2013    Minor additions
+2.4     October 2nd 2013    Bugfixes
+3.0     TDB                 Extensibility, decorators, focus on py3
+======= =================== =========================
+
+Here's the longer version:
+
 
 .. _before clize:
 
@@ -50,8 +65,8 @@ to keep it as simple as possible, like the above example.
 
 .. _first release:
 
-A first release
-...............
+1.0: A first release
+....................
 
 .. code-block:: python
 
@@ -87,8 +102,8 @@ little user feedback so the inspiration ended up coming from somewhere else.
 
 .. _history annotations:
 
-Function annotations
-....................
+2.0: Function annotations
+.........................
 
 Clize 2.0 came out with two major features. :ref:`Subcommands <multiple
 commands>` and a new way of specifying additional information on the
@@ -155,8 +170,8 @@ older interface whenever I had to use Python 2.
 
 .. _history rewrite:
 
-The rewrite
-...........
+3.0: The rewrite
+................
 
 Python 3.3 introduced `inspect.signature`, an alternative to the rough
 `inspect.getfullargspec`. This provided an opportunity to start again from
