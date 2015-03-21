@@ -3,20 +3,20 @@
 An illustrated history
 ----------------------
 
-This documents recounts the story of each clize version. Here's the short
+This document recounts the story of each clize version. Here's the short
 version first:
 
-======= =================== =========================
-Version Release date        New features
-======= =================== =========================
+======= =================== =======================================
+Version Release date        Major changes
+======= =================== =======================================
 1.0b    April 4th 2011      First release
 2.0     October 7th 2012    Subcommands, Python 3 syntax support
 2.2     August 31st 2013    Minor additions
 2.4     October 2nd 2013    Bugfixes
 3.0     TDB                 Extensibility, decorators, focus on py3
-======= =================== =========================
+======= =================== =======================================
 
-Here's the longer version:
+And here's the story:
 
 
 .. _before clize:
