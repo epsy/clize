@@ -47,9 +47,10 @@ interface for it:
 
 * Follow the :ref:`tutorial <basics>`
 * Browse the |examples_url|_
-* Read about :ref:`the intentions behind clize<why>`
 * Star, watch or fork `Clize on GitHub <https://github.com/epsy/clize>`_
 
+
+.. _about:
 
 About Clize
 -----------
@@ -61,8 +62,12 @@ About Clize
     history
 
 
-Tutorial
---------
+.. _tutorial:
+
+Getting started
+---------------
+
+This section contains tutorials for the most commonly used features of Clize.
 
 .. toctree::
 
@@ -71,8 +76,12 @@ Tutorial
    compositing
 
 
+.. _guides:
+
 Guides
 ------
+
+These documents document specific aspects or usages of Clize.
 
 .. toctree::
 
@@ -80,8 +89,12 @@ Guides
    porting
 
 
+.. _references:
+
 Reference
 ---------
+
+The user reference lists all capabilities of each kind of parameter. The API reference comes in handy if you're extending clize.
 
 .. toctree::
 
