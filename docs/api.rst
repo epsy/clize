@@ -13,17 +13,6 @@ Running functions
 
 .. autoclass:: clize.SubcommandDispatcher
 
-Help
-----
-
-.. module:: clize.help
-
-.. autoclass:: clize.help.Help
-
-.. autoclass:: clize.help.ClizeHelp
-
-.. autoclass:: clize.help.DispatcherHelper
-
 Parser
 ------
 
