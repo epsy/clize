@@ -259,7 +259,11 @@ class DispatcherHelper(Help):
         with f.indent():
             with f.columns() as cols:
                 for names, command in self.owner.cmds.items():
-                    cols.append(', '.join(names), command.helper.description)
+                    try:
+                        desc = command.helper.description
+                    except AttributeError:
+                        desc = ''
+                    cols.append(', '.join(names), desc)
         return f
 
     def prepare_notes(self, doc):
@@ -297,9 +301,14 @@ class DispatcherHelper(Help):
         if self.subject.help_aliases:
             help_name = ' '.join((name, self.subject.help_aliases[0]))
             yield help_name, str(self.cli.signature)
-        for names, subcommand, helper in self.subcommands_with_helper():
-            for usage in helper.usages(' '.join((name, names[0]))):
-                yield usage
+        for names, subcommand in self.owner.cmds.items():
+            try:
+                helper = subcommand.helper
+            except AttributeError:
+                yield name + ' ' + names[0], '...'
+            else:
+                for usage in helper.usages(name + ' ' + names[0]):
+                    yield usage
 
     def show_full_usage(self, name):
         for name, usage in self.usages(name):

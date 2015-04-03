@@ -658,6 +658,9 @@ class DispatcherHelper(object):
             func.__name__ = 'func' + str(i)
             funcs.append(func)
         sd = runner.SubcommandDispatcher(funcs, description, footer)
+        self._do_test(sd, usage, help_str)
+
+    def _do_test(self, sd, usage, help_str):
         h = sd.cli.helper
         h.prepare()
         p_usage = list(h.show_full_usage('sd'))
@@ -712,3 +715,22 @@ class DispatcherHelper(object):
             func1
             func2
     """
+
+    def test_dummy_external(self):
+        @runner.Clize.as_is
+        def ext():
+            raise NotImplementedError
+        def func():
+            raise NotImplementedError
+        sd = runner.SubcommandDispatcher([ext, runner.Clize.as_is(func)])
+        self._do_test(sd, [
+            'sd --help [--usage]',
+            'sd ext ...',
+            'sd func ...',
+        ], """
+        Usage: sd command [args...]
+
+        Commands:
+            ext
+            func
+        """)
