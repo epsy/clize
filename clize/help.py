@@ -288,26 +288,17 @@ class DispatcherHelper(Help):
     def show_usage(self, name):
         yield 'Usage: {0} command [args...]'.format(name)
 
-    def subcommands_with_helper(self):
-        for names, subcommand in self.owner.cmds.items():
-            try:
-                helper = subcommand.helper
-            except AttributeError:
-                pass
-            else:
-                yield names, subcommand, helper
-
     def usages(self, name):
         if self.subject.help_aliases:
             help_name = ' '.join((name, self.subject.help_aliases[0]))
             yield help_name, str(self.cli.signature)
         for names, subcommand in self.owner.cmds.items():
             try:
-                helper = subcommand.helper
+                get_usages = subcommand.helper.usages
             except AttributeError:
                 yield name + ' ' + names[0], '...'
             else:
-                for usage in helper.usages(name + ' ' + names[0]):
+                for usage in get_usages(name + ' ' + names[0]):
                     yield usage
 
     def show_full_usage(self, name):

@@ -10,14 +10,22 @@ from functools import partial, update_wrapper
 import itertools
 import shutil
 
-from sigtools.modifiers import annotate, autokwoargs
+from sigtools.modifiers import annotate, autokwoargs, kwoargs
 from sigtools.specifiers import forwards_to_method, signature
 
 from clize import util, errors, parser, parameters
 
+
+class BasicHelper(object):
+    def __init__(self, description):
+        if description is not None:
+            self.description = description
+
 class _CliWrapper(object):
-    def __init__(self, obj):
+    def __init__(self, obj, description):
         update_wrapper(self, obj)
+        if description is not None:
+            obj.helper = BasicHelper(description)
         self.cli = obj
 
 def cli_commands(obj, namef, clizer):
@@ -95,10 +103,13 @@ class Clize(object):
             return fn
 
     @classmethod
-    def as_is(cls, obj):
+    @kwoargs('description')
+    def as_is(cls, obj=None, description=None):
         """Returns a CLI object which uses the given callable with no
         translation."""
-        return _CliWrapper(obj)
+        if obj is None:
+            return partial(cls.as_is, description=description)
+        return _CliWrapper(obj, description)
 
     @classmethod
     def get_cli(cls, obj, **kwargs):

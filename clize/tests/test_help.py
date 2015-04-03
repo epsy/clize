@@ -734,3 +734,25 @@ class DispatcherHelper(object):
             ext
             func
         """)
+
+    def test_external_with_dummyhelp(self):
+        @runner.Clize.as_is(description="Ext")
+        def ext():
+            raise NotImplementedError
+        def func():
+            raise NotImplementedError
+        sd = runner.SubcommandDispatcher([
+            ext,
+            runner.Clize.as_is(func, description="Func")])
+        self._do_test(sd, [
+            'sd --help [--usage]',
+            'sd ext ...',
+            'sd func ...',
+        ], """
+        Usage: sd command [args...]
+
+        Commands:
+            ext     Ext
+            func    Func
+        """)
+
