@@ -296,7 +296,7 @@ class DispatcherHelper(Help):
             try:
                 get_usages = subcommand.helper.usages
             except AttributeError:
-                yield name + ' ' + names[0], '...'
+                yield name + ' ' + names[0], '[args...]'
             else:
                 for usage in get_usages(name + ' ' + names[0]):
                     yield usage

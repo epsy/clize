@@ -725,8 +725,8 @@ class DispatcherHelper(object):
         sd = runner.SubcommandDispatcher([ext, runner.Clize.as_is(func)])
         self._do_test(sd, [
             'sd --help [--usage]',
-            'sd ext ...',
-            'sd func ...',
+            'sd ext [args...]',
+            'sd func [args...]',
         ], """
         Usage: sd command [args...]
 
@@ -746,8 +746,8 @@ class DispatcherHelper(object):
             runner.Clize.as_is(func, description="Func")])
         self._do_test(sd, [
             'sd --help [--usage]',
-            'sd ext ...',
-            'sd func ...',
+            'sd ext [args...]',
+            'sd func [args...]',
         ], """
         Usage: sd command [args...]
 
