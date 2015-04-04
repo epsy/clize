@@ -200,22 +200,23 @@ class ClizeHelp(Help):
                 for arg in filter_undocumented(self.signature.positional))
             ),
 
-    def alternates_with_helper(self):
+    def alternate_usages(self, name):
         for param in self.signature.alternate:
             if param.undocumented:
                 continue
+            subname = name + ' ' + param.display_name
             try:
                 helper = param.func.helper
             except AttributeError:
-                pass
+                yield subname, '[args...]'
             else:
-                yield param, param.display_name, helper
+                for usage in helper.usages(subname):
+                    yield usage
 
     def usages(self, name):
         yield name, str(self.signature)
-        for param, subname, helper in self.alternates_with_helper():
-            for usage in helper.usages(' '.join((name, subname))):
-                yield usage
+        for usage in self.alternate_usages(name):
+            yield usage
 
     def show_full_usage(self, name):
         for name, usage in self.usages(name):

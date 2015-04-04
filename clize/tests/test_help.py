@@ -388,7 +388,7 @@ class WholeHelpTests(object):
         def func():
             raise NotImplementedError
         r = runner.Clize(func, alt=alt)
-        self._do_test(r, ['func ', USAGE_HELP], """
+        self._do_test(r, ['func ', USAGE_HELP, 'func --alt [args...]'], """
             Usage: func
 
             Other actions:
