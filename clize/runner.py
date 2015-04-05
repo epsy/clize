@@ -16,7 +16,7 @@ from sigtools.specifiers import forwards_to_method, signature
 from clize import util, errors, parser, parameters
 
 
-class BasicHelper(object):
+class _BasicHelper(object):
     def __init__(self, description, usages):
         if description is not None:
             self.description = description
@@ -30,7 +30,7 @@ class _CliWrapper(object):
     def __init__(self, obj, description, usages):
         update_wrapper(self, obj)
         if description is not None or usages is not None:
-            obj.helper = BasicHelper(description, usages)
+            obj.helper = _BasicHelper(description, usages)
         self.cli = obj
 
 def cli_commands(obj, namef, clizer):
