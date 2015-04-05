@@ -87,6 +87,7 @@ These documents document specific aspects or usages of Clize.
 
    parser
    porting
+   interop
 
 
 .. _references:

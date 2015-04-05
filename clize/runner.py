@@ -110,7 +110,16 @@ class Clize(object):
     @kwoargs(start='description')
     def as_is(cls, obj=None, description=None, usages=None):
         """Returns a CLI object which uses the given callable with no
-        translation."""
+        translation.
+
+        The following parameters improve the decorated object's compatibility
+        with Clize's help output:
+
+        :param description: A description for the command.
+        :param usages: A list of usages for the command.
+
+        .. seealso:: :ref:`interop`
+        """
         if obj is None:
             return partial(cls.as_is, description=description, usages=usages)
         return _CliWrapper(obj, description, usages)
