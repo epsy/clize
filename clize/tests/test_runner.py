@@ -281,6 +281,21 @@ class GetCliTests(unittest.TestCase):
         repr(ru)
         self.assertEqual(ru, func)
 
+    def test_as_is_usage(self):
+        def func(): raise NotImplementedError
+        clio = runner.Clize.as_is(usages=['ua'])(func)
+        ru = runner.Clize.get_cli(clio)
+        repr(ru)
+        self.assertEqual(ru, func)
+
+    def test_as_is_usage_desc(self):
+        def func(): raise NotImplementedError
+        clio = runner.Clize.as_is(
+            usages=['ua'], description="desc")(func)
+        ru = runner.Clize.get_cli(clio)
+        repr(ru)
+        self.assertEqual(ru, func)
+
     def test_keep(self):
         def func(): raise NotImplementedError
         c = runner.Clize.keep(func)

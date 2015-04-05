@@ -17,15 +17,20 @@ from clize import util, errors, parser, parameters
 
 
 class BasicHelper(object):
-    def __init__(self, description):
+    def __init__(self, description, usages):
         if description is not None:
             self.description = description
+        if usages is not None:
+            def _usages(name):
+                for usage in usages:
+                    yield name, usage
+            self.usages = _usages
 
 class _CliWrapper(object):
-    def __init__(self, obj, description):
+    def __init__(self, obj, description, usages):
         update_wrapper(self, obj)
-        if description is not None:
-            obj.helper = BasicHelper(description)
+        if description is not None or usages is not None:
+            obj.helper = BasicHelper(description, usages)
         self.cli = obj
 
 def cli_commands(obj, namef, clizer):
@@ -103,13 +108,13 @@ class Clize(object):
             return fn
 
     @classmethod
-    @kwoargs('description')
-    def as_is(cls, obj=None, description=None):
+    @kwoargs(start='description')
+    def as_is(cls, obj=None, description=None, usages=None):
         """Returns a CLI object which uses the given callable with no
         translation."""
         if obj is None:
-            return partial(cls.as_is, description=description)
-        return _CliWrapper(obj, description)
+            return partial(cls.as_is, description=description, usages=usages)
+        return _CliWrapper(obj, description, usages)
 
     @classmethod
     def get_cli(cls, obj, **kwargs):

@@ -756,3 +756,26 @@ class DispatcherHelper(object):
             func    Func
         """)
 
+    def test_external_with_usage(self):
+        @runner.Clize.as_is(usages=['ua abc', 'ub abc [def]'])
+        def ext():
+            raise NotImplementedError
+        def func():
+            raise NotImplementedError
+        sd = runner.SubcommandDispatcher([
+            ext,
+            runner.Clize.as_is(func, usages=['uc --ab=STR', 'ud [--cd]'])])
+        self._do_test(sd, [
+            'sd --help [--usage]',
+            'sd ext ua abc',
+            'sd ext ub abc [def]',
+            'sd func uc --ab=STR',
+            'sd func ud [--cd]',
+        ], """
+        Usage: sd command [args...]
+
+        Commands:
+            ext
+            func
+        """)
+
