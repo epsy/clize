@@ -21,9 +21,8 @@ class _BasicHelper(object):
         if description is not None:
             self.description = description
         if usages is not None:
-            def _usages(name):
-                for usage in usages:
-                    yield name, usage
+            def _usages():
+                return usages
             self.usages = _usages
 
 class _CliWrapper(object):

@@ -200,27 +200,27 @@ class ClizeHelp(Help):
                 for arg in filter_undocumented(self.signature.positional))
             ),
 
-    def alternate_usages(self, name):
+    def alternate_usages(self):
         for param in self.signature.alternate:
             if param.undocumented:
                 continue
-            subname = name + ' ' + param.display_name
+            subname = param.display_name
             try:
                 helper = param.func.helper
             except AttributeError:
-                yield subname, '[args...]'
+                yield subname + ' [args...]'
             else:
-                for usage in helper.usages(subname):
-                    yield usage
+                for usage in helper.usages():
+                    yield subname + ' ' + usage
 
-    def usages(self, name):
-        yield name, str(self.signature)
-        for usage in self.alternate_usages(name):
+    def usages(self):
+        yield str(self.signature)
+        for usage in self.alternate_usages():
             yield usage
 
     def show_full_usage(self, name):
-        for name, usage in self.usages(name):
-            yield ' '.join((name, usage))
+        for usage in self.usages():
+            yield name + ' ' + usage
 
     def show_arguments(self):
         f = util.Formatter()
@@ -289,19 +289,18 @@ class DispatcherHelper(Help):
     def show_usage(self, name):
         yield 'Usage: {0} command [args...]'.format(name)
 
-    def usages(self, name):
+    def usages(self):
         if self.subject.help_aliases:
-            help_name = ' '.join((name, self.subject.help_aliases[0]))
-            yield help_name, str(self.cli.signature)
+            yield self.subject.help_aliases[0] + ' ' + str(self.cli.signature)
         for names, subcommand in self.owner.cmds.items():
             try:
                 get_usages = subcommand.helper.usages
             except AttributeError:
-                yield name + ' ' + names[0], '[args...]'
+                yield names[0] + ' [args...]'
             else:
-                for usage in get_usages(name + ' ' + names[0]):
-                    yield usage
+                for usage in get_usages():
+                    yield names[0] + ' ' + usage
 
     def show_full_usage(self, name):
-        for name, usage in self.usages(name):
-            yield ' '.join((name, usage))
+        for usage in self.usages():
+            yield name + ' ' + usage
