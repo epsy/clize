@@ -8,7 +8,7 @@ def hello_world(name=None, no_capitalize=False):
 
     name: If specified, only greet this person.
 
-    no_capitalize: Don't capitalize the give name.
+    no_capitalize: Don't capitalize the given name.
     """
     if name:
         if not no_capitalize:
