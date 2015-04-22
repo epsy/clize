@@ -56,12 +56,14 @@ class WholeHelpTests(object):
         Footer
     """
 
-    parens = "one:int, two=2, *args:int, alpha, beta:int, gamma=5", """
+    parens = "one:int, two=2, three=None, *args:int, alpha, beta:int, gamma=5", """
         Description
 
         one: Argument one
 
         two: Argument two
+
+        three: Argument three
 
         args: Other arguments
 
@@ -73,16 +75,18 @@ class WholeHelpTests(object):
 
         Footer
     """, [
-        'func --alpha=STR --beta=INT [--gamma=INT] one [two] [args...]',
+        'func --alpha=STR --beta=INT [--gamma=INT] '
+             'one [two] [three] [args...]',
         USAGE_HELP
     ], """
-        Usage: func [OPTIONS] one [two] [args...]
+        Usage: func [OPTIONS] one [two] [three] [args...]
 
         Description
 
         Arguments:
             one     Argument one (type: INT)
             two     Argument two (type: INT, default: 2)
+            three   Argument three
             args... Other arguments (type: INT)
 
         Options:

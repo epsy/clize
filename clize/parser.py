@@ -274,7 +274,7 @@ class ParameterWithValue(Parameter):
 
     def help_parens(self):
         """Shows the default value in the parameter description."""
-        if self.default != util.UNSET:
+        if self.default is not util.UNSET and self.default is not None:
             yield 'default: ' + str(self.default)
 
 
