@@ -31,6 +31,14 @@ If you wish to do a user-wide install:
 
     pip install --user clize
 
+.. warning::
+
+    These docs refer to an in-development version of clize. The instructions here will NOT work on the latest stable version, Clize 2.4. You can use the following command to install a compatible version:
+
+    .. code-block:: console
+
+        $ pip install --user --pre 'clize<=3'
+
 
 A minimal application
 ---------------------

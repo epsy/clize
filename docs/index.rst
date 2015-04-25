@@ -10,6 +10,13 @@ Clize is an argument parser for `Python <https://www.python.org/>`_:
 * Reuse functionality through Python decorators
 * Extend it to suit unusual kinds of parameters
 
+.. warning::
+
+    These docs refer to an in-development version of clize. The instructions here will NOT work on the latest stable version, Clize 2.4. You can use the following command to install a compatible version:
+
+    .. code-block:: console
+
+        $ pip install --user --pre 'clize<=3'
 
 .. rubric:: Example
 
