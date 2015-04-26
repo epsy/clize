@@ -65,7 +65,6 @@ About Clize
 .. toctree::
 
     why
-    compared
     history
 
 
