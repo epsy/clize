@@ -58,7 +58,9 @@ interface for it:
 * Check out :ref:`why Clize was made <why>`
 * Star, watch or fork `Clize on GitHub <https://github.com/epsy/clize>`_
 
-Here is the full table of contents:
+.. only:: html
+
+    Here is the full table of contents:
 
 
 .. _about:
