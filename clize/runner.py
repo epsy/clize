@@ -320,7 +320,7 @@ def run(args=None, catch=(), exit=True, out=None, err=None, *fn, **kwargs):
     :param sequence args: The arguments to pass the CLI, for instance
         ``('./a_script.py', 'spam', 'ham')``. If unspecified, uses `sys.argv`.
     :param catch: Catch these exceptions and print their string representation
-        rather than letting python print an uncaught exception traceback.
+        rather than letting Python print an uncaught exception traceback.
     :type catch: sequence of exception classes
     :param bool exit: If true, exit with the appropriate status code once the
         function is done.

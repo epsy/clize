@@ -59,7 +59,7 @@ confusing for the uninitiated.
 
 Those shortcomings are not inherent to bundling behavior and parameters into
 functions. Functions can have keyword-only parameters (and this can be
-backported to python 2.x), and those parameter lists can be examined at run
+backported to Python 2.x), and those parameter lists can be examined at run
 time. Specific errors can be reformatted, and so forth.
 
 Clize was made to address these shortcomings while expanding on this idea that

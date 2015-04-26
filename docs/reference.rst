@@ -10,7 +10,7 @@ User reference
 
 
 Clize deduces what kind of parameter to pick for the CLI depending on what kind
-of parameter is found on the python function as well as its annotations.
+of parameter is found on the Python function as well as its annotations.
 
 .. note:: Python 2 compatibility
 
@@ -167,7 +167,7 @@ Ignoring the source parameter's default value
 Positional parameters
 ---------------------
 
-Normal parameters in python are turned into positional parameters on the CLI.
+Normal parameters in Python are turned into positional parameters on the CLI.
 Plain arguments on the command line (those that don't start with a ``-``) are processed by those and assigned in the order they appear:
 
 .. code-block:: python
@@ -197,7 +197,7 @@ Parameter that collects remaining positional arguments
 ------------------------------------------------------
 
 
-An ``*args``-like parameter in python becomes a repeatable positional parameter on the CLI:
+An ``*args``-like parameter in Python becomes a repeatable positional parameter on the CLI:
 
 .. code-block:: python
 
@@ -266,7 +266,7 @@ All parameter names are converted by removing any underscores (``_``) off the ex
 Named parameters that take an argument
 --------------------------------------
 
-Keyword-only parameters in python become named parameters on the CLI: They get
+Keyword-only parameters in Python become named parameters on the CLI: They get
 designated by their name rather than by their position:
 
 .. code-block:: python
@@ -335,7 +335,7 @@ Flag parameters
 
 Flag parameters are named parameters that unlike :ref:`options<option param>`
 do not take an argument. Instead, they set their corresponding parameter in
-python to `True` if mentionned.
+Python to `True` if mentionned.
 
 You can create them by having a keyword-only parameter take `False` as default
 value:
@@ -479,7 +479,7 @@ Parameter converters
 
 Callables decorated with `clize.parser.parameter_converter` are used
 instead of the :ref:`default converter <default-converter>` to construct a
-CLI parameter for the annotated python parameter.
+CLI parameter for the annotated Python parameter.
 
 The callable can return a `Parameter` instance or `Parameter.IGNORE` to
 instruct clize to drop the parameter.

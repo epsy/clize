@@ -100,7 +100,7 @@ class MappedParameter(parser.ParameterWithValue):
 
 @modifiers.autokwoargs
 def mapped(values, list_name='list', case_sensitive=None):
-    """Creates an annotation for parameters that maps input values to python
+    """Creates an annotation for parameters that maps input values to Python
     objects.
 
     :param sequence values: A sequence of ``pyobj, names, description`` tuples.
@@ -450,7 +450,7 @@ def pass_name(ba):
     """Parameters decorated with this will receive the executable name as
     argument.
 
-    This can be either the path to a python file, or ``python -m some.module``.    It is also appended with sub-command names.
+    This can be either the path to a Python file, or ``python -m some.module``.    It is also appended with sub-command names.
     """
     return ba.name
 

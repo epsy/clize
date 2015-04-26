@@ -279,7 +279,7 @@ class ParameterWithValue(Parameter):
 
 
 class NamedParameter(Parameter):
-    """Equivalent of a keyword-only parameter in python.
+    """Equivalent of a keyword-only parameter in Python.
 
     :param aliases: The arguments that trigger this parameter. The first alias
         is used to refer to the parameter. The first one is picked as
@@ -460,7 +460,7 @@ class IntOptionParameter(OptionParameter):
 
 
 class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
-    """Equivalent of a positional-only parameter in python."""
+    """Equivalent of a positional-only parameter in Python."""
 
     def read_argument(self, ba, i):
         """Stores the argument in `CliBoundArguments.args`."""
@@ -868,7 +868,7 @@ class CliSignature(object):
 
     @classmethod
     def convert_parameter(cls, param):
-        """Convert a python parameter to a CLI parameter."""
+        """Convert a Python parameter to a CLI parameter."""
         if param.annotation != param.empty:
             annotations = util.maybe_iter(param.annotation)
         else:

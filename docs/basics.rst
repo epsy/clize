@@ -59,7 +59,7 @@ the result.
 Requiring arguments
 -------------------
 
-You can require arguments the same way as you would in any python function
+You can require arguments the same way as you would in any Python function
 definition. To illustrate, lets write an ``echo`` command.
 
 ::
@@ -204,14 +204,14 @@ The change reflects to the command and its help when run::
 Collecting all positional arguments
 -----------------------------------
 
-Just like when defining a regular python function, you can prefix a parameter
+Just like when defining a regular Python function, you can prefix a parameter
 with one asterisk and it will collect all remaining positional arguments::
 
     @autokwoargs
     def echo(prefix='', suffix='', *text):
         pass # ...
 
-However, just like in python, this makes the parameter optional. To require
+However, just like in Python, this makes the parameter optional. To require
 that it should receive at least one argument, you will have to tell Clize that
 ``text`` is required using an annotation::
 
