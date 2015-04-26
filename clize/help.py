@@ -96,9 +96,8 @@ class ClizeHelp(Help):
             param.aliases
         except AttributeError:
             return LABEL_POS
-        if getattr(param, 'func', None) is None:
+        else:
             return LABEL_OPT
-        return LABEL_ALT
 
 
     def prepare(self):
@@ -290,8 +289,7 @@ class DispatcherHelper(Help):
         yield 'Usage: {0} command [args...]'.format(name)
 
     def usages(self):
-        if self.subject.help_aliases:
-            yield self.subject.help_aliases[0] + ' ' + str(self.cli.signature)
+        yield self.subject.help_aliases[0] + ' ' + str(self.cli.signature)
         for names, subcommand in self.owner.cmds.items():
             try:
                 get_usages = subcommand.helper.usages

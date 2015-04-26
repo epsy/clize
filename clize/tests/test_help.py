@@ -7,7 +7,7 @@ from itertools import count
 from sigtools.support import f
 from sigtools.wrappers import wrapper_decorator
 
-from clize import runner, help
+from clize import runner, help, parser
 from clize.tests.util import repeated_test
 
 USAGE_HELP = 'func --help [--usage]'
@@ -23,10 +23,14 @@ class WholeHelpTests(object):
     def _do_test(self, runner, usage, help_str):
         h = help.ClizeHelp(runner, None)
         h.prepare()
-        p_usage = list(h.show_full_usage('func'))
+        pc_usage = h.cli('func --help', '--usage')
+        p_usage = [l.rstrip() for l in h.show_full_usage('func')]
+        pc_help_str = h.cli('func --help')
         p_help_str = str(h.show('func'))
         self.assertEqual(usage, p_usage)
+        self.assertEqual('\n'.join(usage), pc_usage)
         self.assertEqual(help_str.split(), p_help_str.split())
+        self.assertEqual(help_str.split(), pc_help_str.split())
 
     simple = "one, *args, two", """
         Description
@@ -353,7 +357,7 @@ class WholeHelpTests(object):
         beta: unseen
 
         Footer
-    """, ['func ', USAGE_HELP], """
+    """, ['func', USAGE_HELP], """
         Usage: func [OPTIONS]
 
         Description
@@ -385,6 +389,7 @@ class WholeHelpTests(object):
         Footer
     """
 
+
     def test_nonclize_alt(self):
         @runner.Clize.as_is
         def alt(script):
@@ -392,13 +397,50 @@ class WholeHelpTests(object):
         def func():
             raise NotImplementedError
         r = runner.Clize(func, alt=alt)
-        self._do_test(r, ['func ', USAGE_HELP, 'func --alt [args...]'], """
+        self._do_test(r, ['func', USAGE_HELP, 'func --alt [args...]'], """
             Usage: func
 
             Other actions:
             --alt
             -h, --help  Show the help
         """)
+
+
+    def test_custom_param_help(self):
+        class CustParam(parser.OptionParameter):
+            def show_help(self, desc, after, f, cols):
+                cols.append('I am', 'a custom parameter!')
+                f.append("There is stuff after me.")
+                f.append(desc)
+                f.extend(after)
+        func = f(
+            "*, param: a",
+            locals={'a': parser.use_class(named=CustParam)})
+        func.__doc__ = """
+            param: Param desc
+
+            After param
+
+            _:_
+
+        """
+        r = runner.Clize(func)
+        self._do_test(r, ['func --param=STR', USAGE_HELP], """
+            Usage: func [OPTIONS]
+
+            Options:
+                I am    a custom parameter!
+
+            There is stuff after me.
+
+            Param desc
+
+            After param
+
+            Other actions:
+                -h, --help  Show the help
+        """)
+
 
 
 @repeated_test
