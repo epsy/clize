@@ -15,11 +15,6 @@ class _ShowList(BaseException):
     pass
 
 
-class _DummyType(object):
-    def __init__(self, name):
-        self.clize_type_name = name
-
-
 class MappedParameter(parser.ParameterWithValue):
     def __init__(self, list_name, values, case_sensitive, **kwargs):
         super(MappedParameter, self).__init__(**kwargs)
