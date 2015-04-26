@@ -2,13 +2,19 @@
 clize: Turn functions into command-line interfaces
 **************************************************
 
-Clize is an argument parser for `Python <https://www.python.org/>`_:
+Clize is an argument parser for `Python <https://www.python.org/>`_. It focuses on minimizing the effort required to create them:
 
-* Create command-line interfaces by passing your functions to `clize.run`
-* Automatic help generation sourced from your functions' docstrings
-* Dispatch to multiple commands by passing multiple functions to `clize.run`
-* Reuse functionality through Python decorators
-* Extend it to suit unusual kinds of parameters
+* Command-line interfaces are created by passing functions to `clize.run`.
+* Parameter types are deduced from the functions' parameters.
+* A ``--help`` message is generated from your docstrings. Seriously, why does
+  this still need to be a bullet point?
+* Decorators can be used to reuse functionality across functions.
+* Clize can be extended with new parameter behavior.
+
+Here's an example:
+
+.. literalinclude:: /../examples/hello.py
+   :emphasize-lines: 2,20
 
 .. warning::
 
@@ -17,11 +23,6 @@ Clize is an argument parser for `Python <https://www.python.org/>`_:
     .. code-block:: console
 
         $ pip install --user --pre 'clize<=3'
-
-.. rubric:: Example
-
-.. literalinclude:: /../examples/hello.py
-   :emphasize-lines: 2,20
 
 `~clize.run` takes the function and automatically produces a command-line
 interface for it:
@@ -50,11 +51,14 @@ interface for it:
     Hello john!
 
 
-.. rubric:: Where to start?
+.. rubric:: Interested?
 
 * Follow the :ref:`tutorial <basics>`
 * Browse the |examples_url|_
+* Check out :ref:`why Clize was made <why>`
 * Star, watch or fork `Clize on GitHub <https://github.com/epsy/clize>`_
+
+Here is the full table of contents:
 
 
 .. _about:
