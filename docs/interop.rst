@@ -16,8 +16,8 @@ Avoiding automatic CLI inference
 ................................
 
 When an object is passed to run, either as sole command, one in many
-subcommands or as an alternative action, it attempts to make a :ref:`cli
-object` out of it if it isn't one already. It simply checks if there is a
+subcommands or as an alternative action, it attempts to make a :ref:`CLI object
+<cli-object>` out of it if it isn't one already. It simply checks if there is a
 ``cli`` attribute and uses it, or it wraps it with `.Clize`.
 
 To insert an arbitrary callable, you must therefore place it as the ``cli``
