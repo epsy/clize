@@ -67,6 +67,7 @@ About Clize
 -----------
 
 .. toctree::
+    :maxdepth: 1
 
     why
     history
@@ -81,9 +82,9 @@ This section contains tutorials for the most commonly used features of Clize.
 
 .. toctree::
 
-   basics
-   dispatching
-   compositing
+    basics
+    dispatching
+    compositing
 
 
 .. _guides:
@@ -95,9 +96,9 @@ These documents document specific aspects or usages of Clize.
 
 .. toctree::
 
-   parser
-   porting
-   interop
+    parser
+    porting
+    interop
 
 
 .. _references:
@@ -109,5 +110,5 @@ The user reference lists all capabilities of each kind of parameter. The API ref
 
 .. toctree::
 
-   reference
-   api
+    reference
+    api

@@ -102,7 +102,8 @@ With Clize, you start simple but you remain flexible throughout, with options fo
 
 .. _other parsers:
 
-.. rubric:: "Why not use an existing parser instead of making your own?"
+"Why not use an existing parser instead of making your own?"
+------------------------------------------------------------
 
 Argument parsing is a rather common need for Python programs. As such, there
 are many argument parsers in existence, including no less than three in the
@@ -125,7 +126,8 @@ by external code and made usable the same way as `clize.parameters.multi` or
 
 .. _wrapper around argparse:
 
-.. rubric:: "Why not create a thin wrapper around argparse?"
+"Why not create a thin wrapper around argparse?"
+------------------------------------------------
 
 Back in Clize's first release, ``argparse``'s parser would have been
 sufficientfor what Clize proposed. I wasn't really interested in dealing with
