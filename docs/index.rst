@@ -73,6 +73,7 @@ About Clize
 
     why
     history
+    faq
 
 
 .. _tutorial:
