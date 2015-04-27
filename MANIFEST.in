@@ -1,3 +1,2 @@
-recursive-include examples *.py *.txt
-recursive-include test *.py
+recursive-include examples *.py
 include README.rst
