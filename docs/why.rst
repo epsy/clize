@@ -129,8 +129,8 @@ by external code and made usable the same way as `clize.parameters.multi` or
 "Why not create a thin wrapper around argparse?"
 ------------------------------------------------
 
-Back in Clize's first release, ``argparse``'s parser would have been
+Back in Clize's first release, `argparse`'s parser would have been
 sufficientfor what Clize proposed. I wasn't really interested in dealing with
-``argparse`` at the time however. With Clize 3's, replacing its new parser with
-``argparse`` would cause a loss in flexibility, in parameter types and help
+`argparse` at the time however. With Clize 3's, replacing its new parser with
+`argparse` would cause a loss in flexibility, in parameter types and help
 message formatting.
