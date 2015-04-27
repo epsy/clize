@@ -6,13 +6,13 @@ import io
 import os
 from functools import partial
 
-from dateutil import parser as dparser
-
 from clize import parser, errors
 
 
 @parser.value_converter(name='TIME')
 def datetime(arg):
+    from dateutil import parser as dparser
+
     return dparser.parse(arg)
 
 

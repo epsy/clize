@@ -13,6 +13,7 @@ setup(
     install_requires=['six', 'sigtools >= 0.1b2', 'contextlib2'],
     extras_require={
         ':python_version in "2.6"': ['ordereddict'],
+        'datetime': ['python-dateutil'],
     },
     packages=('clize', 'clize.tests'),
     test_suite='clize.tests',
