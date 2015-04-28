@@ -1,0 +1,11 @@
+.rendered_html {
+  overflow: hidden!important;
+}
+
+.prompt {
+  opacity: 0;
+}
+
+.reveal li {
+  margin-bottom: 20px;
+}
