@@ -620,7 +620,7 @@ class DecoHelpTests(object):
     def _subst(arg, kw, flag=False, kwd='D', i=0):
         """
 
-        Qualifies parameters of kind "_label":
+        Qualifies {param.display_name}:
 
         kw: KW
 
@@ -635,7 +635,7 @@ class DecoHelpTests(object):
         Usage: func [OPTIONS] --kw=STR [--flag] [--kwd=STR] [-i INT] par
         Arguments:
             par     things
-        Qualifies parameters of kind "_label":
+        Qualifies par:
             --kw=STR    KW
             --flag      FLAG
             --kwd=STR   KWD (default: D)
@@ -643,6 +643,21 @@ class DecoHelpTests(object):
         Other actions:
             -h, --help  Show the help
     """
+
+    subst_kw = '*, par: a = 15', _subst, "par: things", """
+        Usage: func [OPTIONS]
+        Options:
+            --par=INT     things (default: 15)
+        Qualifies --par:
+            --kw=STR    KW
+            --flag      FLAG
+            --kwd=STR   KWD (default: D)
+            -i INT      I (default: 0)
+        Other actions:
+            -h, --help  Show the help
+    """
+
+
 
     nest_doc = 'par: a', RepTests._nest, "par: things", """
         Usage: func [OPTIONS] --ab=STR [--why=STR [--zed=STR] --cd=STR] par

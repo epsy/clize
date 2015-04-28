@@ -377,7 +377,8 @@ class DecoratedArgumentParameter(parser.ParameterWithSourceEquivalent):
         if doc:
             helper.parse_docstring(
                 doc.format(
-                    param=self.display_name
+                    param=self,
+                    pname=self.display_name
                 ))
         for p in self.cli.parameters.values():
             p.prepare_help(helper)
