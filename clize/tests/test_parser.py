@@ -230,6 +230,11 @@ class SigTests(object):
         'one, two, three', 'one two three',
         ('1', '2', '3'), ['1', '2', '3'], {})
 
+    pos_empty = (
+        'one', 'one',
+        ('',), [''], {}
+        )
+
     _two_str_usage = '--one=STR --two=STR'
     kw_glued = (
         '*, one, two', _two_str_usage,

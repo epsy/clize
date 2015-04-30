@@ -1033,7 +1033,7 @@ class CliBoundArguments(object):
                     self.skip -= 1
                     continue
                 with errors.SetArgumentErrorContext(pos=i, val=arg, ba=self):
-                    if self.posarg_only or arg[0] != '-' or len(arg) < 2:
+                    if self.posarg_only or len(arg) < 2 or arg[0] != '-':
                         if self.sticky is not None:
                             param = self.sticky
                         else:
