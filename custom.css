@@ -1,1 +1,33 @@
-reveal.js/custom.css
+.rendered_html {
+  overflow: hidden!important;
+}
+
+.prompt {
+  opacity: 0;
+}
+
+.reveal li {
+  margin-bottom: 20px;
+}
+
+.reveal .noinput .input {
+  display: none;
+}
+
+.reveal .nooutput .output {
+  display: none;
+}
+
+.reveal .noinput {
+  padding-top: 0;
+  border-top-width: 0;
+}
+
+.reveal .noinput .output_subarea {
+  padding-top: 0;
+  padding-left: 15px;
+}
+
+.reveal .noinput .output_subarea pre {
+  color: rgb(61, 61, 61);
+}
