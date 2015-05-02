@@ -222,7 +222,7 @@ div.output_prompt {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Clize">Clize<a class="anchor-link" href="#Clize">&#182;</a></h1><h2 id="A-Python-approach-to-argument-parsing">A Python approach to argument parsing<a class="anchor-link" href="#A-Python-approach-to-argument-parsing">&#182;</a></h2><p>Yann Kaiser - <a href="https://twitter.com/YannKsr">@YannKsr</a></p>
+<h1 id="Clize">Clize<a class="anchor-link" href="#Clize">&#182;</a></h1><h2 id="A-Python-approach-to-command-line-argument-parsing">A Python approach to command-line argument parsing<a class="anchor-link" href="#A-Python-approach-to-command-line-argument-parsing">&#182;</a></h2><p>Yann Kaiser - <a href="https://twitter.com/YannKsr">@YannKsr</a></p>
 
 </div>
 </div>
@@ -235,178 +235,13 @@ div.output_prompt {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="A-little-bit-about-me">A little bit about me<a class="anchor-link" href="#A-little-bit-about-me">&#182;</a></h2><ul>
-<li><p>Full-time student from France</p>
-</li>
-<li><p>Started doing Python code in 2011</p>
-</li>
-<li><p>Python 3 and metaprogramming maniac!</p>
-</li>
-</ul>
-
-</div>
-</div>
-</div><aside class="notes ">
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>2011: fixing Python shell script replacements when arch switch to py3</p>
-
-</div>
-</div>
-</div>
-    </aside></section>
-    </section><section>
-    <section>
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="What-is-a-command-line-interface?">What is a command-line interface?<a class="anchor-link" href="#What-is-a-command-line-interface?">&#182;</a></h2>
-</div>
-</div>
-</div><div class="fragment" data-fragment-index="4">
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-
-<pre><code>$ git commit -v ./path/to/afile
-</code></pre>
-<ul>
-<li>It lets you do things</li>
-<li>It takes arguments that change how things are done</li>
-</ul>
-
-</div>
-</div>
-</div>
-    </div></section>
-    </section><section>
-    <section>
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Hello-world!">Hello world!<a class="anchor-link" href="#Hello-world!">&#182;</a></h2>
 </div>
 </div>
-</div><aside class="notes ">
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
 </div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>fragment : output<br>
-before next : dave fancies not being Capitalized</p>
-
-</div>
-</div>
-</div>
-    </aside>
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="k">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns a greeting for a given person or the whole world.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="k">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s">&quot;Hello world!&quot;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s">&quot;Hello {0}!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-
-</div>
-</div>
-</div><div class="fragment" data-fragment-index="9">
-    
-<div class="cell border-box-sizing code_cell rendered ">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[17]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="n">greet</span><span class="p">()</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[17]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&apos;Hello world!&apos;</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-    </div><div class="fragment" data-fragment-index="9">
-        
-<div class="cell border-box-sizing code_cell rendered ">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[18]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="n">greet</span><span class="p">(</span><span class="s">&quot;john&quot;</span><span class="p">)</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[18]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>&apos;Hello John!&apos;</pre>
-</div>
-
-</div>
-
-</div>
-</div>
-
-</div>
-        </div></section><section>
-    
-<div class="cell border-box-sizing code_cell rendered ">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[19]:</div>
+<div class="prompt input_prompt">In&nbsp;[115]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">no_capitalize</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
@@ -435,7 +270,65 @@ before next : dave fancies not being Capitalized</p>
 </div>
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[20]:</div>
+<div class="prompt input_prompt">In&nbsp;[116]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span class="n">greet</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[116]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&apos;Hello world!&apos;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered ">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[117]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span class="n">greet</span><span class="p">(</span><span class="s">&quot;john&quot;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[117]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&apos;Hello John!&apos;</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered ">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[118]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">greet</span><span class="p">(</span><span class="s">&quot;dave&quot;</span><span class="p">,</span> <span class="n">no_capitalize</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
@@ -449,7 +342,7 @@ before next : dave fancies not being Capitalized</p>
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[20]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[118]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -477,7 +370,7 @@ before next : dave fancies not being Capitalized</p>
     
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="prompt input_prompt">In&nbsp;[119]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="kn">from</span> <span class="nn">sigtools</span> <span class="k">import</span> <span class="n">modifiers</span>
@@ -522,7 +415,7 @@ before next : dave fancies not being Capitalized</p>
 </div>
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="prompt input_prompt">In&nbsp;[120]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">greet</span><span class="p">(</span><span class="s">&quot;dave&quot;</span><span class="p">,</span> <span class="n">no_capitalize</span><span class="o">=</span><span class="k">True</span><span class="p">)</span>
@@ -536,7 +429,7 @@ before next : dave fancies not being Capitalized</p>
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[22]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[120]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -564,7 +457,7 @@ before next : dave fancies not being Capitalized</p>
 </div>
 <div class="cell border-box-sizing code_cell rendered nooutput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[23]:</div>
+<div class="prompt input_prompt">In&nbsp;[121]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="kn">import</span> <span class="nn">argparse</span>
@@ -617,8 +510,7 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 </div>
 
-</div><div class="fragment" data-fragment-index="21">
-    
+</div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
@@ -630,11 +522,9 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 </div>
 </div>
-    </div><div class="fragment" data-fragment-index="21">
-        
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[24]:</div>
+<div class="prompt input_prompt">In&nbsp;[122]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">greetcli</span><span class="p">([</span><span class="s">&#39;john&#39;</span><span class="p">])</span>
@@ -659,8 +549,6 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 
 </div>
-        </div><div class="fragment" data-fragment-index="21">
-        
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
@@ -672,11 +560,9 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 </div>
 </div>
-        </div><div class="fragment" data-fragment-index="21">
-        
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[25]:</div>
+<div class="prompt input_prompt">In&nbsp;[123]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">greetcli</span><span class="p">([</span><span class="s">&#39;dave&#39;</span><span class="p">,</span> <span class="s">&#39;--no-capitalize&#39;</span><span class="p">])</span>
@@ -700,8 +586,7 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 </div>
 
-</div>
-        </div><aside class="notes ">
+</div><aside class="notes ">
     
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
@@ -744,40 +629,13 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="There-has-to-be-a-better-way!">There has to be a better way!<a class="anchor-link" href="#There-has-to-be-a-better-way!">&#182;</a></h2>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<ul>
-<li><p>The information is right there on <code>greet</code>!</p>
-</li>
-<li><p>Python lets us get that information (<code>inspect.signature</code>)</p>
-</li>
-</ul>
-
-</div>
-</div>
-</div></section>
-    </section><section>
-    <section>
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="Meet-Clize">Meet Clize<a class="anchor-link" href="#Meet-Clize">&#182;</a></h2>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered nooutput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[26]:</div>
+<div class="prompt input_prompt">In&nbsp;[124]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="kn">from</span> <span class="nn">clize</span> <span class="k">import</span> <span class="n">run</span>
@@ -825,7 +683,7 @@ An exception has occurred, use %tb to see the full traceback.
     
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[27]:</div>
+<div class="prompt input_prompt">In&nbsp;[125]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="kn">from</span> <span class="nn">clize</span> <span class="k">import</span> <span class="n">run</span> <span class="k">as</span> <span class="n">orig_run</span>
@@ -841,8 +699,7 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 
 </div>
-    </div><div class="fragment" data-fragment-index="33">
-    
+    </div>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
@@ -854,11 +711,9 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 </div>
 </div>
-    </div><div class="fragment" data-fragment-index="33">
-        
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[28]:</div>
+<div class="prompt input_prompt">In&nbsp;[126]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greeter.py&#39;</span><span class="p">])</span>
@@ -883,8 +738,6 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 
 </div>
-        </div><div class="fragment" data-fragment-index="35">
-    
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
@@ -896,11 +749,9 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 </div>
 </div>
-    </div><div class="fragment" data-fragment-index="35">
-        
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="prompt input_prompt">In&nbsp;[127]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greeter.py&#39;</span><span class="p">,</span> <span class="s">&#39;john&#39;</span><span class="p">])</span>
@@ -925,8 +776,6 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 
 </div>
-        </div><div class="fragment" data-fragment-index="37">
-    
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
@@ -938,11 +787,9 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 </div>
 </div>
-    </div><div class="fragment" data-fragment-index="37">
-        
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[30]:</div>
+<div class="prompt input_prompt">In&nbsp;[128]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greeter.py&#39;</span><span class="p">,</span> <span class="s">&#39;dave&#39;</span><span class="p">,</span> <span class="s">&#39;--no-capitalize&#39;</span><span class="p">])</span>
@@ -966,62 +813,11 @@ An exception has occurred, use %tb to see the full traceback.
 </div>
 </div>
 
-</div>
-        </div></section><section>
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-
-<pre><code>$ python greeter.py --help</code></pre>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered noinput">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[31]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greeter.py&#39;</span><span class="p">,</span> <span class="s">&#39;--help&#39;</span><span class="p">])</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Usage: greeter.py [OPTIONS] [name]
-
-Returns a greeting for a given person or the whole world.
-
-Arguments:
-  name
-
-Options:
-  --no-capitalize
-
-Other actions:
-  -h, --help        Show the help
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
 </div></section><section>
     
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[32]:</div>
+<div class="prompt input_prompt">In&nbsp;[129]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">no_capitalize</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
@@ -1057,7 +853,7 @@ Other actions:
 </div>
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[33]:</div>
+<div class="prompt input_prompt">In&nbsp;[130]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;--help&#39;</span><span class="p">])</span>
@@ -1116,7 +912,7 @@ Other actions:
 </div>
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[34]:</div>
+<div class="prompt input_prompt">In&nbsp;[131]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -1148,7 +944,7 @@ Other actions:
 </div>
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[35]:</div>
+<div class="prompt input_prompt">In&nbsp;[132]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;john&#39;</span><span class="p">,</span> <span class="s">&#39;--repeat&#39;</span><span class="p">,</span> <span class="s">&#39;3&#39;</span><span class="p">])</span>
@@ -1187,7 +983,7 @@ Hello John!
 </div>
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[36]:</div>
+<div class="prompt input_prompt">In&nbsp;[133]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="o">*</span><span class="n">name</span><span class="p">):</span>
@@ -1218,7 +1014,7 @@ Hello John!
 </div>
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[37]:</div>
+<div class="prompt input_prompt">In&nbsp;[134]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;john&#39;</span><span class="p">,</span> <span class="s">&#39;doe&#39;</span><span class="p">])</span>
@@ -1255,7 +1051,7 @@ Hello John!
 </div>
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[38]:</div>
+<div class="prompt input_prompt">In&nbsp;[135]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">no_capitalize</span><span class="p">:</span><span class="s">&#39;C&#39;</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
@@ -1291,7 +1087,7 @@ Hello John!
 </div>
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[39]:</div>
+<div class="prompt input_prompt">In&nbsp;[136]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;dave&#39;</span><span class="p">,</span> <span class="s">&#39;-C&#39;</span><span class="p">])</span>
@@ -1315,17 +1111,25 @@ Hello John!
 </div>
 </div>
 
-</div><div class="fragment" data-fragment-index="57">
+</div><div class="fragment" data-fragment-index="46">
     
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
+<div class="cell border-box-sizing code_cell rendered ">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[137]:</div>
 <div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Use <code>sigtools.modifiers.annotate</code> on Python 2</p>
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span class="c"># Py2</span>
+
+<span class="nd">@modifiers</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">no_capitalize</span><span class="o">=</span><span class="s">&#39;C&#39;</span><span class="p">)</span>
+<span class="nd">@modifiers</span><span class="o">.</span><span class="n">kwoargs</span><span class="p">(</span><span class="s">&#39;no_capitalize&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="n">no_capitalize</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
 
 </div>
 </div>
+</div>
+
 </div>
     </div><aside class="notes ">
     
@@ -1334,12 +1138,109 @@ Hello John!
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Also, many other uses of annotations.</p>
+<p>Also, many other uses of annotations, ex: adding parameters to parameters</p>
 
 </div>
 </div>
 </div>
     </aside></section>
+    </section><section>
+    <section>
+    
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="I-heard-you-like-parameters...">I heard you like parameters...<a class="anchor-link" href="#I-heard-you-like-parameters...">&#182;</a></h2>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered ">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[138]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span class="kn">from</span> <span class="nn">clize.parameters</span> <span class="k">import</span> <span class="n">argument_decorator</span>
+
+<span class="nd">@argument_decorator</span>
+<span class="k">def</span> <span class="nf">name_argument</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">no_capitalize</span><span class="p">:</span><span class="s">&#39;C&#39;</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;For each name:</span>
+<span class="sd">    </span>
+<span class="sd">    no_capitalize: Don&#39;t capitalize this name&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">no_capitalize</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">val</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">val</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered ">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[139]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="n">name_argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Greets some people.</span>
+<span class="sd">    </span>
+<span class="sd">    names: The people to address&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;Hello world!&#39;</span>
+    <span class="n">greetings</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="n">greetings</span> <span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Hello {}!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">greetings</span><span class="p">)</span>
+
+<span class="n">run</span><span class="p">(</span><span class="n">greet</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+
+<pre><code>$ python greet.py john -C jane</code></pre>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered noinput">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[140]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;john&#39;</span><span class="p">,</span> <span class="s">&#39;-C&#39;</span><span class="p">,</span> <span class="s">&#39;jane&#39;</span><span class="p">])</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Hello John!
+Hello jane!
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div></section>
     </section><section>
     <section>
     
@@ -1355,7 +1256,7 @@ Hello John!
     
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[40]:</div>
+<div class="prompt input_prompt">In&nbsp;[141]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="k">def</span> <span class="nf">part</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
@@ -1373,7 +1274,7 @@ Hello John!
     </div>
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[41]:</div>
+<div class="prompt input_prompt">In&nbsp;[142]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">run</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">part</span><span class="p">)</span>
@@ -1397,7 +1298,7 @@ Hello John!
 </div>
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[42]:</div>
+<div class="prompt input_prompt">In&nbsp;[143]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">part</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;--help&#39;</span><span class="p">])</span>
@@ -1416,7 +1317,7 @@ Hello John!
 <pre>Usage: greet.py command [args...]
 
 Commands:
-  greet   Returns a greeting for a given person or the whole world.
+  greet   Greets some people.
   part    Wishes someone goodbye.
 </pre>
 </div>
@@ -1432,108 +1333,44 @@ Commands:
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p>Can use iterable, dict, OrderedDict, etc</p>
 <p>Share features?</p>
 
 </div>
 </div>
 </div>
-    </aside></section>
-    </section><section>
-    <section>
+    </aside></section><section>
     
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Share-features-between-commands">Share features between commands<a class="anchor-link" href="#Share-features-between-commands">&#182;</a></h2><h3 id="What-would-argparse-do?">What would argparse do?<a class="anchor-link" href="#What-would-argparse-do?">&#182;</a></h3>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Subparsers!</p>
-
-</div>
-</div>
-</div><div class="fragment" data-fragment-index="67">
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Mixes subcommands and feature sharing together</p>
-
-</div>
-</div>
-</div>
-    </div></section><section>
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="What-would-Python-do?">What would Python do?<a class="anchor-link" href="#What-would-Python-do?">&#182;</a></h3>
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Decorators!</p>
-
-</div>
-</div>
-</div><div class="fragment" data-fragment-index="70">
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<p>Can be applied to any function arbitrarily</p>
-
-</div>
-</div>
-</div>
-    </div></section><section>
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="What-would-Clize-do?">What would Clize do?<a class="anchor-link" href="#What-would-Clize-do?">&#182;</a></h2>
+<h3 id="Share-features-between-commands">Share features between commands<a class="anchor-link" href="#Share-features-between-commands">&#182;</a></h3>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[43]:</div>
+<div class="prompt input_prompt">In&nbsp;[151]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span class="kn">from</span> <span class="nn">sigtools.wrappers</span> <span class="k">import</span> <span class="n">wrapper_decorator</span>
 
-<span class="nd">@wrapper_decorator</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">with_name</span><span class="p">(</span><span class="n">wrapped</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="k">None</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">no_capitalize</span><span class="p">:</span><span class="s">&#39;C&#39;</span><span class="o">=</span><span class="k">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="nd">@wrapper_decorator</span>
+<span class="k">def</span> <span class="nf">message_func</span><span class="p">(</span><span class="n">wrapped</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">repeat</span><span class="p">:</span><span class="s">&#39;r&#39;</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    name: The name of the person to address</span>
-<span class="sd">    </span>
-<span class="sd">    no_capitalize: Don&#39;t capitalize the given name</span>
+<span class="sd">    repeat: Amount of times the message is repeated</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="k">None</span><span class="p">:</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;world&#39;</span>
-    <span class="k">elif</span> <span class="ow">not</span> <span class="n">no_capitalize</span><span class="p">:</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="n">wrapped</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">message</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">repeat</span><span class="p">))</span>
+
+<span class="nd">@message_func</span>
+<span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="n">name_argument</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="nd">@message_func</span>
+<span class="k">def</span> <span class="nf">part</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="n">name_argument</span><span class="p">):</span>
+    <span class="o">...</span>
 </pre></div>
 
 </div>
@@ -1547,201 +1384,25 @@ Commands:
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <ul>
-<li><code>with_name</code> becomes a decorator</li>
 <li><code>wrapper_decorator</code> makes it so that Clize can know <code>*args</code> and <code>**kwargs</code> refer to the decorated function</li>
 </ul>
-
-</div>
-</div>
-</div></section><section>
-    
-<div class="cell border-box-sizing code_cell rendered ">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[44]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="nd">@with_name</span>
-<span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">repeat</span><span class="p">:</span><span class="s">&#39;r&#39;</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Greets a person or the world.</span>
-<span class="sd">    </span>
-<span class="sd">    repeat: How many times should the person be greeted&quot;&quot;&quot;</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="s">&#39;Hello {}!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">message</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">repeat</span><span class="p">))</span>
-
-<span class="nd">@with_name</span>
-<span class="k">def</span> <span class="nf">part</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parts with a person or the world.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="s">&#39;Goodbye {}.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
 
 <pre><code>$ python greet.py greet -C -r 3 dave</code></pre>
 
 </div>
 </div>
-</div>
-<div class="cell border-box-sizing code_cell rendered noinput">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[45]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">part</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;greet&#39;</span><span class="p">,</span> <span class="s">&#39;-C&#39;</span><span class="p">,</span> <span class="s">&#39;-r&#39;</span><span class="p">,</span> <span class="s">&#39;3&#39;</span><span class="p">,</span> <span class="s">&#39;dave&#39;</span><span class="p">])</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Hello dave!
-Hello dave!
-Hello dave!
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div></section><section>
+</div><div style=display:none>
     
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-
-<pre><code>$ python greet.py --help</code></pre>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered noinput">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[46]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">part</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;greet&#39;</span><span class="p">,</span> <span class="s">&#39;--help&#39;</span><span class="p">])</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Usage: greet.py greet [OPTIONS] [name]
-
-Greets a person or the world.
-
-Arguments:
-  name               The name of the person to address
-
-Options:
-  -r, --repeat=INT   How many times should the person be greeted (default: 1)
-  -C, --no-capitalize
-                     Don&apos;t capitalize the given name
-
-Other actions:
-  -h, --help         Show the help
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div><div class="fragment" data-fragment-index="79">
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<ul>
-<li>Repeating the same name is weird, let's greet different people using <code>*args</code>!</li>
-<li>But what about <code>--no-capitalize</code>?</li>
-</ul>
-
-</div>
-</div>
-</div>
-    </div></section>
-    </section><section>
-    <section>
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Creating-a-decorator-for-a-single-argument">Creating a decorator for a single argument<a class="anchor-link" href="#Creating-a-decorator-for-a-single-argument">&#182;</a></h2>
-</div>
-</div>
-</div>
 <div class="cell border-box-sizing code_cell rendered ">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[47]:</div>
+<div class="prompt input_prompt">In&nbsp;[153]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="kn">from</span> <span class="nn">clize</span> <span class="k">import</span> <span class="n">parameters</span>
-
-<span class="nd">@parameters</span><span class="o">.</span><span class="n">argument_decorator</span>
-<span class="k">def</span> <span class="nf">name_argument</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">no_capitalize</span><span class="p">:</span><span class="s">&#39;C&#39;</span><span class="o">=</span><span class="k">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    For each name:</span>
+<div class=" highlight hl-ipython3"><pre><span class="nd">@message_func</span>
+<span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="n">name_argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Greets some people.</span>
 <span class="sd">    </span>
-<span class="sd">    no_capitalize: Don&#39;t capitalize this name</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">no_capitalize</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">val</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">val</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<ul>
-<li><code>val</code> will receive <code>"john"</code>, <code>"dave"</code> and so forth</li>
-<li><code>name_argument</code> can be used as a parameter annotation</li>
-</ul>
-
-</div>
-</div>
-</div></section><section>
-    
-<div class="cell border-box-sizing code_cell rendered ">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[48]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="k">def</span> <span class="nf">greet</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="n">name_argument</span><span class="p">):</span>
+<span class="sd">    names: The people to address&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">names</span><span class="p">:</span>
         <span class="k">return</span> <span class="s">&#39;Hello world!&#39;</span>
     <span class="n">greetings</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1749,7 +1410,17 @@ Other actions:
         <span class="n">greetings</span> <span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Hello {}!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
     <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">greetings</span><span class="p">)</span>
 
-<span class="n">run</span><span class="p">(</span><span class="n">greet</span><span class="p">)</span>
+<span class="nd">@message_func</span>
+<span class="k">def</span> <span class="nf">part</span><span class="p">(</span><span class="o">*</span><span class="n">names</span><span class="p">:</span> <span class="n">name_argument</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wishes some people goodbye.</span>
+<span class="sd">    </span>
+<span class="sd">    names: The people to address&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">names</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s">&#39;Goodbye!&#39;</span>
+    <span class="n">greetings</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+        <span class="n">greetings</span> <span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Goodbye {}!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">greetings</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -1757,23 +1428,13 @@ Other actions:
 </div>
 
 </div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-
-<pre><code>$ python greet.py john -C dave jane</code></pre>
-
-</div>
-</div>
-</div>
+    </div>
 <div class="cell border-box-sizing code_cell rendered noinput">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[49]:</div>
+<div class="prompt input_prompt">In&nbsp;[154]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;john&#39;</span><span class="p">,</span> <span class="s">&#39;-C&#39;</span><span class="p">,</span> <span class="s">&#39;dave&#39;</span><span class="p">,</span> <span class="s">&#39;jane&#39;</span><span class="p">])</span>
+<div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">part</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;greet&#39;</span><span class="p">,</span> <span class="s">&#39;-r&#39;</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">,</span> <span class="s">&#39;john&#39;</span><span class="p">,</span> <span class="s">&#39;-C&#39;</span><span class="p">,</span> <span class="s">&#39;dave&#39;</span><span class="p">])</span>
 </pre></div>
 
 </div>
@@ -1788,56 +1449,8 @@ Other actions:
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>Hello John!
 Hello dave!
-Hello Jane!
-</pre>
-</div>
-</div>
-
-</div>
-</div>
-
-</div></section><section>
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-
-<pre><code>$ python greet.py --help</code></pre>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered noinput">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[50]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span class="n">rrun</span><span class="p">(</span><span class="n">greet</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;greet.py&#39;</span><span class="p">,</span> <span class="s">&#39;--help&#39;</span><span class="p">])</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt"></div>
-<div class="output_subarea output_stream output_stdout output_text">
-<pre>Usage: greet.py [OPTIONS] [[-C] names...]
-
-Arguments:
-  names...
-
-For each name:
-  -C, --no-capitalize
-               Don&apos;t capitalize this name
-
-Other actions:
-  -h, --help   Show the help
+Hello John!
+Hello dave!
 </pre>
 </div>
 </div>
@@ -1846,33 +1459,6 @@ Other actions:
 </div>
 
 </div></section>
-    </section><section>
-    <section>
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="By-the-way...-It's-extensible">By the way... It's extensible<a class="anchor-link" href="#By-the-way...-It's-extensible">&#182;</a></h2>
-</div>
-</div>
-</div><div class="fragment" data-fragment-index="89">
-    
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<ul>
-<li>Parameter behavior can be replaced or customized.</li>
-<li><code>argument_decorator</code> in the above example could have been done by you!</li>
-</ul>
-
-</div>
-</div>
-</div>
-    </div></section>
     </section><section>
     <section>
     
