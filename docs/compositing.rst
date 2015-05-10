@@ -4,6 +4,7 @@
    `~sigtools.wrappers.wrapper_decorator`
 
 .. _function-compositing:
+.. _function compositing:
 
 Function compositing
 ====================

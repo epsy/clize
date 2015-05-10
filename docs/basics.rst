@@ -341,6 +341,9 @@ parameter::
     Other actions:
       -h, --help   Show the help
 
+
+.. _arbitrary requirements:
+
 Arbitrary requirements
 ----------------------
 
