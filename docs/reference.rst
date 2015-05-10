@@ -258,7 +258,32 @@ pass them as strings in the parameter's annotation:
     $ python named.py --param value
     par value
 
-All parameter names are converted by removing any underscores (``_``) off the extremities of the string and replacing the remaining ones with dashes (``-``).
+All parameter names are converted by removing any underscores (``_``) off the
+extremities of the string and replacing the remaining ones with dashes (``-``).
+
+
+.. _named param py2:
+
+Python 2 support for named parameters
+.....................................
+
+Python 2 has no keyword-only parameters. To fill that gap, you can use the
+decorators from `sigtools.modifiers` to emulate them.
+
+.. code-block:: python
+
+    @DECORATOR
+    def func(ab, cd, de=None, fg=None, hi=None):
+        ...
+
+=================================== ===================================
+``@DECORATOR``                      Parameters that become keyword-only
+=================================== ===================================
+``@kwoargs('cd', 'fg')``            ``cd`` and ``fg``
+``@kwoargs(start='fg')``            ``fg`` and all following parameters
+``@autokwoargs``                    All parameters with defaut values
+``@autokwoargs(exceptions=['fg'])`` Same, except for ``fg``
+=================================== ===================================
 
 
 .. _option param:

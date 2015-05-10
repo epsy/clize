@@ -163,6 +163,8 @@ Here, :func:`@autokwoargs <sigtools.modifiers.autokwoargs>` turns all
 parameters with defaults into keyword-only parameters. Clize then treats it as
 an option instead of a positional parameter.
 
+.. seealso:: :ref:`named param py2`
+
 .. note::
     Since Python does not have syntax for specifying keyword-only parameters
     until Python 3, we will use decorators from the :mod:`sigtools.modifiers`
