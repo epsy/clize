@@ -54,6 +54,19 @@ Finally, on Python 2.6, this is also needed:
   `collections.OrderedDict`.
 
 
+.. _ancient pip:
+
+I just installed Clize using ``pip`` and I still get ``ImportErrors``
+---------------------------------------------------------------------
+
+Old versions of ``pip`` do not read Python-version dependent requirements and
+therefore do not install ``funcsigs`` or ``ordereddict``. To remedy this, you can:
+
+* Upgrade ``pip`` and :ref:`install Clize <install>` again. (Use the ``-U`` flag of ``pip
+  install`` to force a reinstall.)
+* Install the :ref:`dependencies <dependencies>` manually.
+
+
 .. _sigtools split:
 
 What is ``sigtools`` and why is it a separate library?
