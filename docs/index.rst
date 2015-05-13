@@ -16,14 +16,6 @@ Here's an example:
 .. literalinclude:: /../examples/hello.py
    :emphasize-lines: 2,20
 
-.. warning::
-
-    These docs refer to an in-development version of clize. The instructions here will NOT work on the latest stable version, Clize 2.4. You can use the following command to install a compatible version:
-
-    .. code-block:: console
-
-        $ pip install --user --pre 'clize<=3'
-
 `~clize.run` takes the function and automatically produces a command-line
 interface for it:
 
