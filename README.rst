@@ -51,4 +51,4 @@ The python code above can now be used on the command-line as follows:
     $ python hello.py --no-capitalize
     Hello john!
 
-You can find the documentation at: http://clize.readthedocs.org/en/latest/
+You can find the documentation at: http://clize.readthedocs.org/
