@@ -1,7 +1,7 @@
 from clize import run
 
 
-VERSION = 0.2
+VERSION = "0.2"
 
 
 def do_nothing():

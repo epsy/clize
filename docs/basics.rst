@@ -151,9 +151,9 @@ Let's add a pair of options to specify a prefix and suffix around each line of
                              for line in word.split('\n'))
         return word
 
-Here, :func:`@autokwoargs <sigtools.modifiers.autokwoargs>` turns all
-parameters with defaults into keyword-only parameters. Clize then treats it as
-an option instead of a positional parameter.
+Here, `~sigtools.modifiers.autokwoargs` turns all parameters with defaults into
+keyword-only parameters. Clize then treats it as an option instead of a
+positional parameter.
 
 .. seealso:: :ref:`named param py2`
 

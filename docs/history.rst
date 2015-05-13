@@ -16,6 +16,8 @@ Version Release date        Major changes
 3.0     TDB                 Extensibility, decorators, focus on py3
 ======= =================== =======================================
 
+You can also browse the :ref:`release notes <releases>`.
+
 And here's the story:
 
 
@@ -28,9 +30,9 @@ Before Clize
 .. _twopt: http://twistedmatrix.com/documents/13.1.0/core/howto/options.html
 
 After having used `optparse` and |twopt|_ in various medium-sized projects, and
-seeing `argparse` as being more of the same, I wondered if I needed all this
-when writing a more trivial program. I realized that if I only wanted to read
-some positional arguments, I could just use tuple unpacking on `sys.argv`:
+viewing `argparse` as being more of the same, I wondered if I needed all this
+when writing a trivial program. I realized that if I only wanted to read some
+positional arguments, I could just use tuple unpacking on `sys.argv`:
 
 .. code-block:: python
 
@@ -84,7 +86,7 @@ to keep it as simple as possible, like the above example.
 
 Thanks to the ability in Python to look at a function's signature, you gained a
 ``--help`` page, and ``greeting`` was available as ``--greeting`` on the
-command line, while adding just one line of code. This was very different than
+command line, while adding just one line of code. This was very different from
 what `argparse` had to offer. It allowed you to almost completely ignore
 argument parsing and just write your program's logic as a function, with your
 parameters' documented in the docstring.
@@ -107,8 +109,9 @@ little user feedback so the inspiration ended up coming from somewhere else.
 
 Clize 2.0 came out with two major features. :ref:`Subcommands <multiple
 commands>` and a new way of specifying additional information on the
-parameters. I'll gloss over subcommands because this is already a well
-established concept in argument parsing and the docs can tell you about it.
+parameters. I'll skip over subcommands because they are already a well
+established concept in argument parsing. See :ref:`multiple commands` for their
+documentation.
 
 Through now forgotten circumstances, I came across :pep:`3107` implemented
 since Python 3.0, which proposed a syntax for adding information about
@@ -133,15 +136,16 @@ Up until then, if you wanted to add an alias to a named parameter, it looked a b
 
     run(echo)
 
-Many things involved passing parameters in the decorator, and it was generally
-ugly, especially when more than one parameter needed adjusting and the line had
-to be split.
+Many things involved passing parameters in the decorator. It was generally
+quite ugly, especially when more than one parameter needed adjusting, at which
+point the decorator call grew to the point of needing to be split over multiple
+lines.
 
-The parameter annotation syntax from :pep:`3107` was fit to replace this
-nicely. You could tag the parameter directly with the alias or conversion
-function or whatever. It involved looking at the type of each annotation, but
-it was a lot more practical than spelling *alias*, *converter* and the
-parameter's name all over the place.
+The parameter annotation syntax from :pep:`3107` was fit to replace this.  You
+could tag the parameter directly with the alias or conversion function or
+whatever. It involved looking at the type of each annotation, but it was a lot
+more practical than spelling *alias*, *converter* and the parameter's name all
+over the place.
 
 It also allowed for keyword-only parameters from :pep:`3102` to map directly to
 named parameters while others would always be positional parameters.
@@ -193,7 +197,7 @@ old interface was deprecated in favor of the one described just above.
 
     run(echo)
 
-Since the ``@clize`` decorator is gone, ``echo`` is not just a regular function
+Since the ``@clize`` decorator is gone, ``echo`` is now just a regular function
 that could theoretically be used in non-cli code or tests.
 
 Users looking to keep Python 2 compatibility would have to use a compability
@@ -231,17 +235,17 @@ parameters, `inspect.signature` would only produce something like ``(spam,
 `sigtools` thus provided decorators such as `~sigtools.specifiers.forwards` and
 the higher-level `~sigtools.wrappers.wrapper_decorator` for specifying what
 these parameters meant. This allowed for :ref:`creating decorators for CLI
-functions <function-compositing>`, in a way analogous to regular decorators, in
-a way that other introspection-based tools had never done up until then. It
-greatly improved clize's usefulness with multiple commands.
+functions <function-compositing>` in a way analogous to regular decorators,
+which was up until then something other introspection-based tools had never
+done. It greatly improved Clize's usefulness with multiple commands.
 
 With the parser being completely rewritten, a large part of the argument
-parsing was moved away from the monolithic "iterate over `sys.argv` loop" to
-one that deferred much of the behaviour to previously-determined parameter
-objects. This allows for library authors to almost completely :ref:`customize
-how their parameters work <extending parser>`, including things like
-replicating ``--help``'s behavior of working even if there are errors
-beforehand, or other completely bizarre stuff.
+parsing was moved away from the monolithic "iterate over `sys.argv`" loop to
+one that deferred much of the behaviour to parameter objects determined from
+the function signature. This allows for library and application authors to
+almost completely :ref:`customize how their parameters work <extending
+parser>`, including things like replicating ``--help``'s behavior of working
+even if there are errors beforehand, or other completely bizarre stuff.
 
 This is a departure from Clize's opiniated beginnings, but the defaults remain
 sane and it usually takes someone to create new `~clize.parser.Parameter`

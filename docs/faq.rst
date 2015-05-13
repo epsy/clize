@@ -80,8 +80,8 @@ Clize's purpose is twofold:
 * Convert the idioms of a function signature into those of a CLI,
 * Parse the input that CLI arguments are.
 
-It turns out that just asking the signature from `inspect.signature` is not
-good enough:
+It turns out that just asking for the function signature from
+`inspect.signature` is not good enough:
 
 * Python 2 users cannot write keyword-only parameters.
 * `inspect.signature` cannot process decorators that return a function with
@@ -90,19 +90,20 @@ good enough:
 For the first point, Clize could have accepted an argument that said "do as if
 that parameter was keyword-only and make it a named parameter on the CLI" (and
 in fact it used to), but that would have Clize behave according to a signature
-*and a bunch of things above it*, which was a concept it was trying to steer
-away from.
+*and a bunch of things around it*, which is a concept it tries to steer away
+from.
 
 For the second, some tooling would be necessary to specify how exactly a
 decorator affected a wrapped function's parameters.
 
-Modifying and making signatures more useful was both complex enough and
+Modifying and making signatures more useful was both enough complex and
 independent from command-line argument parsing that it was made a separate
 library as `sigtools`.
 
 So there you have it, `sigtools` helps you add keyword-only parameters on
 Python 2, and helps decorators specify how they alter parameters on decorated
-functions. All Clize sees is the finished accurate signature.
+functions. All Clize sees is the finished accurate signature from which it
+infers a CLI.
 
 
 .. _faq mutual exclusive flag:
@@ -110,17 +111,19 @@ functions. All Clize sees is the finished accurate signature.
 How can I write mutually exclusive flags?
 -----------------------------------------
 
-Mutually exclusive parts are when you can use one flag(``--flag``) or the
-other, but not both at the same time.
+Mutually exclusive flags refer to when a user can use one flag A (``--flag-a``)
+or the other (``--flag-b``), but not both at the same time.
 
 It is a feature that is difficult to express in a function signature as well as
 on the ``--help`` screen for the user (other than in the full usage form).
-Therefore I recommend using a positional parameter or option that accepts one
-of specific values. `~clize.parameters.one_of` can help you do that.
+It is therefore recommended to use a positional parameter or option that
+accepts one of specific values. `~clize.parameters.one_of` can help you do
+that.
 
 If you still think mutually exclusive parameters are your best option, you can
 check for the condition in your function and raise `clize.ArgumentError`, as in
 the :ref:`arbitrary requirements` part of the tutorial.
+
 
 .. index:: DRY
 .. _faq share features:
@@ -130,6 +133,7 @@ Some of my commands share features, can I reuse code somehow?
 
 Yes! You can use decorators much like in regular Python code, see
 :ref:`function compositing`.
+
 
 .. _get more help:
 
@@ -148,4 +152,4 @@ Contacting the author
 ---------------------
 
 You can contact me via `@YannKsr on Twitter <https://twitter.com/YannKsr>`_ or
-via `email <kaiser.yann@gmail.com>`_. Feel free to ask for help about Clize!
+via `email <kaiser.yann@gmail.com>`_. Feel free to ask about Clize!

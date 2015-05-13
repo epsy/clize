@@ -56,7 +56,7 @@ In step 5 above, `.CliSignature.from_signature` converts each parameter. Here
 is the process followed for each parameter:
 
 1. The annotation for each parameter is read as a sequence. If it isn't one
-   then it is converted first.
+   then it is wrapped in one.
 2. The annotations are searched for `clize.parser.Parameter.IGNORE`. If found,
    the parameter is dropped with no further processing.
 3. The annotations are searched for a :ref:`parameter converter <parameter

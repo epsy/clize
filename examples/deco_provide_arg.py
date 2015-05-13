@@ -28,6 +28,7 @@ def diff(branch=None):
     """Show the differences between the committed code and the working tree."""
     return "I'm different."
 
+
 @with_branch
 @autokwoargs
 def commit(branch=None, *text):
@@ -37,11 +38,13 @@ def commit(branch=None, *text):
     """
     return "All saved.: " + ' '.join(text)
 
+
 @with_branch
 @autokwoargs
 def revert(branch=None):
     """Revert the changes made in the working tree."""
     return "There is no chip, John."
+
 
 run(diff, commit, revert,
     description="A mockup version control system(like git, hg or bzr)")

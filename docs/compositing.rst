@@ -3,8 +3,8 @@
 .. |wrapper_decorator| replace::
    `~sigtools.wrappers.wrapper_decorator`
 
-.. _function-compositing:
 .. _function compositing:
+.. _function-compositing:
 
 Function compositing
 ====================
@@ -12,9 +12,9 @@ Function compositing
 One of Python's strengths is how easy it is to manipulate functions and combine
 them. However, this typically breaks tools such as Clize which try to inspect
 the resulting callable and only get vague information. Fortunately, using the
-functions in `sigtools`, we can overcome this drawback.
+functions found in `sigtools`, we can overcome this drawback.
 
-We will look at how you can create decorators that work along with Clize.
+Let's look at how you can create decorators that work well with Clize.
 
 Creating decorators is useful if you want to share behaviour across multiple
 functions passed to `run`, such as extra parameters or input/output formatting.
@@ -29,13 +29,13 @@ Let's create a decorator that transforms the output of the wrapped function
 when passed a specific flag.
 
 .. literalinclude:: /../examples/deco_add_param.py
-    :lines: 1-2,5-18
+    :lines: 1-2,4-18
 
 |wrapper_decorator| lets our ``with_uppercase`` function decorate other
 functions:
 
 .. literalinclude:: /../examples/deco_add_param.py
-    :lines: 3,20-34
+    :lines: 3,19-34
 
 Each time the decorated function is run, ``with_uppercase`` will be run with
 the decorated function as first argument ``wrapped``.
@@ -50,7 +50,7 @@ signature as::
 This is the signature you would get by "putting" the parameters of the
 decorated function in place of the wrapper's ``*args, **kwargs``. It is what |wrapper_decorator| expects it to do, but that can be changed.
 
-With the correct signature signalised, the command-line interface matches it::
+With the correct signature advertised, the command-line interface matches it::
 
     $ python examples/decorators.py --uppercase
     HELLO WORLD!
@@ -59,9 +59,8 @@ With the correct signature signalised, the command-line interface matches it::
     $ python examples/decorators.py john --uppercase
     HELLO JOHN
 
-The help system(provided by `clize.help.ClizeHelp`) will also pick up on the
-fact that the function is decorated and will read parameter descriptions from
-the decorator's docstring::
+The help system will also pick up on the fact that the function is decorated
+and will read parameter descriptions from the decorator's docstring::
 
     $ python decorators.py --help
     Usage: decorators.py [OPTIONS] [name]
@@ -84,7 +83,7 @@ Providing an argument using a decorator
 ---------------------------------------
 
 When you're passing new arguments to the wrapped function in addition to
-``*args, **kwargs``, things get a little bit more complicated. You have to tell
+``*args, **kwargs``, things get a little more complicated. You have to tell
 Clize that some of the wrapped function's parameters shouldn't appear in place
 of the wrapper's ``*args, **kwargs``. call |wrapper_decorator| with the number
 of positional arguments you insert before ``*args``, then the names of each
@@ -99,14 +98,14 @@ named argument that you pass to the wrapped function.
 .. literalinclude:: /../examples/deco_provide_arg.py
     :lines: 1-2,4-22
 
-Here we pass ``0, 'branch'`` to |wrapper_decorator| because we call wrapped
-with no positional arguments besides ``*args`` and ``branch`` as named
+Here we pass ``0, 'branch'`` to |wrapper_decorator| because we call ``wrapped``
+with no positional arguments besides ``*args``, and ``branch`` as named
 argument.
 
 You can then use the decorator like before:
 
 .. literalinclude:: /../examples/deco_provide_arg.py
-    :lines: 3,23-47
+    :lines: 3,23-50
 
 
 .. _ex arg deco:
@@ -114,7 +113,8 @@ You can then use the decorator like before:
 Using a composed function to process arguments to a parameter
 -------------------------------------------------------------
 
-You can use `clize.parameters.argument_decorator` to have a second function process an argument while still being able to use parameters of its own:
+You can use `clize.parameters.argument_decorator` to have a second function
+process an argument while still being able to use parameters of its own:
 
 .. code-block:: python
 
@@ -133,6 +133,7 @@ You can use `clize.parameters.argument_decorator` to have a second function proc
         """
         return (arg, port, _6)
 
+
     def get_page(server:read_server, path):
         """
         server: The server to contact
@@ -140,6 +141,7 @@ You can use `clize.parameters.argument_decorator` to have a second function proc
         path: The path of the resource to fetch
         """
         print("Connecting to", server, "to get", path)
+
 
     run(get_page)
 
@@ -165,15 +167,15 @@ its collected arguments. Its return value is then used as the ``server`` paramet
 
 A few notes:
 
-* You can only use named parameters besides ``arg`` which receives the original
-  value.
-* The decorator's docstring is used to document its parameters. It is usually
-  preferrable to use a :ref:`section <sections doc>` as they would not be
-  distinguished from other parameters otherwise.
-* Appearances of ``{param}`` are replaced with the parameter's name.
+* Besides ``arg`` which receives the original value, you can only use named
+  parameters
+* The decorator's docstring is used to document its parameters. It can be
+  preferrable to use a :ref:`section <sections doc>` in order to distinguish
+  them from other parameters.
+* Appearances of ``{param}`` in the docstring are replaced with the parameter's name.
 
 You can also use this on named parameters as well as on ``*args``, but the
-names of the composited parameters must not conflict:
+names of the composited parameters must not conflict with other parameters:
 
 .. code-block:: python
 
@@ -192,6 +194,7 @@ names of the composited parameters must not conflict:
         """
         return (arg, port, _6)
 
+
     def get_page(path, *servers:read_server):
         """
         server: The server to contact
@@ -199,6 +202,7 @@ names of the composited parameters must not conflict:
         path: The path of the resource to fetch
         """
         print("Connecting to", servers, "to get", path)
+
 
     run(get_page)
 

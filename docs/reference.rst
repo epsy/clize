@@ -60,7 +60,8 @@ When only one annotation is needed, you can omit the sequence:
 Annotations for parameters that handle a value
 ----------------------------------------------
 
-The positional and options parameters detailed later both handle the following features:
+The positional and options parameters detailed later both handle the following
+features:
 
 .. index:: value conversion, value converter
 
@@ -69,7 +70,7 @@ The positional and options parameters detailed later both handle the following f
 Specifying a value converter
 ............................
 
-A function or callable decorated with `parser.value_converter` passed as
+A function or callable decorated with `.parser.value_converter` passed as
 annotation will be used during parsing to convert the value from the string
 found in `sys.argv` into a value suitable for the annotated function.
 
@@ -95,7 +96,8 @@ found in `sys.argv` into a value suitable for the annotated function.
 
 ``def`` was transformed into ``xdefy`` because of the value converter.
 
-Besides callables decorated with `parser.value converter`, the built-in functions `int`, `float` and `bool` are also recognized as value converters.
+Besides callables decorated with `.parser.value_converter`, the built-in
+functions `int`, `float` and `bool` are also recognized as value converters.
 
 
 .. index:: default value
@@ -168,7 +170,8 @@ Positional parameters
 ---------------------
 
 Normal parameters in Python are turned into positional parameters on the CLI.
-Plain arguments on the command line (those that don't start with a ``-``) are processed by those and assigned in the order they appear:
+Plain arguments on the command line (those that don't start with a ``-``) are
+processed by those and assigned in the order they appear:
 
 .. code-block:: python
 
@@ -197,7 +200,8 @@ Parameter that collects remaining positional arguments
 ------------------------------------------------------
 
 
-An ``*args``-like parameter in Python becomes a repeatable positional parameter on the CLI:
+An ``*args``-like parameter in Python becomes a repeatable positional parameter
+on the CLI:
 
 .. code-block:: python
 
@@ -216,7 +220,7 @@ An ``*args``-like parameter in Python becomes a repeatable positional parameter 
         args ('two', 'three')
 
 
-.. moreattribute:: `Parameter.REQUIRED`
+.. moreattribute:: Parameter.REQUIRED
 
     When used on an ``*args`` parameter, requires at least one value to be
     provided.
@@ -383,7 +387,8 @@ value:
     $ python flag.py --flag=0
     flag False
 
-Additionally, you can chain their short form on the command line with other short parameters:
+Additionally, you can chain their short form on the command line with other
+short parameters:
 
 .. code-block:: python
 

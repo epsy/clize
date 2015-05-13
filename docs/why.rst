@@ -53,7 +53,7 @@ statements with a list of parameters, and that bundle is now accessible from
 the command-line.
 
 However, we lose several features in this process: Our simpler version can't
-process named arguments like ``--no-capitalize``, there is also no ``--help``
+process named arguments like ``--no-capitalize``, there is no ``--help``
 function of any sort, and all errors just come up as tracebacks, which would be
 confusing for the uninitiated.
 
@@ -129,8 +129,8 @@ by external code and made usable the same way as `clize.parameters.multi` or
 "Why not create a thin wrapper around argparse?"
 ------------------------------------------------
 
-Back in Clize's first release, `argparse`'s parser would have been
-sufficientfor what Clize proposed. I wasn't really interested in dealing with
-`argparse` at the time however. With Clize 3's, replacing its new parser with
-`argparse` would cause a loss in flexibility, in parameter types and help
-message formatting.
+Back during Clize's first release, `argparse`'s parser would have been
+sufficient for what Clize proposed, though I wasn't really interested in
+dealing with it at the time. With Clize 3's extensible parser, replacing it
+with `argparse` would be a loss in flexibility, in parameter capabilities and
+help message formatting.

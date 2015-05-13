@@ -10,9 +10,10 @@ So far the previous part of the tutorial showed you how to use clize to
 :ref:`run a single function <basics>`. Sometimes your program will need to
 perform diffferent related actions that involve different parameters. For
 instance, `git <http://git-scm.com/>`_ offers all kinds of commands related to
-managing a versionned code repository under the ``git`` command. Your
-program could have a few auxiliary functions, like verifying the format of a
-config file, or simply displaying the program's version.
+managing a versionned code repository under the ``git`` command. Alternatively,
+your program could have one main function and a few auxiliary ones, for
+instance for verifying the format of a config file, or simply for displaying
+the program's version.
 
 
 .. _alternate commands:
@@ -92,7 +93,7 @@ drawn from the function names don't suit you:
                     Show the version
 
 Using a `collections.OrderedDict` instance rather than `dict` will guarantee
-the order they appear in the help.
+the order they appear in the help is the same as in the source.
 
 
 .. _multiple commands:
@@ -131,10 +132,10 @@ Alternatively, as with :ref:`alternate commands <alternate commands>`, you can
 pass in an :term:`python:iterable`, a `dict` or an `~collections.OrderedDict`.
 
 Because it isn't passed a regular function with a docstring, Clize can't
-determine an appropriate description from a docstring. You can give it a
-description explicitly with the ``description=`` parameter. Likewise, you an
-add footnotes with the ``footnotes=`` parameter. The format is the same as with
-other docstrings, without the need for documenting parameters.
+determine an appropriate description from a docstring. You can explicitly give
+it a description with the ``description=`` parameter. Likewise, you an add
+footnotes with the ``footnotes=`` parameter. The format is the same as with
+other docstrings, just without documentation for parameters.
 
 .. literalinclude:: /../examples/multicommands.py
     :lines: 17-21
@@ -154,4 +155,4 @@ other docstrings, without the need for documenting parameters.
 
 Often, you will need to share a few characteristics, for instance a set of
 parameters, between multiple functions. See how Clize helps you do that in
-:ref:`function-compositing`.
+:ref:`function compositing`.
