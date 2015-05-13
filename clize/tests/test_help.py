@@ -7,7 +7,7 @@ from itertools import count
 from sigtools.support import f
 from sigtools.wrappers import wrapper_decorator
 
-from clize import runner, help, parser
+from clize import runner, help, parser, util
 from clize.tests.util import repeated_test
 
 USAGE_HELP = 'func --help [--usage]'
@@ -593,13 +593,22 @@ class WrappedFuncTests(object):
 @repeated_test
 class FormattingTests(object):
     def _test_func(self, sig, doc, help_str):
-        func = f(sig, pre="from clize import Parameter as P")
-        func.__doc__ = doc
-        r = runner.Clize(func)
-        h = help.ClizeHelp(r, None)
-        h.prepare()
-        p_help_str = str(h.show('func'))
-        self.assertEqual(help_str, p_help_str)
+        try:
+            backw = util.get_terminal_width
+        except AttributeError:
+            backw = None
+        try:
+            util.get_terminal_width = lambda: 80
+            func = f(sig, pre="from clize import Parameter as P")
+            func.__doc__ = doc
+            r = runner.Clize(func)
+            h = help.ClizeHelp(r, None)
+            h.prepare()
+            p_help_str = str(h.show('func'))
+            self.assertEqual(help_str, p_help_str)
+        finally:
+            if backw is not None:
+                util.get_terminal_width = backw
 
     wrap = "", """
         Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis a est neque. Nullam ornare sem eu commodo gravida.
