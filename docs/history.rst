@@ -13,7 +13,7 @@ Version Release date        Major changes
 2.0     October 7th 2012    Subcommands, Python 3 syntax support
 2.2     August 31st 2013    Minor additions
 2.4     October 2nd 2013    Bugfixes
-3.0     TDB                 Extensibility, decorators, focus on py3
+3.0     May 13th 2015       Extensibility, decorators, focus on py3
 ======= =================== =======================================
 
 You can also browse the :ref:`release notes <releases>`.
