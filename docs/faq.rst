@@ -106,25 +106,6 @@ functions. All Clize sees is the finished accurate signature from which it
 infers a CLI.
 
 
-.. _faq mutual exclusive flag:
-
-How can I write mutually exclusive flags?
------------------------------------------
-
-Mutually exclusive flags refer to when a user can use one flag A (``--flag-a``)
-or the other (``--flag-b``), but not both at the same time.
-
-It is a feature that is difficult to express in a function signature as well as
-on the ``--help`` screen for the user (other than in the full usage form).
-It is therefore recommended to use a positional parameter or option that
-accepts one of specific values. `~clize.parameters.one_of` can help you do
-that.
-
-If you still think mutually exclusive parameters are your best option, you can
-check for the condition in your function and raise `clize.ArgumentError`, as in
-the :ref:`arbitrary requirements` part of the tutorial.
-
-
 .. _faq other parsers:
 
 What other libraries can be used for argument parsing?
@@ -148,6 +129,25 @@ Others:
   <http://twistedmatrix.com/documents/13.1.0/core/howto/options.html>`
 * `optparse` and `getopt` from the standard library, both deprecated.
 * Many, many more.
+
+
+.. _faq mutual exclusive flag:
+
+How can I write mutually exclusive flags?
+-----------------------------------------
+
+Mutually exclusive flags refer to when a user can use one flag A (``--flag-a``)
+or the other (``--flag-b``), but not both at the same time.
+
+It is a feature that is difficult to express in a function signature as well as
+on the ``--help`` screen for the user (other than in the full usage form).
+It is therefore recommended to use a positional parameter or option that
+accepts one of specific values. `~clize.parameters.one_of` can help you do
+that.
+
+If you still think mutually exclusive parameters are your best option, you can
+check for the condition in your function and raise `clize.ArgumentError`, as in
+the :ref:`arbitrary requirements` part of the tutorial.
 
 
 .. index:: DRY
