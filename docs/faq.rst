@@ -96,9 +96,9 @@ from.
 For the second, some tooling would be necessary to specify how exactly a
 decorator affected a wrapped function's parameters.
 
-Modifying and making signatures more useful was both enough complex and
-independent from command-line argument parsing that it was made a separate
-library as `sigtools`.
+Modifying and making signatures more useful was both complex and independent
+from command-line argument parsing, so it was made a separate library as
+`sigtools`.
 
 So there you have it, `sigtools` helps you add keyword-only parameters on
 Python 2, and helps decorators specify how they alter parameters on decorated
