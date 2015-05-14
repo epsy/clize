@@ -125,6 +125,31 @@ check for the condition in your function and raise `clize.ArgumentError`, as in
 the :ref:`arbitrary requirements` part of the tutorial.
 
 
+.. _faq other parsers:
+
+What other libraries can be used for argument parsing?
+------------------------------------------------------
+
+Similar to Clize in that parameter behavior is inferred from a function
+signature:
+
+* `Baker <https://bitbucket.org/mchaput/baker/wiki/Home>`_
+* `argh <http://argh.readthedocs.org/>`: Based on `argparse`, optionally lets
+  you add parameters using a decorator API similar to `argparse`.
+
+Others:
+
+* `argparse` from the standard library.
+* `doctopt <http://docopt.org/>`: Generates a CLI parser based on
+  the ``--help`` page you give it.
+* `click <http://click.pocoo.org/>`: `argparse`-like specifications as
+  decorators, powerful command nesting tools
+* `twisted.python.usage
+  <http://twistedmatrix.com/documents/13.1.0/core/howto/options.html>`
+* `optparse` and `getopt` from the standard library, both deprecated.
+* Many, many more.
+
+
 .. index:: DRY
 .. _faq share features:
 
