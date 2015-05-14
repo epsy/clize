@@ -39,8 +39,8 @@ interface for it:
     Hello world!
     $ python hello.py john
     Hello John!
-    $ python hello.py --no-capitalize
-    Hello john!
+    $ python hello.py dave --no-capitalize
+    Hello dave!
 
 
 .. rubric:: Interested?
