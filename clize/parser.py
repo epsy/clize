@@ -1010,6 +1010,12 @@ class CliBoundArguments(object):
 
     """
 
+    """
+    Similarity threshold below which argument suggestions are dropped. Used
+    when the user enters an incorrect argument and we try to suggest a valid
+    argument instead.
+    """
+    threshold = 0.75
 
     def __init__(self, sig, args, name):
         self.sig = sig
@@ -1074,6 +1080,15 @@ class CliBoundArguments(object):
                 p.post_parse(self)
 
         del self.sticky, self.posarg_only, self.skip, self.unsatisfied
+
+    def get_best_guess(self, passed_in_arg):
+        if len(self.sig.aliases) > 0:
+            closest_match = max(self.sig.aliases, \
+                key=partial(util.compute_similarity, passed_in_arg))
+            if util.compute_similarity(passed_in_arg, closest_match) >= \
+                self.threshold:
+                return closest_match
+        return None
 
     def __iter__(self):
         yield self.func

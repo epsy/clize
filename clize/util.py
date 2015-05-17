@@ -8,6 +8,7 @@ import os
 from functools import update_wrapper
 import itertools
 import textwrap
+from difflib import SequenceMatcher
 
 try:
     from collections import OrderedDict
@@ -28,6 +29,10 @@ try:
     zip_longest = itertools.zip_longest
 except AttributeError:
     zip_longest = itertools.izip_longest
+
+def compute_similarity(word1, word2):
+    seq_matcher = SequenceMatcher(None, word1, word2)
+    return seq_matcher.ratio()
 
 def name_py2cli(name, kw=False):
     name = name.strip('_').replace('_', '-')
