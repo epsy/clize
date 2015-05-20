@@ -1,3 +1,7 @@
+# clize -- A command-line argument parser for Python
+# Copyright (C) 2011-2015 by Yann Kaiser and contributors. See AUTHORS and
+# COPYING for details.
+
 """Adds auto- and domain directives that don't clash the referencing system"""
 from sphinx.domains import python
 from sphinx.ext import autodoc

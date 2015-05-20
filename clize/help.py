@@ -1,7 +1,6 @@
-# clize - automatically generate command-line interfaces from callables
 # clize -- A command-line argument parser for Python
-# Copyright (C) 2011-2015 by Yann Kaiser <kaiser.yann@gmail.com>
-# See COPYING for details.
+# Copyright (C) 2011-2015 by Yann Kaiser and contributors. See AUTHORS and
+# COPYING for details.
 
 from __future__ import unicode_literals
 
