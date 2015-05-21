@@ -444,6 +444,12 @@ class SigErrorTests(object):
     unknown_kw_after_short_flag = (
         '*, o=False', ['-oa'], errors.UnknownOption,
         'Unknown option \'-a\'')
+    unknown_kv_guess = (
+        '*, bar', ['--baa'], errors.UnknownOption,
+        'Unknown option \'--baa\'. Did you mean \'--bar\'?')
+    unknown_kw_no_guess = (
+        '*, bar', ['--foo'], errors.UnknownOption,
+        'Unknown option \'--foo\'')
     missing_value = (
         '*, one', ['--one'], errors.MissingValue,
         'No value found after --one')

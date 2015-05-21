@@ -80,7 +80,14 @@ class UnknownOption(ArgumentError):
 
     @property
     def message(self):
-        return "Unknown option {0!r}".format(self.name)
+        best_guess = None
+        if self.ba:
+            best_guess = self.ba.get_best_guess(self.name)
+        if best_guess:
+            return "Unknown option {0!r}. Did you mean {1!r}?" \
+                .format(self.name, best_guess)
+        else:
+            return "Unknown option {0!r}".format(self.name)
 
 
 class MissingValue(ArgumentError):
