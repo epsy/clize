@@ -118,3 +118,4 @@ Information on how Clize is organized as a project.
 .. toctree::
 
     releases
+    contributing
