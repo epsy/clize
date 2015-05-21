@@ -2,6 +2,9 @@
 Clize
 *****
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/epsy/clize
+   :target: https://gitter.im/epsy/clize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 .. image:: https://travis-ci.org/epsy/clize.svg?branch=master
     :target: https://travis-ci.org/epsy/clize
 .. image:: https://coveralls.io/repos/epsy/clize/badge.svg?branch=master
