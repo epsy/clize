@@ -47,6 +47,7 @@ interface for it:
 
 * Follow the :ref:`tutorial <basics>`
 * Browse the |examples_url|_
+* Ask for help `on Gitter <https://gitter.im/epsy/clize>`_
 * Check out :ref:`why Clize was made <why>`
 * Star, watch or fork `Clize on GitHub <https://github.com/epsy/clize>`_
 

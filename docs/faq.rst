@@ -166,8 +166,8 @@ Yes! You can use decorators much like in regular Python code, see
 Where can I find more help?
 ---------------------------
 
-You can get help by :ref:`contacting me directly <contact>`, using the `#clize
-#python hashtag on Twitter
+You can get help by :ref:`contacting me directly <contact>`, writing in the dedicated `Gitter chatroom <https://gitter.im/epsy/clize>`_, using the `#clize
+#python hashtags on Twitter
 <https://twitter.com/search?f=realtime&q=%23clize%20%23python>`_, or by posting
 in the `Clize Google+
 community <https://plus.google.com/communities/101146333300650079362>`_.
