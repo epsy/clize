@@ -19,7 +19,7 @@ Basics
 Installation
 ------------
 
-You can install clize using |pip|_. If in an activated virtualenv, type:
+You can install clize using |pip|_. If in an activated |virtualenv|_, type:
 
 .. code-block:: console
 
