@@ -8,3 +8,9 @@ from clize.parser import Parameter
 from clize.runner import Clize, SubcommandDispatcher, run
 from clize.legacy import clize, make_flag
 from clize.errors import UserError, ArgumentError
+
+__all__ = [
+    'run', 'Parameter', 'UserError',
+    'Clize', 'ArgumentError', 'SubcommandDispatcher',
+    'clize', 'make_flag'
+]
