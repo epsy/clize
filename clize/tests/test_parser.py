@@ -5,15 +5,14 @@
 from sigtools import support, modifiers, specifiers
 
 from clize import parser, errors, util
-from clize.tests.util import repeated_test, testfunc, read_arguments
+from clize.tests.util import Fixtures
 
 
 _ic = parser._implicit_converters
 
 
-@repeated_test
-class FromSigTests(object):
-    def _test_func(self, sig_str, typ, str_rep, attrs):
+class FromSigTests(Fixtures):
+    def _test(self, sig_str, typ, str_rep, attrs):
         sig = support.s(sig_str, pre='from clize import Parameter')
         return self._do_test(sig, typ, str_rep, attrs)
 
@@ -127,7 +126,7 @@ class FromSigTests(object):
             'conv': conv
         })
         csig = parser.CliSignature.from_signature(sig)
-        ba = read_arguments(csig, ['--par=arg'])
+        ba = self.read_arguments(csig, ['--par=arg'])
         arg = ba.kwargs['par']
         self.assertTrue(arg is s)
 
@@ -146,10 +145,10 @@ class FromSigTests(object):
             'conv': conv,
         })
         csig = parser.CliSignature.from_signature(sig)
-        self.assertEqual(read_arguments(csig, []).kwargs, {})
-        self.assertEqual(read_arguments(csig, ['--par']).kwargs,
+        self.assertEqual(self.read_arguments(csig, []).kwargs, {})
+        self.assertEqual(self.read_arguments(csig, ['--par']).kwargs,
                          {'par': 'eggs'})
-        self.assertEqual(read_arguments(csig, ['--par=ham']).kwargs,
+        self.assertEqual(self.read_arguments(csig, ['--par=ham']).kwargs,
                          {'par': 'ham'})
 
     def test_flagp_conv_short(self):
@@ -167,10 +166,10 @@ class FromSigTests(object):
             'conv': conv,
         })
         csig = parser.CliSignature.from_signature(sig)
-        self.assertEqual(read_arguments(csig, []).kwargs, {})
-        self.assertEqual(read_arguments(csig, ['-p']).kwargs,
+        self.assertEqual(self.read_arguments(csig, []).kwargs, {})
+        self.assertEqual(self.read_arguments(csig, ['-p']).kwargs,
                          {'par': 'eggs'})
-        self.assertEqual(read_arguments(csig, ['-po']).kwargs,
+        self.assertEqual(self.read_arguments(csig, ['-po']).kwargs,
                          {'par': 'eggs', 'o': True})
 
     def test_alias_multi(self):
@@ -214,18 +213,15 @@ class FromSigTests(object):
         self.assertEqual(repr(f2), 'someobject.someflag')
 
 
-@testfunc
-def signaturetests(self, sig_str, str_rep, args, posargs, kwargs):
-    sig = support.s(sig_str, locals={'P': parser.Parameter})
-    csig = parser.CliSignature.from_signature(sig)
-    ba = read_arguments(csig, args)
-    self.assertEqual(str(csig), str_rep)
-    self.assertEqual(ba.args, posargs)
-    self.assertEqual(ba.kwargs, kwargs)
+class SigTests(Fixtures):
+    def _test(self, sig_str, str_rep, args, posargs, kwargs):
+        sig = support.s(sig_str, locals={'P': parser.Parameter})
+        csig = parser.CliSignature.from_signature(sig)
+        ba = self.read_arguments(csig, args)
+        self.assertEqual(str(csig), str_rep)
+        self.assertEqual(ba.args, posargs)
+        self.assertEqual(ba.kwargs, kwargs)
 
-
-@signaturetests
-class SigTests(object):
     pos = (
         'one, two, three', 'one two three',
         ('1', '2', '3'), ['1', '2', '3'], {})
@@ -323,20 +319,19 @@ class SigTests(object):
         self.assertEqual(str(csig), '')
 
 
-@testfunc
-def extraparamstests(self, sig_str, extra, args, posargs, kwargs, func):
-    sig = support.s(sig_str)
-    csig = parser.CliSignature.from_signature(sig, extra=extra)
-    ba = read_arguments(csig, args)
-    self.assertEqual(ba.args, posargs)
-    self.assertEqual(ba.kwargs, kwargs)
-    self.assertEqual(ba.func, func)
 
+class ExtraParamsTests(Fixtures):
+    def _test(self, sig_str, extra, args, posargs, kwargs, func):
+        sig = support.s(sig_str)
+        csig = parser.CliSignature.from_signature(sig, extra=extra)
+        ba = self.read_arguments(csig, args)
+        self.assertEqual(ba.args, posargs)
+        self.assertEqual(ba.kwargs, kwargs)
+        self.assertEqual(ba.func, func)
 
-@extraparamstests
-class ExtraParamsTests(object):
     _func = support.f('')
     _func2 = support.f('')
+
     alt_cmd = (
         '', [parser.AlternateCommandParameter(func=_func, aliases=['--alt'])],
         ('--alt', 'a', '-b', '--third'),
@@ -386,15 +381,10 @@ class ExtraParamsTests(object):
                     func=_func, aliases=['--alt'])],
             ('a', '--alt', 'a', 'b'), ['a', 'b'], {}, _func
             ]
-        self.assertRaises(
-            errors.ArgsBeforeAlternateCommand,
-            self._test_func, *args)
-        try:
-            self._test_func(*args)
-        except errors.ArgsBeforeAlternateCommand as e:
-            self.assertEqual(
-                'Error: Arguments found before alternate '
-                'action parameter --alt', str(e))
+        exp_msg = ('Error: Arguments found before alternate '
+                   'action parameter --alt')
+        with self.assertRaises(errors.ArgsBeforeAlternateCommand, msg=exp_msg):
+            self._test(*args)
 
     def test_param_extras(self):
         extra_params = [
@@ -409,19 +399,14 @@ class ExtraParamsTests(object):
         self.assertEqual('[-a] [-b] [-c] one', str(csig))
 
 
-@testfunc
-def sigerrortests(self, sig_str, args, exc_typ, message):
-    sig = support.s(sig_str)
-    csig = parser.CliSignature.from_signature(sig)
-    self.assertRaises(exc_typ, read_arguments, csig, args)
-    try:
-        read_arguments(csig, args)
-    except exc_typ as e:
-        self.assertEqual('Error: ' + message, str(e))
 
+class SigErrorTests(Fixtures):
+    def _test(self, sig_str, args, exc_typ, message):
+        sig = support.s(sig_str)
+        csig = parser.CliSignature.from_signature(sig)
+        with self.assertRaises(exc_typ, msg='Error: ' + message):
+            self.read_arguments(csig, args)
 
-@sigerrortests
-class SigErrorTests(object):
     not_enough_pos = (
         'one, two', ['1'], errors.MissingRequiredArguments,
         'Missing required arguments: two')
@@ -463,20 +448,9 @@ class SigErrorTests(object):
             raise NotImplementedError
         csig = parser.CliSignature.from_signature(
             specifiers.signature(func))
-        self.assertRaises(
-            errors.MissingRequiredArguments,
-            read_arguments, csig, ()
-            )
+        with self.assertRaises(errors.MissingRequiredArguments):
+            self.read_arguments(csig, ())
 
-
-@testfunc
-def badparam(self, sig_str, locals=None):
-    if locals is None:
-        locals = {}
-    sig = support.s(sig_str, pre='from clize import Parameter', locals=locals)
-    params = list(sig.parameters.values())
-    self.assertRaises(
-        ValueError, parser.CliSignature.convert_parameter, params[0])
 
 
 class UnknownAnnotation(object):
@@ -488,8 +462,15 @@ class UnknownDefault(object):
         self.arg = arg
 
 
-@badparam
-class BadParamTests(object):
+class BadParamTests(Fixtures):
+    def _test(self, sig_str, locals=None):
+        if locals is None:
+            locals = {}
+        sig = support.s(sig_str, pre='from clize import Parameter', locals=locals)
+        params = list(sig.parameters.values())
+        with self.assertRaises(ValueError):
+            parser.CliSignature.convert_parameter(params[0])
+
     alias_superfluous = 'one: "a"',
     alias_spaces = '*, one: "a b"',
     alias_duplicate = '*, one: dup', {'dup': ('a', 'a')}
@@ -504,12 +485,10 @@ class BadParamTests(object):
     unimplemented_parameter = '**kwargs',
 
 
-@testfunc
-def badsig(self, sig_str):
-    sig = support.s(sig_str, pre='from clize import Parameter')
-    self.assertRaises(ValueError, parser.CliSignature.from_signature, sig)
 
+class BadSigTests(Fixtures):
+    def _test(self, sig_str):
+        sig = support.s(sig_str, pre='from clize import Parameter')
+        self.assertRaises(ValueError, parser.CliSignature.from_signature, sig)
 
-@badsig
-class BadSigTests(object):
     alias_overlapping = '*, one: "a", two: "a"',

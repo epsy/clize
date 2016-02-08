@@ -8,13 +8,13 @@ from sigtools.support import f
 from sigtools.wrappers import wrapper_decorator
 
 from clize import runner, help, parser, util
-from clize.tests.util import repeated_test
+from clize.tests.util import Fixtures
 
 USAGE_HELP = 'func --help [--usage]'
 
-@repeated_test
-class WholeHelpTests(object):
-    def _test_func(self, sig, doc, usage, help_str):
+
+class WholeHelpTests(Fixtures):
+    def _test(self, sig, doc, usage, help_str):
         func = f(sig, pre="from clize import Parameter as P")
         func.__doc__ = doc
         r = runner.Clize(func)
@@ -349,7 +349,7 @@ class WholeHelpTests(object):
 
         Footer
     """
-    undocumented = "one:P.U, two:P.U, *args:P.U, alpha:P.U, beta:P.U", """
+    undocumented_all = "one:P.U, two:P.U, *args:P.U, alpha:P.U, beta:P.U", """
         Description
 
         two: unseen
@@ -443,9 +443,8 @@ class WholeHelpTests(object):
 
 
 
-@repeated_test
-class WrappedFuncTests(object):
-    def _test_func(self, sig, wrapper_sigs, doc, wrapper_docs, help_str):
+class WrappedFuncTests(Fixtures):
+    def _test(self, sig, wrapper_sigs, doc, wrapper_docs, help_str):
         ifunc = f(sig, pre="from clize import Parameter")
         ifunc.__doc__ = doc
         func = ifunc
@@ -590,9 +589,8 @@ class WrappedFuncTests(object):
     """
 
 
-@repeated_test
-class FormattingTests(object):
-    def _test_func(self, sig, doc, help_str):
+class FormattingTests(Fixtures):
+    def _test(self, sig, doc, help_str):
         try:
             backw = util.get_terminal_width
         except AttributeError:
@@ -703,9 +701,8 @@ class FormattingTests(object):
     )
 
 
-@repeated_test
-class DispatcherHelper(object):
-    def _test_func(self, description, footer, sigs, docs, usage, help_str):
+class DispatcherHelper(Fixtures):
+    def _test(self, description, footer, sigs, docs, usage, help_str):
         funcs = []
         for i, sig, doc in zip(count(1), sigs, docs):
             func = f(sig)
@@ -833,4 +830,3 @@ class DispatcherHelper(object):
             ext
             func
         """)
-

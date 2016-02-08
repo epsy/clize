@@ -3,21 +3,12 @@
 # COPYING for details.
 
 from clize import util
-from clize.tests import util as testutil
+from clize.tests.util import Fixtures
 
 
 def formatter(**kwargs):
     kwargs.setdefault('max_width', 50)
     return util.Formatter(**kwargs)
-
-
-@testutil.testfunc
-def formatter_tests(self, func, expected_ret):
-    f = formatter(max_width=50)
-    ret = func(self, f)
-    if ret is None:
-        ret = f
-    self.assertEqual(expected_ret, str(f))
 
 
 def equal(s):
@@ -32,8 +23,14 @@ lorem = (
 slorem = 'Lorem ipsum dolor sit amet'
 
 
-@formatter_tests
-class FormatterTests(object):
+class FormatterTests(Fixtures):
+    def _test(self, func, expected_ret):
+        f = formatter(max_width=50)
+        ret = func(self, f)
+        if ret is None:
+            ret = f
+        self.assertEqual(expected_ret, str(f))
+
     @equal('')
     def empty(self, f):
         pass

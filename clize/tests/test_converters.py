@@ -3,7 +3,6 @@
 # COPYING for details.
 
 from datetime import datetime
-import unittest
 import tempfile
 import shutil
 import os
@@ -12,12 +11,11 @@ import stat
 from sigtools import support, modifiers
 
 from clize import parser, errors, converters
-from clize.tests import util
+from clize.tests.util import Fixtures
 
 
-@util.repeated_test
-class ConverterRepTests(object):
-    def _test_func(self, conv, rep):
+class ConverterRepTests(Fixtures):
+    def _test(self, conv, rep):
         sig = support.s('*, par: c', locals={'c': conv})
         csig = parser.CliSignature.from_signature(sig)
         self.assertEqual(str(csig), rep)
@@ -26,19 +24,18 @@ class ConverterRepTests(object):
     file = converters.file(), '--par=FILE'
 
 
-@util.repeated_test
-class ConverterTests(object):
-    def _test_func(self, conv, inp, out):
+class ConverterTests(Fixtures):
+    def _test(self, conv, inp, out):
         sig = support.s('*, par: c', locals={'c': conv})
         csig = parser.CliSignature.from_signature(sig)
-        ba = util.read_arguments(csig, ['--par', inp])
+        ba = self.read_arguments(csig, ['--par', inp])
         self.assertEqual(out, ba.kwargs['par'])
 
     dt_jan1 = (
         converters.datetime, '2014-01-01 12:00', datetime(2014, 1, 1, 12, 0))
 
 
-class FileConverterTests(unittest.TestCase):
+class FileConverterTests(Fixtures):
     def setUp(self):
         self.temp = tempfile.mkdtemp()
 
@@ -48,7 +45,7 @@ class FileConverterTests(unittest.TestCase):
     def run_conv(self, conv, path):
         sig = support.s('*, par: c', locals={'c': conv})
         csig = parser.CliSignature.from_signature(sig)
-        ba = util.read_arguments(csig, ['--par', path])
+        ba = self.read_arguments(csig, ['--par', path])
         return ba.kwargs['par']
 
     def test_ret_type(self):
@@ -66,7 +63,7 @@ class FileConverterTests(unittest.TestCase):
                 self.assertEqual(f.name, path)
                 self.assertEqual(f.mode, 'r')
             self.assertTrue(f.closed)
-        o, e = util.run(func, ['test', path])
+        o, e = self.crun(func, ['test', path])
         self.assertFalse(o.getvalue())
         self.assertFalse(e.getvalue())
 
@@ -80,7 +77,7 @@ class FileConverterTests(unittest.TestCase):
                 self.assertEqual(f.mode, 'w')
             self.assertTrue(f.closed)
             self.assertTrue(os.path.exists(path))
-        o, e = util.run(func, ['test', path])
+        o, e = self.crun(func, ['test', path])
         self.assertFalse(o.getvalue())
         self.assertFalse(e.getvalue())
 
@@ -91,7 +88,7 @@ class FileConverterTests(unittest.TestCase):
         @modifiers.annotate(afile=converters.file())
         def func(afile):
             raise NotImplementedError
-        stdout, stderr = util.run(func, ['test', path])
+        stdout, stderr = self.crun(func, ['test', path])
         self.assertFalse(stdout.getvalue())
         self.assertTrue(stderr.getvalue().startswith(
             'test: Bad value for afile: File does not exist: '))
@@ -103,7 +100,7 @@ class FileConverterTests(unittest.TestCase):
         @modifiers.annotate(afile=converters.file(mode='w'))
         def func(afile):
             raise NotImplementedError
-        stdout, stderr = util.run(func, ['test', path])
+        stdout, stderr = self.crun(func, ['test', path])
         self.assertFalse(stdout.getvalue())
         self.assertTrue(stderr.getvalue().startswith(
             'test: Bad value for afile: Directory does not exist: '))
@@ -131,18 +128,17 @@ class FileConverterTests(unittest.TestCase):
             os.chmod(path, stat.S_IRUSR)
             with afile:
                 raise NotImplementedError
-        stdout, stderr = util.run(func, ['test', path])
+        stdout, stderr = self.crun(func, ['test', path])
         self.assertFalse(stdout.getvalue())
         self.assertTrue(stderr.getvalue().startswith(
             'test: Permission denied: '))
 
 
-@util.repeated_test
-class ConverterErrorTests(object):
-    def _test_func(self, conv, inp):
+class ConverterErrorTests(Fixtures):
+    def _test(self, conv, inp):
         sig = support.s('*, par: c', locals={'c': conv})
         csig = parser.CliSignature.from_signature(sig)
         self.assertRaises(errors.BadArgumentFormat,
-                          util.read_arguments, csig, ['--par', inp])
+                          self.read_arguments, csig, ['--par', inp])
 
     dt_baddate = converters.datetime, 'not a date'

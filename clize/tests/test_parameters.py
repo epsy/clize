@@ -5,24 +5,30 @@
 from sigtools import support, modifiers
 
 from clize import parser, errors, Parameter, runner, parameters
-from clize.tests import util
+from clize.tests.util import Fixtures
 
 
-@util.testfunc
-def check_repr(self, sig_str, annotation, str_rep):
+def _test_annotated_signature(self, sig_info, in_args, args, kwargs):
+    sig_str, annotation, str_rep = sig_info
     sig = support.s(sig_str, locals={'a': annotation})
     csig = parser.CliSignature.from_signature(sig)
-    self.assertEqual(str_rep, str(csig))
+    ba = self.read_arguments(csig, in_args)
+    self.assertEqual(ba.args, args)
+    self.assertEqual(ba.kwargs, kwargs)
 
-
-@util.testfunc
-def test_bad_param(self, sig_str, annotation, error=ValueError):
+def _test_annotated_error(
+        self, sig_info, in_args, exc=errors.BadArgumentFormat, message=None):
+    sig_str, annotation, str_rep = sig_info
     sig = support.s(sig_str, locals={'a': annotation})
-    self.assertRaises(error, parser.CliSignature.from_signature, sig)
+    csig = parser.CliSignature.from_signature(sig)
+    self.assertRaises(exc, self.read_arguments, csig, in_args)
+    if message is not None:
+        try:
+            self.read_arguments(csig, in_args)
+        except exc as e:
+            self.assertEqual('Error: ' + message, str(e))
 
-
-@util.testfunc
-def test_help(self, sig_info, doc, expected):
+def _test_help(self, sig_info, doc, expected):
     sig_str, annotation, _ = sig_info
     f = support.f(sig_str, locals={'a': annotation})
     f.__doc__ = doc
@@ -30,32 +36,12 @@ def test_help(self, sig_info, doc, expected):
     self.assertEqual(expected.split(), cli('func', '--help').split())
 
 
-@util.testfunc
-def annotated_sigtests(self, sig_info, in_args, args, kwargs):
-    sig_str, annotation, str_rep = sig_info
-    sig = support.s(sig_str, locals={'a': annotation})
-    csig = parser.CliSignature.from_signature(sig)
-    ba = util.read_arguments(csig, in_args)
-    self.assertEqual(ba.args, args)
-    self.assertEqual(ba.kwargs, kwargs)
+class RepTests(Fixtures):
+    def _test(self, sig_str, annotation, str_rep):
+        sig = support.s(sig_str, locals={'a': annotation})
+        csig = parser.CliSignature.from_signature(sig)
+        self.assertEqual(str_rep, str(csig))
 
-
-@util.testfunc
-def annotated_sigerror_tests(self, sig_info, in_args,
-                             exc=errors.BadArgumentFormat, message=None):
-    sig_str, annotation, str_rep = sig_info
-    sig = support.s(sig_str, locals={'a': annotation})
-    csig = parser.CliSignature.from_signature(sig)
-    self.assertRaises(exc, util.read_arguments, csig, in_args)
-    if message is not None:
-        try:
-            util.read_arguments(csig, in_args)
-        except exc as e:
-            self.assertEqual('Error: ' + message, str(e))
-
-
-@check_repr
-class RepTests(object):
     mapped_basic = ('par:a', parameters.mapped([
         ('greeting', ['hello'], 'h1'),
         ('parting', ['goodbye'], 'h2'),
@@ -193,19 +179,24 @@ class RepTests(object):
     pn_kw = '*, par:a', parameters.pass_name, ''
 
 
-@test_bad_param
-class BadParamTests(object):
+class BadParamTests(Fixtures):
+    def _test(self, sig_str, annotation, error=ValueError):
+        sig = support.s(sig_str, locals={'a': annotation})
+        self.assertRaises(error, parser.CliSignature.from_signature, sig)
+
     @parameters.argument_decorator
     def _with_pokarg(arg, invalid):
         raise NotImplementedError
+
     deco_with_pokarg = 'par: a', _with_pokarg
 
     pn_varargs = '*par: a', parameters.pass_name
     pn_varkwargs = '**par: a', parameters.pass_name
 
 
-@annotated_sigtests
-class MappedTests(object):
+class MappedTests(Fixtures):
+    _test = _test_annotated_signature
+
     exact_1 = RepTests.mapped_basic, ['hello'], ['greeting'], {}
     exact_2 = RepTests.mapped_basic, ['goodbye'], ['parting'], {}
     isec_1 = RepTests.mapped_basic, ['HElLo'], ['greeting'], {}
@@ -227,7 +218,7 @@ class MappedTests(object):
 
     def test_show_list(self):
         func = support.f('par:a', locals={'a': RepTests.mapped_basic[1]})
-        out, err = util.run(func, ['name', 'list'])
+        out, err = self.crun(func, ['name', 'list'])
         self.assertEqual('', err.getvalue())
         self.assertEqual(
             """name: Possible values for par:
@@ -238,7 +229,7 @@ class MappedTests(object):
     def test_show_list_alt(self):
         func = support.f('par:a',
                         locals={'a': RepTests.mapped_alternate_list[1]})
-        out, err = util.run(func, ['name', 'options'])
+        out, err = self.crun(func, ['name', 'options'])
         self.assertEqual('', err.getvalue())
         self.assertEqual(
             """name: Possible values for par:
@@ -248,7 +239,7 @@ class MappedTests(object):
 
     def test_show_list_morekw(self):
         func = support.f('par:a', locals={'a': RepTests.mapped_basic[1]})
-        out, err = util.run(func, ['name', 'list', '-k', 'xyz'])
+        out, err = self.crun(func, ['name', 'list', '-k', 'xyz'])
         self.assertEqual('', err.getvalue())
         self.assertEqual(
             """name: Possible values for par:
@@ -260,8 +251,9 @@ class MappedTests(object):
 baf = errors.BadArgumentFormat
 
 
-@annotated_sigerror_tests
-class MappedErrorTests(object):
+class MappedErrorTests(Fixtures):
+    _test = _test_annotated_error
+
     not_found = RepTests.mapped_basic, ['dog'], baf, 'Bad value for par: dog'
     forced_scase = (
         RepTests.mapped_force_scase, ['thing'],
@@ -273,8 +265,9 @@ class MappedErrorTests(object):
     none = RepTests.mapped_no_list, ['list'], baf, 'Bad value for par: list'
 
 
-@test_help
-class MappedHelpTests(object):
+class MappedHelpTests(Fixtures):
+    _test = _test_help
+
     basic = RepTests.mapped_basic, "par: type of greeting", """
         Usage: func par
         Arguments:
@@ -313,14 +306,15 @@ class MappedHelpTests(object):
     """
 
 
-@annotated_sigtests
-class OneOfTests(object):
+class OneOfTests(Fixtures):
+    _test = _test_annotated_signature
+
     exact = RepTests.oneof_basic, ('hello',), ['hello'], {}
     icase = RepTests.oneof_basic, ('Hello',), ['hello'], {}
 
     def test_show_list(self):
         func = support.f('par:a', locals={'a': RepTests.oneof_help[1]})
-        out, err = util.run(func, ['name', 'list'])
+        out, err = self.crun(func, ['name', 'list'])
         self.assertEqual('', err.getvalue())
         self.assertEqual(
             """name: Possible values for par:
@@ -329,8 +323,9 @@ class OneOfTests(object):
             out.getvalue().split())
 
 
-@annotated_sigtests
-class MultiTests(object):
+class MultiTests(Fixtures):
+    _test = _test_annotated_signature
+
     basic_none = RepTests.multi_basic, (), [], {'par': []}
     basic_one = RepTests.multi_basic, ('--par=one',), [], {'par': ['one']}
     basic_two = (
@@ -371,8 +366,8 @@ class MultiTests(object):
         RepTests.margs_last_opt, ('1', '--par=2'), ['1', '--par=2'], {})
 
 
-@annotated_sigerror_tests
-class MultiErrorTests(object):
+class MultiErrorTests(Fixtures):
+    _test = _test_annotated_error
     req_not_met = RepTests.multi_req, (), errors.MissingRequiredArguments
     min_not_met_1 = (
         RepTests.multi_min, ('--par=one',), errors.NotEnoughValues)
@@ -399,8 +394,7 @@ class MultiErrorTests(object):
         RepTests.margs_max, ('1', '2', '3', '4'), errors.TooManyValues)
 
 
-@test_help
-class MultiHelpTests(object):
+class MultiHelpTests(Fixtures):
     basic = RepTests.multi_basic, "par: addresses", """
         Usage: func [OPTIONS]
         Options:
@@ -410,8 +404,9 @@ class MultiHelpTests(object):
     """
 
 
-@annotated_sigtests
-class DecoTests(object):
+class DecoTests(Fixtures):
+    _test = _test_annotated_signature
+
     blank_pos = RepTests.deco_blank_pos, ['1'], ['1x'], {}
     blank_posd = RepTests.deco_blank_posd, ['1'], ['1x'], {}
     blank_posd_d = RepTests.deco_blank_posd, [], [], {}
@@ -449,6 +444,7 @@ class DecoTests(object):
 
     flag_pos = RepTests.deco_flag_pos, ['-f', '1'], ['1y'], {}
     flag_pos_n = RepTests.deco_flag_pos, ['1'], ['1n'], {}
+    flag_pos_abs = RepTests.deco_flag_pos, ['1'], ['1n'], {}
     flag_posd = RepTests.deco_flag_posd, ['-f', '1'], ['1y'], {}
     flag_posd_n = RepTests.deco_flag_posd, ['1'], ['1n'], {}
     flag_posd_d = RepTests.deco_flag_posd, [], [], {}
@@ -462,9 +458,6 @@ class DecoTests(object):
 
     flag_redisp_a = RepTests.deco_flag_other, ['-fx', '2'], ['2y'], {'x': True}
     flag_redisp_b = RepTests.deco_flag_other, ['-xf', '2'], ['2y'], {'x': True}
-
-    flag_pos = RepTests.deco_flag_pos, ['-f', '1'], ['1y'], {}
-    flag_pos_abs = RepTests.deco_flag_pos, ['1'], ['1n'], {}
 
     int_redisp_a = RepTests.deco_int_other, ['-i5x', 'a'], ['a5'], {'x': True}
     int_redisp_b = RepTests.deco_int_other, ['-xi5', 'a'], ['a5'], {'x': True}
@@ -518,8 +511,9 @@ class DecoTests(object):
 MissingReq = errors.MissingRequiredArguments
 
 
-@annotated_sigerror_tests
-class DecoErrorTests(object):
+class DecoErrorTests(Fixtures):
+    _test = _test_annotated_error
+
     blank_missing = RepTests.deco_blank_pos, [], MissingReq
     pos_kw_missing = RepTests.deco_kw_pos, ['1'], MissingReq
     pos_kw_missing_after = RepTests.deco_kw_pos, ['1', '--kw=y'], MissingReq
@@ -533,9 +527,8 @@ class DecoErrorTests(object):
         RepTests.deco_flag_pos, ['-f'], MissingReq)
 
 
-@util.repeated_test
-class DecoHelpTests(object):
-    def _test_func(self, sig_str, annotation, doc, expected):
+class DecoHelpTests(Fixtures):
+    def _test(self, sig_str, annotation, doc, expected):
         f = support.f(sig_str, locals={'a': annotation})
         f.__doc__ = doc
         cli = runner.Clize.get_cli(f)
@@ -672,14 +665,16 @@ class DecoHelpTests(object):
             -h, --help  Show the help
     """
 
-@annotated_sigtests
-class PnTests(object):
+class PnTests(Fixtures):
+    _test = _test_annotated_signature
+
     pn_pos_solo = RepTests.pn_pos, (), ['test'], {}
     pn_pos_first = RepTests.pn_pos_first, ('arg',), ['test', 'arg'], {}
     pn_kw_solo = RepTests.pn_kw, (), [], {'par': 'test'}
 
-@annotated_sigerror_tests
-class PnErrorTests(object):
+class PnErrorTests(Fixtures):
+    _test = _test_annotated_error
+
     pn_pos_toomany = RepTests.pn_pos, ('arg',), errors.TooManyArguments
     pn_pos_errinnext = (
         RepTests.pn_pos_nextpicky, ('bad',), errors.BadArgumentFormat
@@ -690,6 +685,6 @@ class PnErrorTests(object):
         sig = support.s(sig_str, locals={'a': annotation})
         csig = parser.CliSignature.from_signature(sig)
         try:
-            util.read_arguments(csig, ('bad',))
+            self.read_arguments(csig, ('bad',))
         except errors.BadArgumentFormat as exc:
             self.assertEqual(exc.param.display_name, 'other')

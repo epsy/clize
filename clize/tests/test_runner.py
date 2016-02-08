@@ -9,7 +9,7 @@ import unittest
 
 from six.moves import cStringIO
 
-from clize.tests import util
+from clize.tests.util import Fixtures
 from clize import runner, errors
 
 
@@ -29,9 +29,8 @@ class BadModule(MockModule):
 sp = '/usr/lib/python3.4/site-packages/'
 
 
-@util.repeated_test
-class ModuleNameTests(object):
-    def _test_func(self, filename, name, package, result):
+class ModuleNameTests(Fixtures):
+    def _test(self, filename, name, package, result):
         module = MockModule(filename, name, package)
         self.assertEqual(result, runner.main_module_name(module))
 
@@ -48,9 +47,8 @@ class ModuleNameTests(object):
         self.assertRaises(AttributeError, runner.main_module_name, module)
 
 
-@util.repeated_test
-class GetExcecutableTests(object):
-    def _test_func(self, path, default, result, which='/usr/bin'):
+class GetExcecutableTests(Fixtures):
+    def _test(self, path, default, result, which='/usr/bin'):
         which_backup = getattr(shutil, 'which', None)
         def which_(name, *args, **kwargs):
             if which:
@@ -86,9 +84,9 @@ class GetExcecutableTests(object):
             return
         del shutil.which
         try:
-            self._test_func(*GetExcecutableTests.empty)
+            self._test(*GetExcecutableTests.empty)
             self.assertFalse(hasattr(shutil, 'which'))
-            self._test_func(*GetExcecutableTests.in_path_2)
+            self._test(*GetExcecutableTests.in_path_2)
             self.assertFalse(hasattr(shutil, 'which'))
         finally:
             shutil.which = which_backup
@@ -98,9 +96,8 @@ def get_executable(path, default):
     return default
 
 
-@util.repeated_test
-class FixArgvTests(object):
-    def _test_func(self, argv, path, main, expect, py27=True):
+class FixArgvTests(Fixtures):
+    def _test(self, argv, path, main, expect, py27=True):
         def get_executable(path, default):
             return default
         _get_executable = runner.get_executable
@@ -371,7 +368,7 @@ class GetCliTests(unittest.TestCase):
         obj = object()
         self.assertRaises(TypeError, runner.Clize.get_cli, obj)
 
-class RunnerTests(unittest.TestCase):
+class RunnerTests(Fixtures):
     def test_subcommand(self):
         def func1(x):
             return x+' world'
@@ -431,17 +428,17 @@ class RunnerTests(unittest.TestCase):
     def test_run_silent(self):
         def func():
             pass
-        stdout, stderr = util.run(func, args=['test'])
+        stdout, stderr = self.crun(func, args=['test'])
         self.assertFalse(stdout.getvalue())
         self.assertFalse(stderr.getvalue())
 
     def test_run_multi(self):
         def func1(): return '1'
         def func2(): return '2'
-        stdout, stderr = util.run([func1, func2], args=['test', 'func1'])
+        stdout, stderr = self.crun([func1, func2], args=['test', 'func1'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '1\n')
-        stdout, stderr = util.run([func1, func2], args=['test', 'func2'])
+        stdout, stderr = self.crun([func1, func2], args=['test', 'func2'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '2\n')
         stdout = cStringIO()
@@ -454,16 +451,16 @@ class RunnerTests(unittest.TestCase):
     def test_alt(self):
         def func1(): return '1'
         def func2(): return '2'
-        stdout, stderr = util.run(func1, alt=func2, args=['test'])
+        stdout, stderr = self.crun(func1, alt=func2, args=['test'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '1\n')
-        stdout, stderr = util.run(func1, alt=func2, args=['test', '--func2'])
+        stdout, stderr = self.crun(func1, alt=func2, args=['test', '--func2'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '2\n')
 
     def test_disable_help(self):
         def func1(): raise NotImplementedError
-        stdout, stderr = util.run(
+        stdout, stderr = self.crun(
             func1, help_names=[], args=['test', '--help'])
         self.assertTrue(stderr.getvalue())
         self.assertFalse(stdout.getvalue())
@@ -523,14 +520,14 @@ class RunnerTests(unittest.TestCase):
     def test_catch_usererror(self):
         def func():
             raise errors.UserError('test_catch_usererror')
-        out, err = util.run(func, ['test'])
+        out, err = self.crun(func, ['test'])
         self.assertEqual(out.getvalue(), '')
         self.assertEqual(err.getvalue(), 'test: test_catch_usererror\n')
 
     def test_catch_argumenterror(self):
         def func():
             raise errors.ArgumentError('test_catch_argumenterror')
-        out, err = util.run(func, ['test'])
+        out, err = self.crun(func, ['test'])
         self.assertEqual(out.getvalue(), '')
         self.assertEqual(err.getvalue(), 'test: test_catch_argumenterror\n'
                                          'Usage: test\n')
@@ -540,7 +537,7 @@ class RunnerTests(unittest.TestCase):
             pass
         def func():
             raise MyError('test_catch_customerror')
-        out, err = util.run(func, ['test'], catch=[MyError])
+        out, err = self.crun(func, ['test'], catch=[MyError])
         self.assertEqual(out.getvalue(), '')
         self.assertEqual(err.getvalue(), 'test_catch_customerror\n')
 
@@ -549,6 +546,6 @@ class RunnerTests(unittest.TestCase):
             pass
         def func():
             raise errors.UserError('test_catch_argerror_cust')
-        out, err = util.run(func, ['test'], catch=[MyError])
+        out, err = self.crun(func, ['test'], catch=[MyError])
         self.assertEqual(out.getvalue(), '')
         self.assertEqual(err.getvalue(), 'test: test_catch_argerror_cust\n')
