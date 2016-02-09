@@ -21,7 +21,8 @@ def _test_annotated_error(
     sig_str, annotation, str_rep = sig_info
     sig = support.s(sig_str, locals={'a': annotation})
     csig = parser.CliSignature.from_signature(sig)
-    self.assertRaises(exc, self.read_arguments, csig, in_args)
+    with self.assertRaises(exc):
+        self.read_arguments(csig, in_args)
     if message is not None:
         try:
             self.read_arguments(csig, in_args)
@@ -395,6 +396,8 @@ class MultiErrorTests(Fixtures):
 
 
 class MultiHelpTests(Fixtures):
+    _test = _test_help
+
     basic = RepTests.multi_basic, "par: addresses", """
         Usage: func [OPTIONS]
         Options:

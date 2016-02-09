@@ -11,7 +11,7 @@ import stat
 from sigtools import support, modifiers
 
 from clize import parser, errors, converters
-from clize.tests.util import Fixtures
+from clize.tests.util import Fixtures, Tests
 
 
 class ConverterRepTests(Fixtures):
@@ -35,7 +35,7 @@ class ConverterTests(Fixtures):
         converters.datetime, '2014-01-01 12:00', datetime(2014, 1, 1, 12, 0))
 
 
-class FileConverterTests(Fixtures):
+class FileConverterTests(Tests):
     def setUp(self):
         self.temp = tempfile.mkdtemp()
 

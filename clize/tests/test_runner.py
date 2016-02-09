@@ -9,7 +9,7 @@ import unittest
 
 from six.moves import cStringIO
 
-from clize.tests.util import Fixtures
+from clize.tests.util import Fixtures, Tests
 from clize import runner, errors
 
 
@@ -368,7 +368,7 @@ class GetCliTests(unittest.TestCase):
         obj = object()
         self.assertRaises(TypeError, runner.Clize.get_cli, obj)
 
-class RunnerTests(Fixtures):
+class RunnerTests(Tests):
     def test_subcommand(self):
         def func1(x):
             return x+' world'
