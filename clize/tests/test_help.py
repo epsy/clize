@@ -5,10 +5,11 @@
 from itertools import count
 
 from sigtools.support import f
+from sigtools.modifiers import autokwoargs
 from sigtools.wrappers import wrapper_decorator
 
 from clize import runner, help, parser, util
-from clize.tests.util import Fixtures
+from clize.tests.util import Fixtures, tup
 
 USAGE_HELP = 'func --help [--usage]'
 
@@ -587,6 +588,59 @@ class WrappedFuncTests(Fixtures):
         Other actions:
             -h, --help  Show the help
     """
+
+
+class AutoforwardedFuncTests(Fixtures):
+    def _test(self, func, help_str):
+        r = runner.Clize(func)
+        h = help.ClizeHelp(r, None)
+        h.prepare()
+        p_help_str = str(h.show('func'))
+        self.assertEqual(help_str.split(), p_help_str.split())
+
+    def _decorator(func):
+        @autokwoargs
+        def _wrapper(one, two, three=3, *args, **kwargs):
+            """
+            one: param one
+
+            two: param two
+
+            three: param three
+            """
+            func(*args, **kwargs)
+        return _wrapper
+
+    @tup("""
+        Usage: func [OPTIONS] one two alpha beta
+        Description
+
+        Arguments:
+        one     param one
+        two     param two
+        alpha   param alpha
+        beta    param beta
+
+        Options:
+        --three=INT     param three (default: 3)
+        --gamma=STR     param gamma
+
+        Other actions:
+        -h, --help      Show the help
+    """)
+    @_decorator
+    @autokwoargs
+    def decorated(alpha, beta, gamma=None):
+        """
+        Description
+
+        alpha: param alpha
+
+        beta: param beta
+
+        gamma: param gamma
+        """
+        return alpha, beta, gamma
 
 
 class FormattingTests(Fixtures):

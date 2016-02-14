@@ -177,8 +177,23 @@ class ClizeHelp(Help):
 
     def _parse_help(self):
         self.header, self.footer = self._parse_subject_help(self.subject)
+        header = self.header
+        footer = self.footer
+        already_parsed = set((self.subject.func,))
         for wrapper in wrappers(self.subject.func):
+            already_parsed.add(wrapper)
             self.parse_func_help(wrapper)
+        if len(already_parsed) == 1:
+            sig = self.subject.func_signature
+            for pname in sig.parameters:
+                for func in sig.sources[pname]:
+                    if func not in already_parsed:
+                        already_parsed.add(func)
+                        h, f = self.parse_func_help(func)
+                        header.extend(h)
+                        footer.extend(f)
+            self.header = header
+            self.footer = footer
 
     @property
     def description(self):

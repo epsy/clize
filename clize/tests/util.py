@@ -22,3 +22,4 @@ class Tests(unittest2.TestCase):
 
 
 Fixtures = repeated_test.WithTestClass(Tests)
+tup = repeated_test.tup

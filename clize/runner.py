@@ -193,8 +193,12 @@ class Clize(object):
     def signature(self):
         """The `.parser.CliSignature` object used to parse arguments."""
         return parser.CliSignature.from_signature(
-            signature(self.func),
+            self.func_signature,
             extra=itertools.chain(self._process_alt(self.alt), self.extra))
+
+    @util.property_once
+    def func_signature(self):
+        return signature(self.func)
 
     def _process_alt(self, alt):
         if self.help_names:
