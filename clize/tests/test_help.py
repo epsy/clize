@@ -622,8 +622,8 @@ class AutoforwardedFuncTests(Fixtures):
         beta    param beta
 
         Options:
-        --three=INT     param three (default: 3)
         --gamma=STR     param gamma
+        --three=INT     param three (default: 3)
 
         Other actions:
         -h, --help      Show the help
@@ -641,6 +641,179 @@ class AutoforwardedFuncTests(Fixtures):
         gamma: param gamma
         """
         return alpha, beta, gamma
+
+
+    def _decorator(func):
+        @autokwoargs
+        def _wrapper(one, two, three=3, four=4, *args, **kwargs):
+            """
+            one: param one
+
+            two: param two
+
+            three: param three
+
+            beta: this shouldn't even be here
+
+            Label:
+
+            gamma: this either
+
+            four: param four
+            """
+            func(42, *args, **kwargs)
+        return _wrapper
+
+    @tup("""
+        Usage: func [OPTIONS] one two beta
+        description in func
+
+        Arguments:
+        one     param one
+        two     param two
+        beta
+
+        Options:
+        --gamma=STR     param gamma
+        --three=INT     param three (default: 3)
+
+        Label:
+        --four=INT      param four (default: 4)
+
+        Other actions:
+        -h, --help      Show the help
+    """)
+    @_decorator
+    @autokwoargs
+    def messy_docstrings(one, beta, gamma=None):
+        """
+        description in func
+
+        one: param alpha
+
+        gamma: param gamma
+        """
+        return one, beta, gamma
+
+    def _decorator_1(func):
+        @autokwoargs
+        def _wrapper(one, two, three=3, *args, **kwargs):
+            """
+            description in decorator A
+
+            one: param one
+
+            free in decorator A after one
+
+            two: param two
+
+            free in decorator A after two
+
+            three: param three
+
+            free in decorator A after three
+
+            beta: this shouldn't even be in decorator A
+
+            free in decorator A after beta
+
+            gamma: this either
+
+            footnotes in decorator A
+            """
+            func(*args, **kwargs)
+        return _wrapper
+
+
+    def _decorator_2(func):
+        @autokwoargs
+        def _wrapper(four, five, six=6, *args, **kwargs):
+            """
+            description in decorator B
+
+            four: param four
+
+            free in decorator B after four
+
+            five: param five
+
+            free in decorator B after five
+
+            six: param six
+
+            free in decorator B after six
+
+            beta: this shouldn't even be in decorator B
+
+            free in decorator B after beta
+
+            gamma: this either
+
+            footnotes in decorator B
+            """
+            func(*args, **kwargs)
+        return _wrapper
+
+    @tup("""
+        Usage: func [OPTIONS] one two four five alpha beta
+        description in func
+        description in decorator A
+        description in decorator B
+
+        Arguments:
+        one     param one
+        free in decorator A after one
+        two     param two
+        free in decorator A after two
+        four    param four
+        free in decorator B after four
+        five    param five
+        free in decorator B after five
+        alpha   param alpha
+        free in func after alpha
+        beta    param beta
+        free in func after beta
+
+        Options:
+        --gamma=STR     param gamma
+        free in func after gamma
+        --three=INT     param three (default: 3)
+        free in decorator A after three
+        --six=INT       param six (default: 6)
+        free in decorator B after six
+
+        Other actions:
+        -h, --help      Show the help
+
+        footnotes in func
+        footnotes in decorator A
+        footnotes in decorator B
+    """)
+    @_decorator_1
+    @_decorator_2
+    @autokwoargs
+    def double_decorators(alpha, beta, gamma=None):
+        """
+        description in func
+
+        alpha: param alpha
+
+        free in func after alpha
+
+        beta: param beta
+
+        free in func after beta
+
+        gamma: param gamma
+
+        free in func after gamma
+
+        _:_
+
+        footnotes in func
+        """
+        return alpha, beta, gamma
+
 
 
 class FormattingTests(Fixtures):

@@ -11,6 +11,8 @@ from clize import runner
 
 
 class Tests(unittest2.TestCase):
+    maxDiff = 5000
+
     def read_arguments(self, sig, args):
         return sig.read_arguments(args, 'test')
 

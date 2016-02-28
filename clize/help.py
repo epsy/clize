@@ -119,7 +119,7 @@ class ClizeHelp(Help):
         s[LABEL_ALT] = s.pop(LABEL_ALT)
 
     argdoc_re = re.compile(r'^(\w+): ?(.+)$')
-    def parse_docstring(self, s):
+    def parse_docstring(self, s, pnames=None):
         free_text = []
         header = []
         label = None
@@ -132,7 +132,8 @@ class ClizeHelp(Help):
                     if free_text[-1].endswith(':'):
                         label = free_text.pop()
                     if last_argname:
-                        self.after[last_argname] = free_text
+                        if pnames is None or last_argname in pnames:
+                            self.after[last_argname] = free_text
                     else:
                         header.extend(free_text)
                     free_text = []
@@ -141,6 +142,8 @@ class ClizeHelp(Help):
                     default_label = self.get_param_type(
                         self.signature.parameters[argname])
                 except KeyError:
+                    continue
+                if pnames is not None and argname not in pnames:
                     continue
                 if default_label != LABEL_POS:
                     try:
@@ -166,8 +169,13 @@ class ClizeHelp(Help):
             footer = free_text
         return lines_to_paragraphs(header), lines_to_paragraphs(footer)
 
-    def parse_func_help(self, obj):
-        return self.parse_docstring(inspect.getdoc(obj))
+    def parse_func_help(self, obj, pnames=None):
+        """gets the information from obj's docstring and adds it to this
+        help instance.
+
+        If set, only parameters in pnames are added
+        """
+        return self.parse_docstring(inspect.getdoc(obj), pnames)
 
     def _parse_subject_help(self, subject):
         ret = self.parse_func_help(subject.func)
@@ -175,25 +183,40 @@ class ClizeHelp(Help):
             p.prepare_help(self)
         return ret
 
-    def _parse_help(self):
-        self.header, self.footer = self._parse_subject_help(self.subject)
-        header = self.header
-        footer = self.footer
-        already_parsed = set((self.subject.func,))
-        for wrapper in wrappers(self.subject.func):
-            already_parsed.add(wrapper)
+    def _params_prepare(self):
+        for p in self.subject.signature.parameters.values():
+            p.prepare_help(self)
+
+    def _parse_help_wrappers(self, wrapper_funcs):
+        self.header, self.footer = self.parse_func_help(self.subject)
+        self._params_prepare()
+        for wrapper in wrapper_funcs:
             self.parse_func_help(wrapper)
-        if len(already_parsed) == 1:
-            sig = self.subject.func_signature
-            for pname in sig.parameters:
-                for func in sig.sources[pname]:
-                    if func not in already_parsed:
-                        already_parsed.add(func)
-                        h, f = self.parse_func_help(func)
-                        header.extend(h)
-                        footer.extend(f)
-            self.header = header
-            self.footer = footer
+
+    def _parse_help_autosig(self, sig):
+        self.header = []
+        self.footer = []
+        self._params_prepare()
+        funcs = util.OrderedDict()
+        for pname in sig.parameters:
+            for func in sig.sources[pname]:
+                funcs.setdefault(func, set()).add(pname)
+        funcs = sorted(
+            funcs.items(),
+            key=lambda i: sig.sources['+depths'].get(i[0], 1000))
+        funcs.insert(0, funcs.pop())
+        for func, pnames in funcs:
+            h, f = self.parse_func_help(func, pnames)
+            self.header.extend(h)
+            self.footer.extend(f)
+
+    def _parse_help(self):
+        wrapper_funcs = list(wrappers(self.subject.func))
+        sig = self.subject.func_signature
+        if wrapper_funcs or not sig.parameters:
+            self._parse_help_wrappers(wrapper_funcs)
+        else:
+            self._parse_help_autosig(sig)
 
     @property
     def description(self):
