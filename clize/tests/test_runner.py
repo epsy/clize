@@ -471,12 +471,10 @@ class RunnerTests(Tests):
         bpath = sys.path
         bget_executable = runner.get_executable
         try:
-            sys.modules = {
-                '__main__':
-                    MockModule('/path/to/cwd/afile.py', '__main__', '')
-                }
+            sys.modules['__main__'] \
+                = MockModule('/path/to/cwd/afile.py', '__main__', '')
             sys.argv = ['afile.py', '...']
-            sys.path = ['', sys.path[1]]
+            sys.path = [''] + sys.path[1:]
             runner.get_executable = get_executable
             def func(arg=1):
                 raise NotImplementedError
