@@ -384,7 +384,11 @@ class RunnerTests(Tests):
         try:
             __func(*args, **kwargs)
         except SystemExit as e:
-            self.assertEqual(e.code, __code)
+            try:
+                self.assertEqual(e.code, __code)
+            except AssertionError:
+                if not (e.code == 0 and __code is None):
+                    raise
         else:
             self.fail('SystemExit not raised')
 
