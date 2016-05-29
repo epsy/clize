@@ -1,8 +1,8 @@
-from sigtools.wrappers import wrapper_decorator
+from sigtools.wrappers import decorator
 from clize import run
 
 
-@wrapper_decorator
+@decorator
 def with_uppercase(wrapped, *args, uppercase=False, **kwargs):
     """
     Formatting options:

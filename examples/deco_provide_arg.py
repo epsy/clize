@@ -1,4 +1,4 @@
-from sigtools.wrappers import wrapper_decorator
+from sigtools.wrappers import decorator
 from clize import run
 
 
@@ -6,7 +6,7 @@ def get_branch_object(repository, branch_name):
     return repository, branch_name
 
 
-@wrapper_decorator(0, 'branch')
+@decorator
 def with_branch(wrapped, *args, repository='.', branch='master', **kwargs):
     """Decorate with this so your function receives a branch object
 
@@ -14,8 +14,7 @@ def with_branch(wrapped, *args, repository='.', branch='master', **kwargs):
 
     branch: The name of the branch to operate on
     """
-    return wrapped(
-        *args, branch=get_branch_object(repository, branch), **kwargs)
+    return wrapped(*args, branch=get_branch_object(repository, branch), **kwargs)
 
 
 @with_branch
@@ -36,7 +35,7 @@ def commit(*text, branch=None):
 @with_branch
 def revert(*, branch=None):
     """Revert the changes made in the working tree."""
-    return "There is no chip, John."
+    return "All changes reverted!"
 
 
 run(diff, commit, revert,

@@ -1,7 +1,7 @@
 .. currentmodule:: clize
 
-.. |wrapper_decorator| replace::
-   `~sigtools.wrappers.wrapper_decorator`
+.. |decorator| replace::
+   `~sigtools.wrappers.decorator`
 
 .. _function compositing:
 .. _function-compositing:
@@ -10,11 +10,12 @@ Function compositing
 ====================
 
 One of Python's strengths is how easy it is to manipulate functions and combine
-them. However, this typically breaks tools such as Clize which try to inspect
-the resulting callable and only get vague information. Fortunately, using the
-functions found in `sigtools`, we can overcome this drawback.
+them. However, this often breaks tools which rely on introspection to function.
 
-Let's look at how you can create decorators that work well with Clize.
+This isn't the case with Clize, which uses `sigtools` to understand how your
+functions expect to be called.
+
+Let's write some decorators and see how they integrate with Clize!
 
 Creating decorators is useful if you want to share behaviour across multiple
 functions passed to `run`, such as extra parameters or input/output formatting.
@@ -29,38 +30,47 @@ Let's create a decorator that transforms the output of the wrapped function
 when passed a specific flag.
 
 .. literalinclude:: /../examples/deco_add_param.py
-    :lines: 1-2,4-18
+    :lines: 1,3-16
+    :emphasize-lines: 11
 
-|wrapper_decorator| lets our ``with_uppercase`` function decorate other
-functions:
+|decorator| lets our ``with_uppercase`` function decorate other functions:
 
 .. literalinclude:: /../examples/deco_add_param.py
-    :lines: 3,19-34
+    :lines: 2-4,19-32
 
-Each time the decorated function is run, ``with_uppercase`` will be run with
-the decorated function as first argument ``wrapped``.
+Every time ``hello_world`` is called, ``with_uppercase`` will be called with
+the decorated function as first argument (``wrapped``).
 
-|wrapper_decorator| will tell Clize that the combined function has the same
-signature as::
 
-    @kwoargs('uppercase')
-    def hello_world(name=None, uppercase=False):
+.. note::
+
+    `sigtools.wrappers.decorator` is used here to create decorators. It offers
+    a simple and convenient way of creating decorators in a reliable way.
+
+    However, you don't need to use it to make use of decorators with Clize and
+    you may use other means of creating decorators if you wish.
+
+
+Clize will treat ``hello_world`` as if it had the same signature as::
+
+    def hello_world(name=None, *, uppercase=False):
         pass
 
 This is the signature you would get by "putting" the parameters of the
-decorated function in place of the wrapper's ``*args, **kwargs``. It is what |wrapper_decorator| expects it to do, but that can be changed.
+decorated function in place of the wrapper's ``*args, **kwargs``.
 
-With the correct signature advertised, the command-line interface matches it::
+When you run this function, the CLI parameters will automaticmlly match the
+combined signature::
 
-    $ python examples/decorators.py --uppercase
+    $ python3 examples/decorators.py --uppercase
     HELLO WORLD!
-    $ python examples/decorators.py john
+    $ python3 examples/decorators.py john
     Hello john
-    $ python examples/decorators.py john --uppercase
+    $ python3 examples/decorators.py john --uppercase
     HELLO JOHN
 
-The help system will also pick up on the fact that the function is decorated
-and will read parameter descriptions from the decorator's docstring::
+The help system will also adapt and will read parameter descriptions from the
+decorator's docstring::
 
     $ python decorators.py --help
     Usage: decorators.py [OPTIONS] [name]
@@ -82,30 +92,22 @@ and will read parameter descriptions from the decorator's docstring::
 Providing an argument using a decorator
 ---------------------------------------
 
-When you're passing new arguments to the wrapped function in addition to
-``*args, **kwargs``, things get a little more complicated. You have to tell
-Clize that some of the wrapped function's parameters shouldn't appear in place
-of the wrapper's ``*args, **kwargs``. call |wrapper_decorator| with the number
-of positional arguments you insert before ``*args``, then the names of each
-named argument that you pass to the wrapped function.
-
-.. seealso:: :ref:`sigtools:forwards-pick`
-
-    The arguments for |wrapper_decorator| are the same as in
-    `sigtools.specifiers.forwards`, so you may use this section for further
-    information.
+You can also provide the decorated function with additional arguments much in
+the same way.
 
 .. literalinclude:: /../examples/deco_provide_arg.py
-    :lines: 1-2,4-22
+    :lines: 1,3-17
+    :emphasize-lines: 16
 
-Here we pass ``0, 'branch'`` to |wrapper_decorator| because we call ``wrapped``
-with no positional arguments besides ``*args``, and ``branch`` as named
-argument.
+Simply provide an additional argument to the wrapped function. It will
+automaticmlly be skipped during argument parsing and will be omitted from
+the help.
 
-You can then use the decorator like before:
+You can apply the decorator like before, with each decorated function receiving
+the ``brnach`` argument as suplied by the decorator.
 
 .. literalinclude:: /../examples/deco_provide_arg.py
-    :lines: 3,23-50
+    :lines: 2,18-42
 
 
 .. _ex arg deco:

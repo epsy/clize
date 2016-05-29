@@ -52,7 +52,7 @@ def try_log(logger):
     logger.critical("Critical")
 
 
-@wrappers.wrapper_decorator(0, 'logger')
+@wrappers.decorator
 def with_logger(wrapped, *args, log:log_level=logging.CRITICAL, **kwargs):
     """
     Logging options:
