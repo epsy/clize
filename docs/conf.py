@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'clize'
-copyright = '2013-2015, Yann Kaiser'
+copyright = '2013-2016, Yann Kaiser'
 
 
 
