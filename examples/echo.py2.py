@@ -1,7 +1,10 @@
+from sigtools.modifiers import annotate, autokwoargs
 from clize import ArgumentError, Parameter, run
 
-def echo(*text:Parameter.REQUIRED,
-         prefix:'p'='', suffix:'s'='', reverse:'r'=False, repeat:'n'=1):
+@annotate(text=Parameter.REQUIRED,
+          prefix='p', suffix='s', reverse='r', repeat='n')
+@autokwoargs
+def echo(prefix='', suffix='', reverse=False, repeat=1, *text):
     """Echoes text back
 
     text: The text to echo back

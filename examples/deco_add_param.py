@@ -1,11 +1,9 @@
-from sigtools.modifiers import autokwoargs
 from sigtools.wrappers import wrapper_decorator
 from clize import run
 
 
 @wrapper_decorator
-@autokwoargs
-def with_uppercase(wrapped, uppercase=False, *args, **kwargs):
+def with_uppercase(wrapped, *args, uppercase=False, **kwargs):
     """
     Formatting options:
 

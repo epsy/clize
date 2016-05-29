@@ -41,7 +41,7 @@ The ``version`` function will be available as ``--version``:
 
 .. code-block:: console
 
-    $ python examples/altcommands.py --help
+    $ python3 examples/altcommands.py --help
     Usage: examples/altcommands.py
 
     Does nothing
@@ -54,11 +54,7 @@ You can specify more alternate commands in a list. For instance,
 
 .. code-block:: python
 
-    from sigtools import modifiers
-
-
-    @modifiers.kwoargs('show_time')
-    def build_date(show_time=False):
+    def build_date(*, show_time=False):
         """Show the build date for this version"""
         print("Build date: 17 August 1979", end='')
         if show_time:
@@ -81,7 +77,7 @@ drawn from the function names don't suit you:
 
 .. code-block:: console
 
-    $ python examples/altcommands.py --help                   
+    $ python3 examples/altcommands.py --help
     Usage: examples/altcommands.py
 
     Does nothing
@@ -123,9 +119,9 @@ argument to `.run`:
 
 .. code-block:: console
 
-    $ python examples/multicommands.py add A very important note.
+    $ python3 examples/multicommands.py add A very important note.
     OK I will remember that.
-    $ python examples/multicommands.py list
+    $ python3 examples/multicommands.py list
     Sorry I forgot it all :(
 
 Alternatively, as with :ref:`alternate commands <alternate commands>`, you can
@@ -142,7 +138,7 @@ other docstrings, just without documentation for parameters.
 
 .. code-block:: console
 
-    $ python examples/multicommands.py --help
+    $ python3 examples/multicommands.py --help
     Usage: examples/multicommands.py command [args...]
 
     A reliable to-do list utility.

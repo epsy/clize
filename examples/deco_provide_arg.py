@@ -1,4 +1,3 @@
-from sigtools.modifiers import autokwoargs
 from sigtools.wrappers import wrapper_decorator
 from clize import run
 
@@ -8,10 +7,7 @@ def get_branch_object(repository, branch_name):
 
 
 @wrapper_decorator(0, 'branch')
-@autokwoargs
-def with_branch(wrapped,
-            repository='.', branch='master',
-            *args, **kwargs):
+def with_branch(wrapped, *args, repository='.', branch='master', **kwargs):
     """Decorate with this so your function receives a branch object
 
     repository: A directory belonging to the repository to operate on
@@ -23,15 +19,13 @@ def with_branch(wrapped,
 
 
 @with_branch
-@autokwoargs
-def diff(branch=None):
+def diff(*, branch=None):
     """Show the differences between the committed code and the working tree."""
     return "I'm different."
 
 
 @with_branch
-@autokwoargs
-def commit(branch=None, *text):
+def commit(*text, branch=None):
     """Commit the changes.
 
     text: A message to store alongside the commit
@@ -40,8 +34,7 @@ def commit(branch=None, *text):
 
 
 @with_branch
-@autokwoargs
-def revert(branch=None):
+def revert(*, branch=None):
     """Revert the changes made in the working tree."""
     return "There is no chip, John."
 

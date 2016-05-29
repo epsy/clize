@@ -36,22 +36,17 @@ Consider this code made to work with Clize 1 or 2::
         run(func)
 
 Here, you can drop the ``@clize`` line completely, but you have to convert
-``option`` to a keyword-only parameter. You can use
-`sigtools.modifiers.autokwoargs` to do so::
+``option`` to a keyword-only parameter::
 
-    from sigtools.modifiers import autokwoargs
     from clize import run
 
-    @autokwoargs
-    def func(positional, option=3):
+    def func(positional, *, option=3):
         pass # ...
 
     if __name__ == '__main__':
         run(func)
 
-Decorating the function with ``@autokwoargs`` will still let you call it
-normally, except that any parameter with a default value(here just ``option``)
-will only be accepted as a named argument.
+.. note:: On Python 2. You can use `sigtools.modifiers.autokwoargs` to do so.
 
 
 .. _porting force_positional:
@@ -71,8 +66,11 @@ don't want as named options::
     if __name__ == '__main__':
         run(func)
 
-The ``exceptions`` parameter of `autokwoargs <sigtools.modifiers.autokwoargs>`
-has the same purpose here::
+This issue isn't relevant anymore as keyword-only arguments are explicitly
+specified.
+
+If you're using `~sigtools.modifiers.autokwoargs`, the ``exceptions`` parameter
+can prevent parameters from being converted::
 
     from sigtools.modifiers import autokwoargs
     from clize import run
@@ -100,24 +98,23 @@ options and functions to convert the value of arguments, respectively::
         alias={'two': ['second'], 'three': ['third']},
         coerce={'one': int, 'three': int})
     def func(one, two=2, three=None):
-        pass # ...
+        ...
 
     if __name__ == '__main__':
         run(func)
 
-You now pass these as annotations on the corresponding parameter. To keep
-compatibility with Python 2, we use `sigtools.modifiers.annotate`::
+You now pass these as annotations on the corresponding parameter::
 
-    from sigtools.modifiers import annotate, autokwoargs
     from clize import run
 
-    @autokwoargs
-    @annotate
-    def func(one=int, two='second', three=('third', int)):
-        pass # ...
+    def func(one:int, *, two='second', three:int='third')):
+        ...
 
     if __name__ == '__main__':
         run(func)
+
+.. note:: To keep compatibility with Python 2, you can use
+   `sigtools.modifiers.annotate`
 
 
 .. _porting require_excess:
@@ -129,11 +126,9 @@ Indicating that an ``*args``-like parameter is required is now done by
 annotating the parameter with `Parameter.REQUIRED
 <clize.parser.Parameter.REQUIRED>` or `Parameter.R` for short::
 
-    from sigtools.modifiers import annotate
     from clize import run, Parameter
 
-    @annotate(args=Parameter.R)
-    def func(*args):
+    def func(*args:Parameter.R):
         pass # ...
 
     if __name__ == '__main__':

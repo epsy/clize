@@ -14,15 +14,15 @@ Clize is an argument parser for `Python <https://www.python.org/>`_. It focuses 
 Here's an example:
 
 .. literalinclude:: /../examples/hello.py
-   :emphasize-lines: 2,20
+   :emphasize-lines: 1,17
 
 `~clize.run` takes the function and automatically produces a command-line
 interface for it:
 
 .. code-block:: console
 
-    $ pip install --user clize
-    $ python examples/hello.py --help
+    $ python3 -m pip install --user clize
+    $ python3 examples/hello.py --help
     Usage: examples/hello.py [OPTIONS] [name]
 
     Greets the world or the given name.

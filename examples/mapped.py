@@ -1,4 +1,3 @@
-from sigtools import modifiers
 from clize import run, parameters
 
 
@@ -8,9 +7,7 @@ greeting = parameters.mapped([
 ])
 
 
-@modifiers.kwoargs('kind')
-@modifiers.annotate(kind=('k', greeting))
-def main(name='world', kind='Hello'):
+def main(name='world', *, kind:('k', greeting)='Hello'):
     """
     name: Who is the message for?
 

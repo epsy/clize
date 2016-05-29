@@ -42,7 +42,7 @@ a function and passing it to :func:`run`:
 
 If you save this as *helloworld.py* and run it, the function will be run::
 
-    $ python helloworld.py
+    $ python3 helloworld.py
     Hello world!
 
 In this example, :func:`run` simply takes our function, runs it and prints
@@ -56,7 +56,6 @@ definition. To illustrate, lets write an ``echo`` command.
 
 ::
 
-    #!/usr/bin/env python
     from clize import run
 
     def echo(word):
@@ -68,18 +67,18 @@ definition. To illustrate, lets write an ``echo`` command.
 Save it as *echo.py* and run it. You will notice the script requires exactly
 one argument now::
 
-    $ ./echo.py
+    $ python3 ./echo.py
     ./echo.py: Missing required arguments: word
     Usage: ./echo.py [OPTIONS] word
 
 ::
 
-    $ ./echo.py ham
+    $ python3 ./echo.py ham
     ham
 
 ::
 
-    $ ./echo.py ham spam
+    $ python3 ./echo.py ham spam
     ./echo.py: Received extra arguments: spam
     Usage: ./echo.py [OPTIONS] word
 
@@ -90,7 +89,7 @@ If you try to specify ``--help`` when running either of the previous examples,
 you will notice that Clize has in fact also generated a ``--help`` feature for
 you already::
 
-    $ ./echo.py --help
+    $ python3 ./echo.py --help
     Usage: ./echo.py [OPTIONS] word
 
     Positional arguments:
@@ -111,7 +110,7 @@ function a docstring::
 
 As you would expect, it translates to this::
 
-    $ ./echo.py --help
+    $ python3 ./echo.py --help
     Usage: ./echo.py [OPTIONS] word
 
     Echoes word back
@@ -134,10 +133,7 @@ name, you will need to use keyword-only parameters.
 Let's add a pair of options to specify a prefix and suffix around each line of
 ``word``::
 
-    from sigtools.modifiers import autokwoargs
-
-    @autokwoargs
-    def echo(word, prefix='', suffix=''):
+    def echo(word, *, prefix='', suffix=''):
         """Echoes text back
 
         word: One word or quoted string to echo back
@@ -151,36 +147,28 @@ Let's add a pair of options to specify a prefix and suffix around each line of
                              for line in word.split('\n'))
         return word
 
-Here, `~sigtools.modifiers.autokwoargs` turns all parameters with defaults into
-keyword-only parameters. Clize then treats it as an option instead of a
-positional parameter.
+In Python, any parameters after ``*args`` or ``*`` become keyword-only: When
+calling a function with such parameters, you can only provide a value for them
+by name, i.e.::
 
-.. seealso:: :ref:`named param py2`
+    echo(word, prefix='b', suffix='a') # good
+    echo(word, 'b', 'a') # invalid
 
-.. note::
-    Since Python does not have syntax for specifying keyword-only parameters
-    until Python 3, we will use decorators from the :mod:`sigtools.modifiers`
-    module to emulate them in all Python versions supported by Clize.
+Clize then treats keyword-only parameters as options rather than as positional
+parameters.
 
-    If you don't need to worry about Python 2 compatibility, you can use
-    the Python 3 features directly::
+.. note:: Python 2 does not support this syntax. See :ref:`named param py2`
 
-        def echo(word, *, prefix='', suffix=''):
-            pass # ...
+The change reflects on the command and its help when run::
 
-.. comment:
-    My syntax highlighter is broken*
-
-The change reflects to the command and its help when run::
-
-    $ ./echo.py --prefix x: --suffix :y 'spam
+    $ python3 ./echo.py --prefix x: --suffix :y 'spam
     $ ham'
     x:spam:y
     x:ham:y
 
 ::
 
-    $ ./echo.py --help
+    $ python3 ./echo.py --help
     Usage: ./echo.py [OPTIONS] word
 
     Echoes text back
@@ -201,21 +189,16 @@ Collecting all positional arguments
 Just like when defining a regular Python function, you can prefix a parameter
 with one asterisk and it will collect all remaining positional arguments::
 
-    @autokwoargs
-    def echo(prefix='', suffix='', *text):
-        pass # ...
+    def echo(*text, prefix='', suffix=''):
+        ...
 
 However, just like in Python, this makes the parameter optional. To require
 that it should receive at least one argument, you will have to tell Clize that
 ``text`` is required using an annotation::
 
-    #!/usr/bin/env python
-    from sigtools.modifiers import annotate, autokwoargs
     from clize import Parameter, run
 
-    @annotate(text=Parameter.REQUIRED)
-    @autokwoargs
-    def echo(prefix='', suffix='', *text):
+    def echo(*text:Parameter.REQUIRED, prefix='', suffix=''):
         """Echoes text back
 
         text: The text to echo back
@@ -233,15 +216,17 @@ that it should receive at least one argument, you will have to tell Clize that
     if __name__ == '__main__':
         run(echo)
 
+.. note:: Python 2 does not support this syntax.
+   See :ref:`here <py2 annotations>`.
+
+
 Accepting flags
 ---------------
 
 Parameters which default to ``False`` are treated as flags. Let's add a flag
 to reverse the input::
 
-    @annotate(text=Parameter.REQUIRED)
-    @autokwoargs
-    def echo(prefix='', suffix='', reverse=False, *text):
+    def echo(*text:Parameter.REQUIRED, prefix='', suffix='', reverse=False):
         """Echoes text back
 
         text: The text to echo back
@@ -263,7 +248,7 @@ to reverse the input::
 
 ::
 
-    $ ./echo.py --reverse hello world
+    $ python3 ./echo.py --reverse hello world
     dlrow olleh
 
 Converting arguments
@@ -273,9 +258,8 @@ Clize automatically tries to convert arguments to the type of the receiving
 parameter's default value. So if you specify an inteteger as default value,
 Clize will always give you an integer::
 
-    @annotate(text=Parameter.REQUIRED)
-    @autokwoargs
-    def echo(prefix='', suffix='', reverse=False, repeat=1, *text):
+    def echo(*text:Parameter.REQUIRED,
+             prefix='', suffix='', reverse=False, repeat=1):
         """Echoes text back
 
         text: The text to echo back
@@ -300,7 +284,7 @@ Clize will always give you an integer::
 
 ::
 
-    $ ./echo.py --repeat 3 spam
+    $ python3 ./echo.py --repeat 3 spam
     spamspamspam
 
 Aliasing options
@@ -310,15 +294,13 @@ Now what we have a bunch of options, it would be helpful to have shorter names
 for them. You can specify aliases for them by annotating the corresponding
 parameter::
 
-    @annotate(text=Parameter.REQUIRED,
-              prefix='p', suffix='s', reverse='r', repeat='n')
-    @autokwoargs
-    def echo(prefix='', suffix='', reverse=False, repeat=1, *text):
-        pass # ...
+    def echo(*text:Parameter.REQUIRED,
+             prefix:'p'='', suffix:'s'='', reverse:'r'=False, repeat:'n'=1):
+        ...
 
 ::
 
-    $ ./echo.py --help
+    $ python3 ./echo.py --help
     Usage: ./echo.py [OPTIONS] text...
 
     Echoes text back
@@ -345,7 +327,7 @@ Let's say we want to give an error if the word *spam* is in the text. To do so,
 one option is to raise an :class:`ArgumentError` from within your function:
 
 .. literalinclude:: /../examples/echo.py
-   :emphasize-lines: 22-23
+   :emphasize-lines: 19-20
 
 ::
 
@@ -353,7 +335,7 @@ one option is to raise an :class:`ArgumentError` from within your function:
     ./echo.py: I don't want any spam!
     Usage: ./echo.py [OPTIONS] text...
 
-If you would like the usage line not to be printed, raise :class:`UserError`
+If you would like the usage line not to be printed, raise :class:`.UserError`
 instead.
 
 

@@ -1,6 +1,9 @@
+from sigtools.modifiers import kwoargs
 from clize import run
 
-def hello_world(name=None, *, no_capitalize=False):
+@kwoargs('no_capitalize') # turns no_capitalize into a keyword-only parameter
+                          # on Python 2
+def hello_world(name=None, no_capitalize=False):
     """Greets the world or the given name.
 
     name: If specified, only greet this person.

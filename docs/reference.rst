@@ -12,6 +12,9 @@ User reference
 Clize deduces what kind of parameter to pick for the CLI depending on what kind
 of parameter is found on the Python function as well as its annotations.
 
+
+.. _py2 annotations:
+
 .. note:: Python 2 compatibility
 
     In this document we will be showing examples that use Python 3 syntax such

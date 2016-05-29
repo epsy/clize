@@ -1,6 +1,6 @@
 import logging
 
-from sigtools import modifiers, wrappers
+from sigtools import wrappers
 from clize import run, parser, util
 
 
@@ -53,9 +53,7 @@ def try_log(logger):
 
 
 @wrappers.wrapper_decorator(0, 'logger')
-@modifiers.autokwoargs
-@modifiers.annotate(log=log_level)
-def with_logger(wrapped, log=logging.CRITICAL, *args, **kwargs):
+def with_logger(wrapped, *args, log:log_level=logging.CRITICAL, **kwargs):
     """
     Logging options:
 
@@ -67,8 +65,7 @@ def with_logger(wrapped, log=logging.CRITICAL, *args, **kwargs):
 
 
 @with_logger
-@modifiers.kwoargs('logger')
-def main(logger):
+def main(*, logger):
     """Tries out the logging system"""
     try_log(logger)
 
