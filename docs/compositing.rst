@@ -115,8 +115,9 @@ the ``brnach`` argument as suplied by the decorator.
 Using a composed function to process arguments to a parameter
 -------------------------------------------------------------
 
-You can use `clize.parameters.argument_decorator` to have a second function
-process an argument while still being able to use parameters of its own:
+You can use `clize.parameters.argument_decorator` to have a separate function
+process an argument while adding parameters of its own. It's like having a
+mini argument parser just for one argument:
 
 .. code-block:: python
 
@@ -169,15 +170,17 @@ its collected arguments. Its return value is then used as the ``server`` paramet
 
 A few notes:
 
-* Besides ``arg`` which receives the original value, you can only use named
-  parameters
+* Besides ``arg`` which receives the original value, you can only use
+  keyword-only parameters
 * The decorator's docstring is used to document its parameters. It can be
   preferrable to use a :ref:`section <sections doc>` in order to distinguish
   them from other parameters.
-* Appearances of ``{param}`` in the docstring are replaced with the parameter's name.
+* Appearances of ``{param}`` in the docstring are replaced with the parameter's
+  name.
+* Parameter names must not conflict with other parameters.
 
-You can also use this on named parameters as well as on ``*args``, but the
-names of the composited parameters must not conflict with other parameters:
+You can also use this on named parameters, but this gets especially interesting
+on ``*args`` parameters, as each argument meant for it can have its own options:
 
 .. code-block:: python
 
@@ -237,3 +240,6 @@ names of the composited parameters must not conflict with other parameters:
 Congratulations, you've reached the end of the tutorials! You can check out the
 :ref:`parameter reference<parameter-reference>` or see how you can :ref:`extend
 the parser<extending parser>`.
+
+If you're stuck, need help or simply wish to give feedback you can chat using
+your GitHub or Twitter handle `on Gitter <https://gitter.im/epsy/clize>`_.
