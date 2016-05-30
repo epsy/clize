@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='clize',
-    version='3.0',
+    version='3.1b1',
     description='Command-line argument parsing for Python, without the effort',
     license='MIT',
     url='https://github.com/epsy/clize',
