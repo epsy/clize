@@ -6,8 +6,7 @@ Clize is an argument parser for `Python <https://www.python.org/>`_. It focuses 
 
 * Command-line interfaces are created by passing functions to `clize.run`.
 * Parameter types are deduced from the functions' parameters.
-* A ``--help`` message is generated from your docstrings. Seriously, why does
-  this still need to be a bullet point?
+* A ``--help`` message is generated from your docstrings.
 * Decorators can be used to reuse functionality across functions.
 * Clize can be extended with new parameter behavior.
 
