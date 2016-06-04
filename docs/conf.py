@@ -14,8 +14,12 @@
 
 import os
 import re
+import sys
 
 import pkg_resources
+
+
+sys.path.insert(0, '')
 
 on_rtd = os.environ.get('READTHEDOCS', False) == 'True'
 
@@ -57,7 +61,11 @@ for dist in pkg_resources.working_set:
         version = re.split('[abc]', release)[0]
         break
 else:
-    raise ValueError("Clize not installed")
+    if on_rtd:
+        raise ValueError("Clize not installed")
+    else:
+        release = 'UNKNOWN'
+        version = 'UNKNOWN'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
