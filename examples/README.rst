@@ -1,4 +1,4 @@
-.. |docs| replace:: http://clize.readthedocs.org/en/latest/
+.. |docs| replace:: http://clize.readthedocs.io/en/latest/
 
 Examples
 ========

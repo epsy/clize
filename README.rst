@@ -62,4 +62,4 @@ The python code above can now be used on the command-line as follows:
     $ python hello.py dave --no-capitalize
     Hello dave!
 
-You can find the documentation at: http://clize.readthedocs.org/
+You can find the documentation at: http://clize.readthedocs.io/

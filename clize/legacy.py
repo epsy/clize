@@ -66,7 +66,7 @@ def clize(fn=None, **kwargs):
     to be passed to `clize.run`. See :ref:`porting-2`."""
     warnings.warn('Use clize.Clize instead of clize.clize, or pass the '
                   'function directly to run(), undecorated. See '
-                  'http://clize.readthedocs.org/en/3.0.x/'
+                  'http://clize.readthedocs.io/en/3.1/'
                   'porting.html#porting-clize-decorator '
                   'for more information.',
                   DeprecationWarning, stacklevel=2)
@@ -131,7 +131,7 @@ def make_flag(source, names, default=False, type=None,
     """Compatibility with clize<3.0 releases. Creates a parameter instance.
     See :ref:`porting-2`."""
     warnings.warn('clize.legacy.make_flag is deprecated. See '
-                  'http://clize.readthedocs.org/en/3.0.x/'
+                  'http://clize.readthedocs.io/en/3.1/'
                   'porting.html#porting-make-flag',
                   DeprecationWarning, stacklevel=2)
     kwargs = {}

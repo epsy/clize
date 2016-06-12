@@ -116,7 +116,7 @@ signature:
 
 * `Baker <https://bitbucket.org/mchaput/baker/wiki/Home>`_: Similar to Clize 2,
   with a decorator-based approach for adding commands.
-* `argh <http://argh.readthedocs.org/>`_: Based on `argparse`, optionally lets
+* `argh <http://argh.readthedocs.io/>`_: Based on `argparse`, optionally lets
   you add parameters using a decorator API similar to `argparse`.
 
 Others:
