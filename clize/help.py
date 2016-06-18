@@ -101,6 +101,7 @@ class ClizeHelp(Help):
 
     def prepare(self):
         super(ClizeHelp, self).prepare()
+        self._documented = set()
         s = self.sections = util.OrderedDict((
             (LABEL_POS, util.OrderedDict()),
             (LABEL_OPT, util.OrderedDict()),
@@ -145,6 +146,7 @@ class ClizeHelp(Help):
                     continue
                 if pnames is not None and argname not in pnames:
                     continue
+                self._documented.add(argname)
                 if default_label != LABEL_POS:
                     try:
                         param, _ = self.sections[default_label].pop(argname)
@@ -193,6 +195,9 @@ class ClizeHelp(Help):
         for wrapper in wrapper_funcs:
             self.parse_func_help(wrapper)
 
+    def _pop_real_subject(self, funcs):
+        return funcs.pop()[0]
+
     def _parse_help_autosig(self, sig):
         self.header = []
         self.footer = []
@@ -204,9 +209,13 @@ class ClizeHelp(Help):
         funcs = sorted(
             funcs.items(),
             key=lambda i: sig.sources['+depths'].get(i[0], 1000))
-        funcs.insert(0, funcs.pop())
+        real_subject = self._pop_real_subject(funcs)
+        if real_subject:
+            h, f = self.parse_func_help(real_subject)
+            self.header.extend(h)
+            self.footer.extend(f)
         for func, pnames in funcs:
-            h, f = self.parse_func_help(func, pnames)
+            h, f = self.parse_func_help(func, pnames - self._documented)
             self.header.extend(h)
             self.footer.extend(f)
 

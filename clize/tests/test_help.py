@@ -598,7 +598,7 @@ class AutoforwardedFuncTests(Fixtures):
         p_help_str = str(h.show('func'))
         self.assertEqual(help_str.split(), p_help_str.split())
 
-    def _decorator(func):
+    def _decorator_three(func):
         @autokwoargs
         def _wrapper(one, two, three=3, *args, **kwargs):
             """
@@ -628,7 +628,7 @@ class AutoforwardedFuncTests(Fixtures):
         Other actions:
         -h, --help      Show the help
     """)
-    @_decorator
+    @_decorator_three
     @autokwoargs
     def decorated(alpha, beta, gamma=None):
         """
@@ -642,8 +642,7 @@ class AutoforwardedFuncTests(Fixtures):
         """
         return alpha, beta, gamma
 
-
-    def _decorator(func):
+    def _decorator_four(func):
         @autokwoargs
         def _wrapper(one, two, three=3, four=4, *args, **kwargs):
             """
@@ -669,7 +668,7 @@ class AutoforwardedFuncTests(Fixtures):
         description in func
 
         Arguments:
-        one     param one
+        one     param one in subject
         two     param two
         beta
 
@@ -683,13 +682,13 @@ class AutoforwardedFuncTests(Fixtures):
         Other actions:
         -h, --help      Show the help
     """)
-    @_decorator
+    @_decorator_four
     @autokwoargs
     def messy_docstrings(one, beta, gamma=None):
         """
         description in func
 
-        one: param alpha
+        one: param one in subject
 
         gamma: param gamma
         """
@@ -814,6 +813,31 @@ class AutoforwardedFuncTests(Fixtures):
         """
         return alpha, beta, gamma
 
+    @tup("""
+        Usage: func [OPTIONS] one two beta
+
+        Arguments:
+        one     param one
+        two     param two
+        beta    param beta
+
+        Options:
+        --three=INT   param three takeover (default: 3)
+
+        Label:
+        --four=INT    param four (default: 4)
+
+        Other actions:
+        -h, --help      Show the help
+    """)
+    @_decorator_four
+    def doc_takeover(alpha, beta):
+        """
+        beta: param beta
+
+        three: param three takeover
+        """
+        return alpha
 
 
 class FormattingTests(Fixtures):
