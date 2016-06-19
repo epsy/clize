@@ -179,12 +179,6 @@ class ClizeHelp(Help):
         """
         return self.parse_docstring(inspect.getdoc(obj), pnames)
 
-    def _parse_subject_help(self, subject):
-        ret = self.parse_func_help(subject.func)
-        for p in subject.signature.parameters.values():
-            p.prepare_help(self)
-        return ret
-
     def _params_prepare(self):
         for p in self.subject.signature.parameters.values():
             p.prepare_help(self)
