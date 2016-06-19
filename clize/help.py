@@ -208,18 +208,17 @@ class ClizeHelp(Help):
         funcs = sorted(
             funcs.items(),
             key=lambda i: sig.sources['+depths'].get(i[0], 1000))
-        real_subject = self._pop_real_subject(funcs)
-        if real_subject:
-            h, f = self.parse_func_help(real_subject)
-            self.header.extend(h)
-            self.footer.extend(f)
+        real_subject = self._pop_real_subject(funcs) or self.subject
+        h, f = self.parse_func_help(real_subject)
+        self.header.extend(h)
+        self.footer.extend(f)
         for func, pnames in funcs:
             self.parse_func_help(func, pnames - self._documented)
 
     def _parse_help(self):
         wrapper_funcs = list(wrappers(self.subject.func))
         sig = self.subject.func_signature
-        if wrapper_funcs or not sig.parameters:
+        if wrapper_funcs:
             self._parse_help_wrappers(wrapper_funcs)
         else:
             self._parse_help_autosig(sig)
