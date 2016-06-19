@@ -10,7 +10,6 @@ import re
 
 import six
 from sigtools.modifiers import annotate, kwoargs
-from sigtools.wrappers import wrappers
 
 from clize import runner, parser, util, parameters
 
@@ -183,12 +182,6 @@ class ClizeHelp(Help):
         for p in self.subject.signature.parameters.values():
             p.prepare_help(self)
 
-    def _parse_help_wrappers(self, wrapper_funcs):
-        self.header, self.footer = self.parse_func_help(self.subject)
-        self._params_prepare()
-        for wrapper in wrapper_funcs:
-            self.parse_func_help(wrapper)
-
     def _pop_real_subject(self, funcs):
         for i, (func, pnames) in enumerate(reversed(funcs), 1):
             if func.__name__ == self.subject.__name__:
@@ -197,7 +190,8 @@ class ClizeHelp(Help):
             return None
         return funcs.pop(len(funcs) - i)[0]
 
-    def _parse_help_autosig(self, sig):
+    def _parse_help(self):
+        sig = self.subject.func_signature
         self.header = []
         self.footer = []
         self._params_prepare()
@@ -214,14 +208,6 @@ class ClizeHelp(Help):
         self.footer.extend(f)
         for func, pnames in funcs:
             self.parse_func_help(func, pnames - self._documented)
-
-    def _parse_help(self):
-        wrapper_funcs = list(wrappers(self.subject.func))
-        sig = self.subject.func_signature
-        if wrapper_funcs:
-            self._parse_help_wrappers(wrapper_funcs)
-        else:
-            self._parse_help_autosig(sig)
 
     @property
     def description(self):
