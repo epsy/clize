@@ -773,8 +773,6 @@ class AutoforwardedFuncTests(Fixtures):
     @tup("""
         Usage: func [OPTIONS] one two four five alpha beta
         description in func
-        description in decorator A
-        description in decorator B
 
         Arguments:
         one     param one
@@ -802,8 +800,6 @@ class AutoforwardedFuncTests(Fixtures):
         -h, --help      Show the help
 
         footnotes in func
-        footnotes in decorator A
-        footnotes in decorator B
     """)
     @_decorator_1
     @_decorator_2

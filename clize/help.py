@@ -214,9 +214,7 @@ class ClizeHelp(Help):
             self.header.extend(h)
             self.footer.extend(f)
         for func, pnames in funcs:
-            h, f = self.parse_func_help(func, pnames - self._documented)
-            self.header.extend(h)
-            self.footer.extend(f)
+            self.parse_func_help(func, pnames - self._documented)
 
     def _parse_help(self):
         wrapper_funcs = list(wrappers(self.subject.func))
