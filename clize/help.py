@@ -196,7 +196,12 @@ class ClizeHelp(Help):
             self.parse_func_help(wrapper)
 
     def _pop_real_subject(self, funcs):
-        return funcs.pop()[0]
+        for i, (func, pnames) in enumerate(reversed(funcs), 1):
+            if func.__name__ == self.subject.__name__:
+                break
+        else:
+            return None
+        return funcs.pop(len(funcs) - i)[0]
 
     def _parse_help_autosig(self, sig):
         self.header = []

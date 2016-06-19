@@ -590,6 +590,19 @@ class WrappedFuncTests(Fixtures):
     """
 
 
+def _other_func(spam, ham, eggs):
+    """
+    spam: param spam
+
+    ham: param ham
+
+    eggs: param eggs
+
+    alpha: param alpha can't be taken over
+    """
+    pass
+
+
 class AutoforwardedFuncTests(Fixtures):
     def _test(self, func, help_str):
         r = runner.Clize(func)
@@ -609,6 +622,7 @@ class AutoforwardedFuncTests(Fixtures):
             three: param three
             """
             func(*args, **kwargs)
+        _wrapper.__name__ = func.__name__
         return _wrapper
 
     @tup("""
@@ -661,6 +675,7 @@ class AutoforwardedFuncTests(Fixtures):
             four: param four
             """
             func(42, *args, **kwargs)
+        _wrapper.__name__ = func.__name__
         return _wrapper
 
     @tup("""
@@ -721,6 +736,7 @@ class AutoforwardedFuncTests(Fixtures):
             footnotes in decorator A
             """
             func(*args, **kwargs)
+        _wrapper.__name__ = func.__name__
         return _wrapper
 
 
@@ -751,6 +767,7 @@ class AutoforwardedFuncTests(Fixtures):
             footnotes in decorator B
             """
             func(*args, **kwargs)
+        _wrapper.__name__ = func.__name__
         return _wrapper
 
     @tup("""
@@ -838,6 +855,29 @@ class AutoforwardedFuncTests(Fixtures):
         three: param three takeover
         """
         return alpha
+
+    @tup("""
+        Usage: func alpha beta spam ham eggs
+
+        Arguments:
+        alpha   param alpha
+        beta    param beta
+        spam    param spam
+        ham     param ham
+        eggs    param eggs takeover
+
+        Other actions:
+        -h, --help      Show the help
+    """)
+    def main_forwards_to_other(alpha, beta, *args, **kwargs):
+        """
+        alpha: param alpha
+
+        beta: param beta
+
+        eggs: param eggs takeover
+        """
+        _other_func(*args, **kwargs)
 
 
 class FormattingTests(Fixtures):
