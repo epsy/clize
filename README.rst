@@ -17,11 +17,9 @@ For instance:
 
 .. code-block:: python
 
-    from sigtools.modifiers import kwoargs
     from clize import run
 
-    @kwoargs('no_capitalize')
-    def hello_world(name=None, no_capitalize=False):
+    def hello_world(name=None, *, no_capitalize=False):
         """Greets the world or the given name.
 
         name: If specified, only greet this person.
@@ -42,7 +40,7 @@ The python code above can now be used on the command-line as follows:
 .. code-block:: console
 
     $ pip install clize
-    $ python hello.py --help
+    $ python3 hello.py --help
         Usage: hello.py [OPTIONS] name
 
         Greets the world or the given name.
@@ -55,11 +53,11 @@ The python code above can now be used on the command-line as follows:
 
         Other actions:
           -h, --help   Show the help
-    $ python hello.py
+    $ python3 hello.py
     Hello world!
-    $ python hello.py john
+    $ python3 hello.py john
     Hello John!
-    $ python hello.py dave --no-capitalize
+    $ python3 hello.py dave --no-capitalize
     Hello dave!
 
 You can find the documentation at: http://clize.readthedocs.io/
