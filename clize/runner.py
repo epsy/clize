@@ -245,21 +245,28 @@ def lowercase(arg):
 class SubcommandDispatcher(object):
     clizer = Clize
 
-    def __init__(self, commands=(), description=None, footnotes=None):
+    def __init__(self, commands=(), description=None, footnotes=None, **kwargs):
         self.cmds, self.cmds_by_name = cli_commands(
             commands, namef=util.name_py2cli, clizer=self.clizer)
         self.description = description
         self.footnotes = footnotes
+        self.clize_kwargs = kwargs
 
-    @Clize(helper_class=_dispatcher_helper)
     @annotate(name=parameters.pass_name,
               command=(lowercase, parser.Parameter.LAST_OPTION))
-    def cli(self, name, command, *args):
+    def _cli(self, name, command, *args):
         try:
             func = self.cmds_by_name[command]
         except KeyError:
             raise errors.ArgumentError('Unknwon command "{0}"'.format(command))
         return func('{0} {1}'.format(name, command), *args)
+
+    @property
+    def cli(self):
+        c = Clize(self._cli, helper_class=_dispatcher_helper,
+                  **self.clize_kwargs)
+        c.owner = self
+        return c
 
 
 def fix_argv(argv, path, main):

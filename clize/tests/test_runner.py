@@ -195,6 +195,14 @@ class GetCliTests(unittest.TestCase):
         self.assertEqual(sd.cmds_by_name['abc'].func, func1)
         self.assertEqual(sd.cmds_by_name['def'].func, func2)
 
+    def test_sub_alt(self):
+        def func1(): raise NotImplementedError
+        def func2(): raise NotImplementedError
+        def alt(): raise NotImplementedError
+        ru = runner.Clize.get_cli([func1, func2], alt=alt)
+        sub, name, args, kwargs = ru.read_commandline(['test', '--alt'])
+        self.assertTrue(sub.func is alt)
+
     def test_nested_ita_error(self):
         def func1(): raise NotImplementedError
         def func2(): raise NotImplementedError
