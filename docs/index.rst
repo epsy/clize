@@ -64,6 +64,7 @@ About Clize
     :maxdepth: 1
 
     why
+    alternatives
     history
     faq
 
