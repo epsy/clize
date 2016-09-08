@@ -1028,6 +1028,7 @@ class CliBoundArguments(object):
         self.meta = {}
 
         self.posparam = iter(self.sig.positional)
+        self.namedparams = dict(self.sig.aliases)
         self.sticky = None
         self.posarg_only = False
         self.skip = 0
@@ -1059,7 +1060,7 @@ class CliBoundArguments(object):
                         else:
                             name = arg[:2]
                         try:
-                            param = self.sig.aliases[name]
+                            param = self.namedparams[name]
                         except KeyError:
                             raise errors.UnknownOption(name)
                     with errors.SetArgumentErrorContext(param=param):

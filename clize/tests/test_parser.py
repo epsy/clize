@@ -318,6 +318,21 @@ class SigTests(Fixtures):
         csig = parser.CliSignature.from_signature(sig)
         self.assertEqual(str(csig), '')
 
+    def test_namedparams_alter(self):
+        param = parser.OptionParameter(aliases=['--new'], argument_name='new')
+        class ParamInserter(parser.FlagParameter):
+            def __init__(self, **kwargs):
+                super(ParamInserter, self).__init__(value=True, argument_name=None, **kwargs)
+            def read_argument(self, ba, i):
+                ba.namedparams['--new'] = param
+        csig = parser.CliSignature([ParamInserter(aliases=['--insert'])])
+
+        with self.assertRaises(errors.UnknownOption):
+            csig.read_arguments(['--new', 'abc'], 'test')
+        ba = csig.read_arguments(['--insert', '--new', 'abc'], 'test')
+        self.assertEqual(ba.kwargs, {'new': 'abc'})
+        with self.assertRaises(errors.UnknownOption):
+            csig.read_arguments(['--new', 'abc'], 'test')
 
 
 class ExtraParamsTests(Fixtures):
