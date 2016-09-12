@@ -113,7 +113,7 @@ def mapped(values, list_name='list', case_sensitive=None):
         The default is to guess based on the contents of values.
 
     .. literalinclude:: /../examples/mapped.py
-        :lines: 5-19
+        :lines: 4-16
 
     """
     return parser.use_mixin(MappedParameter, kwargs={
@@ -171,7 +171,7 @@ def multi(min=0, max=None):
     parameters, just adds the optional bounds.
 
     .. literalinclude:: /../examples/multi.py
-        :lines: 5-13
+        :lines: 4-10
     """
 
     return parser.use_class(
