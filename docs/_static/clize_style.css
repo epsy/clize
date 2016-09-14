@@ -1,0 +1,4 @@
+.wy-table-responsive table td {
+  white-space: initial;
+  min-width: 15em;
+}
