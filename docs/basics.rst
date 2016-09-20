@@ -10,8 +10,8 @@
 
 .. _basics:
 
-Basics
-======
+Basics tutorial
+===============
 
 
 .. _install:
