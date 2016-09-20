@@ -182,7 +182,7 @@ Python 3.3 introduced `inspect.signature`, an alternative to the rough
 scratch to build something on a solid yet flexible base.
 
 For versions of Python below 3.3, a backport of `inspect.signature` existed on
-`PyPI <https://pypi.python.org/>`. This inspired a Python 3-first approach: The
+`PyPI <https://pypi.python.org/>`_. This inspired a Python 3-first approach: The
 old interface was deprecated in favor of the one described just above.
 
 .. code-block:: python
