@@ -103,6 +103,15 @@ Besides callables decorated with `.parser.value_converter`, the built-in
 functions `int`, `float` and `bool` are also recognized as value converters.
 
 
+.. _included converters:
+
+Included value converters
+.........................
+
+.. autofunction:: clize.converters.datetime
+
+.. autofunction:: clize.converters.file
+
 .. index:: default value
 
 .. _default value:

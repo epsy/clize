@@ -12,6 +12,10 @@ from clize import parser, errors
 
 @parser.value_converter(name='TIME')
 def datetime(arg):
+    """Parses a date into a `datetime` value
+
+    Requires ``dateutil`` to be installed.
+    """
     from dateutil import parser as dparser
 
     return dparser.parse(arg)
@@ -62,6 +66,21 @@ class _FileOpener(object):
             self.f.close()
 
 def file(stdio='-', keep_stdio_open=False, **kwargs):
+    """Takes a file argument and provides a Python object that opens a file
+
+    ::
+
+        def main(in_: file(), out: file(mode='w')):
+            with in_ as infile, out as outfile:
+                outfile.write(infile.read())
+
+    :param stdio: If this value is passed as argument, it will be interpreted
+        as *stdin* or *stdout* depending on the ``mode`` parameter supplied.
+    :param keep_stdio_open: If true, does not close the file if it is *stdin*
+        or *stdout*.
+
+    Other arguments will be relayed to `io.open`.
+    """
     return parser.value_converter(
         partial(_FileOpener, kwargs=kwargs,
                 stdio=stdio, keep_stdio_open=keep_stdio_open),
