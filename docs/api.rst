@@ -83,9 +83,56 @@ Parser
 Exceptions
 ----------
 
+.. currentmodule:: None
+
+.. class:: clize.UserError(message)
+           clize.errors.UserError(message)
+
+    An error to be displayed to the user.
+
+    If `clize.run` catches this error, the error will be printed without the
+    associated traceback.
+
+    .. code-block:: python
+
+        def main():
+            raise clize.UserError("an error message")
+
+        clize.run(main)
+
+    .. code-block:: shell
+
+        $ python usererror_example.py
+        usererror_example.py: an error message
+
+    You can also specify other exception classes to be caught using
+    `clize.run`'s ``catch`` argument. However exceptions not based on
+    `~clize.UserError` will not have the command name displayed.
+
+.. class:: clize.ArgumentError(message)
+           clize.errors.ArgumentError(message)
+
+    An error related to argument parsing. If `clize.run` catches this error,
+    the command's usage line will be printed.
+
+    .. code-block:: python
+
+        def main(i:int):
+            if i < 0:
+                raise clize.ArgumentError("i must be positive")
+
+        clize.run(main)
+
+    .. code-block:: shell
+
+        $ python argumenterror_example.py -- -5
+        argumenterror_example.py: i must be positive
+        Usage: argumenterror_example.py i
+
 .. automodule:: clize.errors
    :show-inheritance:
    :no-undoc-members:
+   :exclude-members: UserError,ArgumentError
 
 Compability with older clize releases
 -------------------------------------
