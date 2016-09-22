@@ -7,7 +7,9 @@ import tempfile
 import shutil
 import os
 import stat
+import sys
 
+from six.moves import cStringIO
 from sigtools import support, modifiers
 
 from clize import parser, errors, converters
@@ -141,6 +143,72 @@ class FileConverterTests(Tests):
         self.assertFalse(stdout.getvalue())
         self.assertTrue(stderr.getvalue().startswith(
             'test: Permission denied: '))
+
+    def test_stdin(self):
+        stdin = cStringIO()
+        @modifiers.annotate(afile=converters.file())
+        def func(afile):
+            with afile as f:
+                self.assertIs(f, stdin)
+        stdout, stderr = self.crun(func, ['test', '-'], stdin=stdin)
+        self.assertTrue(stdin.closed)
+        self.assertFalse(stdout.getvalue())
+        self.assertFalse(stderr.getvalue())
+
+    def test_stdout(self):
+        @modifiers.annotate(afile=converters.file(mode='w'))
+        def func(afile):
+            with afile as f:
+                self.assertIs(f, sys.stdout)
+        stdout, stderr = self.crun(func, ['test', '-'])
+        self.assertTrue(stdout.closed)
+        self.assertFalse(stderr.getvalue())
+
+    def test_change_sym(self):
+        @modifiers.annotate(afile=converters.file(stdio='gimmestdio'))
+        def func(afile):
+            with afile as f:
+                self.assertIs(f, sys.stdin)
+        stdout, stderr = self.crun(func, ['test', 'gimmestdio'])
+        self.assertFalse(stdout.getvalue())
+        self.assertFalse(stderr.getvalue())
+        with self.cd(self.temp):
+            self.assertFalse(os.path.exists('-'))
+            stdout, stderr = self.crun(func, ['test', '-'])
+            self.assertFalse(stdout.getvalue())
+            self.assertTrue(stderr.getvalue().startswith(
+                'test: Bad value for afile: File does not exist: '))
+
+    def test_no_sym(self):
+        @modifiers.annotate(afile=converters.file(stdio=None))
+        def func(afile):
+            raise NotImplementedError
+        self.assertFalse(os.path.exists('-'))
+        stdout, stderr = self.crun(func, ['test', '-'])
+        self.assertFalse(stdout.getvalue())
+        self.assertTrue(stderr.getvalue().startswith(
+            'test: Bad value for afile: File does not exist: '))
+
+    def test_stdin_no_close(self):
+        stdin = cStringIO()
+        @modifiers.annotate(afile=converters.file(keep_stdio_open=True))
+        def func(afile):
+            with afile as f:
+                self.assertIs(f, stdin)
+        stdout, stderr = self.crun(func, ['test', '-'], stdin=stdin)
+        self.assertFalse(stdin.closed)
+        self.assertFalse(stdout.getvalue())
+        self.assertFalse(stderr.getvalue())
+
+    def test_stdout_no_close(self):
+        @modifiers.annotate(afile=converters.file(mode='w', keep_stdio_open=True))
+        def func(afile):
+            with afile as f:
+                self.assertIs(f, sys.stdout)
+        stdout, stderr = self.crun(func, ['test', '-'])
+        self.assertFalse(stdout.closed)
+        self.assertFalse(stdout.getvalue())
+        self.assertFalse(stderr.getvalue())
 
 
 class ConverterErrorTests(Fixtures):

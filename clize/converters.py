@@ -2,6 +2,7 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
+import sys
 import io
 import os
 from functools import partial
@@ -17,13 +18,17 @@ def datetime(arg):
 
 
 class _FileOpener(object):
-    def __init__(self, arg, kwargs):
+    def __init__(self, arg, kwargs, stdio, keep_stdio_open):
         self.arg = arg
         self.kwargs = kwargs
+        self.stdio = stdio
+        self.keep_stdio_open = keep_stdio_open
         self.validate_permissions()
 
     def validate_permissions(self):
         mode = self.kwargs.get('mode', 'r')
+        if self.arg == self.stdio:
+            return
         exists = os.access(self.arg, os.F_OK)
         if not exists:
             if 'r' in mode and '+' not in mode:
@@ -42,18 +47,24 @@ class _FileOpener(object):
             'Permission denied: {0!r}'.format(self.arg))
 
     def __enter__(self):
-        try:
-            self.f = io.open(self.arg, **self.kwargs)
-        except IOError as exc:
-            raise _convert_ioerror(self.arg, exc)
+        if self.arg == self.stdio:
+            mode = self.kwargs.get('mode', 'r')
+            self.f = sys.stdin if 'r' in mode else sys.stdout
+        else:
+            try:
+                self.f = io.open(self.arg, **self.kwargs)
+            except IOError as exc:
+                raise _convert_ioerror(self.arg, exc)
         return self.f
 
     def __exit__(self, *exc_info):
-        self.f.close()
+        if self.arg != self.stdio or not self.keep_stdio_open:
+            self.f.close()
 
-def file(**kwargs):
+def file(stdio='-', keep_stdio_open=False, **kwargs):
     return parser.value_converter(
-        partial(_FileOpener, kwargs=kwargs),
+        partial(_FileOpener, kwargs=kwargs,
+                stdio=stdio, keep_stdio_open=keep_stdio_open),
         name='FILE')
 
 def _convert_ioerror(arg, exc):
