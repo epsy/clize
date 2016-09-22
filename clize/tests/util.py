@@ -2,7 +2,9 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
+import os
 import unittest2
+from contextlib import contextmanager
 
 from six.moves import cStringIO
 import repeated_test
@@ -21,6 +23,15 @@ class Tests(unittest2.TestCase):
         stderr = cStringIO()
         runner.run(func, args=args, exit=False, out=stdout, err=stderr, **kwargs)
         return stdout, stderr
+
+    @contextmanager
+    def cd(self, directory):
+        cwd = os.getcwd()
+        try:
+            os.chdir(directory)
+            yield
+        finally:
+            os.chdir(cwd)
 
 
 Fixtures = repeated_test.WithTestClass(Tests)

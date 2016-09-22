@@ -31,7 +31,7 @@ class _FileOpener(object):
                     'File does not exist: {0!r}'.format(self.arg))
             else:
                 dirname = os.path.dirname(self.arg)
-                if os.access(dirname, os.W_OK):
+                if not dirname or os.access(dirname, os.W_OK):
                     return
                 if not os.path.exists(dirname):
                     raise errors.CliValueError(

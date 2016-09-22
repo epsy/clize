@@ -105,6 +105,15 @@ class FileConverterTests(Tests):
         self.assertTrue(stderr.getvalue().startswith(
             'test: Bad value for afile: Directory does not exist: '))
 
+    def test_current_dir(self):
+        @modifiers.annotate(afile=converters.file(mode='w'))
+        def func(afile):
+            pass
+        with self.cd(self.temp):
+            stdout, stderr = self.crun(func, ['test', 'afile'])
+            self.assertFalse(stdout.getvalue())
+            self.assertFalse(stderr.getvalue())
+
     def test_noperm_file_write(self):
         path = os.path.join(self.temp, 'afile')
         open(path, mode='w').close()
