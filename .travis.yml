@@ -11,3 +11,6 @@ install:
   - pip install tox-travis
 script:
   - tox
+matrix:
+    allow_failures:
+        - python: pypy3-5.2-alpha1
