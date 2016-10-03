@@ -10,7 +10,7 @@ setup(
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
-    install_requires=['six', 'sigtools >= 2.0b1'],
+    install_requires=['six', 'sigtools >= 2.0'],
     extras_require={
         ':python_version in "2.6"': ['ordereddict'],
         'datetime': ['python-dateutil'],
