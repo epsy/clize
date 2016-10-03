@@ -111,25 +111,7 @@ infers a CLI.
 What other libraries can be used for argument parsing?
 ------------------------------------------------------
 
-Similar to Clize in that parameter behavior is inferred from a function
-signature:
-
-* `Baker <https://bitbucket.org/mchaput/baker/wiki/Home>`_: Similar to Clize 2,
-  with a decorator-based approach for adding commands.
-* `argh <http://argh.readthedocs.io/>`_: Based on `argparse`, optionally lets
-  you add parameters using a decorator API similar to `argparse`.
-
-Others:
-
-* `argparse` from the standard library.
-* `doctopt <http://docopt.org/>`_: Generates a CLI parser based on
-  the ``--help`` page you give it.
-* `click <http://click.pocoo.org/>`_: `argparse`-like specifications as
-  decorators, powerful command nesting tools
-* `twisted.python.usage
-  <http://twistedmatrix.com/documents/13.1.0/core/howto/options.html>`_
-* `optparse` and `getopt` from the standard library, both deprecated.
-* Many, many more.
+See :ref:`clize alternatives`.
 
 
 .. _faq mutual exclusive flag:
