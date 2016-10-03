@@ -17,9 +17,9 @@ dire situation by :ref:`contacting me <contact>` with your questions!
 What versions of Python are supported?
 --------------------------------------
 
-Clize is tested to run succesfully on Python 2.6, 2.7, 3.2, 3.3, 3.4 and 3.5.
+Clize is tested to run succesfully on Python 2.7 and Python 3.3 through 3.5.
 
-`Clize 3.1 <http://clize.readthedocs.io/en/3.1/>`_ is the last version to
+`Clize 3.1 <http://clize.readthedocs.io/en/3.1/>`_ was the last version to
 support Python 2.6.
 
 
@@ -46,15 +46,10 @@ If you wish to use `clize.converters.datetime`, you need:
 ``pip`` will install ``dateutil`` if you specify to install Clize with the
 ``datetime`` option, i.e. ``pip install "clize[datetime]"``.
 
-On Python 2, `sigtools` requires:
+On Python 2.7, `sigtools` requires:
 
 * `funcsigs <https://pypi.python.org/pypi/funcsigs/>`_: A backport of
   `inspect.signature` to Python 2.
-
-Finally, on Python 2.6, this is also needed:
-
-* `ordereddict <https://pypi.python.org/pypi/ordereddict/>`_: A backport of
-  `collections.OrderedDict`.
 
 
 .. _ancient pip:
