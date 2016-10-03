@@ -14,6 +14,7 @@ Version Release date        Major changes
 2.2     August 31st 2013    Minor additions
 2.4     October 2nd 2013    Bugfixes
 3.0     May 13th 2015       Extensibility, decorators, focus on py3
+3.1     October 3rd 2016    Better decorators, py3-first docs
 ======= =================== =======================================
 
 You can also browse the :ref:`release notes <releases>`.

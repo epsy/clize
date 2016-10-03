@@ -3,6 +3,25 @@
 Release notes
 =============
 
+
+.. _v3.1:
+
+3.1 (2016-10-03)
+----------------
+
+* Support for sigtools' automatic signature discovery. This is reflected
+  in the function composition tutorial: In most cases you no longer have
+  to specify how your decorators use `*args` and `**kwargs` exactly
+* Suggestions are provided when named parameters are misspelled. (Contributed
+  by Karan Parikh.)
+* You can supply 'alternative actions' (i.e. --version) even when using
+  multiple commands.
+* Improve hackability of argument parsing: named parameters are now sourced
+  from the bound arguments instance, so a parameter could modify it duing
+  parsing without changing the original signature.
+* Various documenation improvements.
+
+
 .. _v3.0:
 
 3.0 (2015-05-13)
