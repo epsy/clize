@@ -2,14 +2,17 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
+import inspect
 from itertools import count
 
-from sigtools.support import f
+import attr
+import od
+from sigtools.support import f, s
 from sigtools.modifiers import autokwoargs
 from sigtools.wrappers import wrapper_decorator
 
 from clize import runner, help, parser, util
-from clize.tests.util import Fixtures, tup
+from clize.tests.util import Fixtures, tup, any_instance_of
 
 USAGE_HELP = 'func --help [--usage]'
 
@@ -128,7 +131,7 @@ class WholeHelpTests(Fixtures):
         two: Option two
 
         one: Option one
-    """, ['func --one=STR --two=STR', USAGE_HELP], """
+    """, ['func --two=STR --one=STR', USAGE_HELP], """
         Usage: func [OPTIONS]
 
         Options:
@@ -359,7 +362,7 @@ class WholeHelpTests(Fixtures):
 
         Footer
     """, ['func', USAGE_HELP], """
-        Usage: func [OPTIONS]
+        Usage: func
 
         Description
 
@@ -402,8 +405,8 @@ class WholeHelpTests(Fixtures):
             Usage: func
 
             Other actions:
-            --alt
             -h, --help  Show the help
+            --alt
         """)
 
 
@@ -442,6 +445,429 @@ class WholeHelpTests(Fixtures):
                 -h, --help  Show the help
         """)
 
+
+class ClizeTokenizerTests(Fixtures):
+    def _test(self, doc, tokens):
+        self.assertEqual(
+            list(help.elements_from_clize_docstring(inspect.cleandoc(doc))),
+            tokens)
+
+    none = '', []
+
+    description = "This is just a description", [
+        (help.EL_FREE_TEXT, "This is just a description", False)
+    ]
+
+    linewrap = """This is a description
+    but it has to be on two lines""", [
+        (help.EL_FREE_TEXT, "This is a description but it has to be on two lines", False)
+    ]
+
+    paragraphs = """This is a paragraph.
+
+    This is also a paragraph.
+    But this is just a line.""", [
+        (help.EL_FREE_TEXT, "This is a paragraph.", False),
+        (help.EL_FREE_TEXT, "This is also a paragraph. But this is just a line.", False),
+    ]
+
+    code = """This paragraph introduces code:
+
+        This is code.
+        It may not be line-wrapped.
+
+        This is still code.
+        No line wrapping.
+
+    This is not code anymore.
+    It may be line-wrapped.""", [
+        (help.EL_FREE_TEXT, "This paragraph introduces code:", False),
+        (help.EL_FREE_TEXT, "    This is code.\n    It may not be line-wrapped.", True),
+        (help.EL_FREE_TEXT, "    This is still code.\n    No line wrapping.", True),
+        (help.EL_FREE_TEXT, "This is not code anymore. It may be line-wrapped.", False),
+    ]
+
+    code_no_intro = """This is a paragraph.
+
+    :
+
+        This is code.""", [
+        (help.EL_FREE_TEXT, "This is a paragraph.", False),
+        (help.EL_FREE_TEXT, "    This is code.", True),
+    ]
+
+    parameter_doc = """
+    param: This documents param.
+    This still documents param.
+
+    This doesn't.""", [
+        (help.EL_PARAM_DESC, "param", "This documents param. This still documents param."),
+        (help.EL_FREE_TEXT, "This doesn't.", False),
+    ]
+
+    parameter_after_text = """
+    This is a description.
+
+    p1: This documents p1.
+    """, [
+        (help.EL_FREE_TEXT, "This is a description.", False),
+        (help.EL_PARAM_DESC, "p1", "This documents p1."),
+    ]
+
+    parameter_after_label = """
+    Great parameters:
+
+    p2: This documents p2.
+    """, [
+        (help.EL_LABEL, "Great parameters"),
+        (help.EL_PARAM_DESC, "p2", "This documents p2."),
+    ]
+
+    labellike_before_paragraph = """
+    This looks like a label:
+
+    This is a paragraph.""", [
+        (help.EL_FREE_TEXT, "This looks like a label:", False),
+        (help.EL_FREE_TEXT, "This is a paragraph.", False),
+    ]
+
+
+class ClizeOrganizerTests(Fixtures):
+    def _test(self, tokens, expected):
+        self.assertEqual(
+            list(help.helpstream_from_elements(tokens)),
+            expected)
+
+    def test_throws_on_unknown_token(self):
+        with self.assertRaises(ValueError):
+            self._test([
+                (object(),)
+            ], None)
+        with self.assertRaises(ValueError):
+            self._test([
+                (help.HELP_HEADER,)
+            ], None)
+
+    empty = [], []
+
+    free_text = [
+        (help.EL_FREE_TEXT, "Free text 1", False),
+        (help.EL_FREE_TEXT, "Free text 2", False),
+    ], [
+        (help.HELP_HEADER, "Free text 1", False),
+        (help.HELP_HEADER, "Free text 2", False),
+    ]
+
+    parameter_descriptions = [
+        (help.EL_PARAM_DESC, "param1", "description1"),
+        (help.EL_PARAM_DESC, "param2", "description2"),
+    ], [
+        (help.HELP_PARAM_DESC, "param1", None, "description1"),
+        (help.HELP_PARAM_DESC, "param2", None, "description2"),
+    ]
+
+    labels = [
+        (help.EL_PARAM_DESC, "param1", "description1"),
+        (help.EL_LABEL, "First label"),
+        (help.EL_PARAM_DESC, "param2", "description2"),
+        (help.EL_PARAM_DESC, "param3", "description3"),
+        (help.EL_LABEL, "Second label"),
+        (help.EL_PARAM_DESC, "param4", "description4"),
+    ], [
+        (help.HELP_PARAM_DESC, "param1", None, "description1"),
+        (help.HELP_PARAM_DESC, "param2", "First label", "description2"),
+        (help.HELP_PARAM_DESC, "param3", "First label", "description3"),
+        (help.HELP_PARAM_DESC, "param4", "Second label", "description4"),
+    ]
+
+    footnotes = [
+        (help.EL_PARAM_DESC, "param1", "description1"),
+        (help.EL_FREE_TEXT, "This is the footnotes.", False),
+        (help.EL_FREE_TEXT, "This is preformatted.", True),
+    ], [
+        (help.HELP_PARAM_DESC, "param1", None, "description1"),
+        (help.HELP_FOOTER, "This is the footnotes.", False),
+        (help.HELP_FOOTER, "This is preformatted.", True),
+    ]
+
+    header_and_footnotes = [
+        (help.EL_FREE_TEXT, "This is a description.", False),
+        (help.EL_FREE_TEXT, "This is preformatted.", True),
+        (help.EL_PARAM_DESC, "param1", "description"),
+        (help.EL_FREE_TEXT, "This is the footnotes.", False),
+        (help.EL_FREE_TEXT, "This is also preformatted.", True),
+    ], [
+        (help.HELP_HEADER, "This is a description.", False),
+        (help.HELP_HEADER, "This is preformatted.", True),
+        (help.HELP_PARAM_DESC, "param1", None, "description"),
+        (help.HELP_FOOTER, "This is the footnotes.", False),
+        (help.HELP_FOOTER, "This is also preformatted.", True),
+    ]
+
+    param_after = [
+        (help.EL_PARAM_DESC, "param1", "description"),
+        (help.EL_FREE_TEXT, "Additional description for param1", False),
+        (help.EL_FREE_TEXT, "Additional preformatted text for param1", True),
+        (help.EL_PARAM_DESC, "param2", "another description"),
+    ], [
+        (help.HELP_PARAM_DESC, "param1", None, "description"),
+        (help.HELP_PARAM_AFTER, "param1", "Additional description for param1", False),
+        (help.HELP_PARAM_AFTER, "param1", "Additional preformatted text for param1", True),
+        (help.HELP_PARAM_DESC, "param2", None, "another description"),
+    ]
+
+
+class HelpForParametersBlankFromSignature(Fixtures):
+    def _test(self, parameters, sections):
+        self._do_test(
+            parser.CliSignature(parameters),
+            help.HelpForParameters([], [], sections, {}))
+
+    def _do_test(self, signature, expected):
+        ch = help.HelpForParameters.blank_from_signature(signature)
+        self.assertEqual(attr.asdict(ch), attr.asdict(expected))
+
+    empty = [], od[
+        help.LABEL_POS: od(),
+        help.LABEL_OPT: od(),
+        help.LABEL_ALT: od(),
+    ]
+
+    _param_pos = parser.PositionalParameter(
+        argument_name='pos', display_name='pos')
+    _param_opt = parser.OptionParameter(
+        argument_name='opt', aliases=['--opt'])
+    _param_alt = parser.AlternateCommandParameter(
+        aliases=['--alt'], func=None)
+
+    _param_pos_z = parser.PositionalParameter(
+        argument_name='zpos', display_name='zpos')
+    _param_opt_z = parser.OptionParameter(
+        argument_name='zopt', aliases=['--zopt'])
+    _param_alt_z = parser.AlternateCommandParameter(
+        aliases=['--zalt'], func=None)
+
+    params = [
+        _param_pos,
+        _param_opt,
+        _param_alt,
+    ], od[
+        help.LABEL_POS: od[
+            'pos': (_param_pos, ''),
+        ],
+        help.LABEL_OPT: od[
+            'opt': (_param_opt, ''),
+        ],
+        help.LABEL_ALT: od[
+            '--alt': (_param_alt, ''),
+        ],
+    ]
+
+    params_sort = [
+        _param_pos_z, _param_pos, # positional parameters keep source order
+        _param_opt_z, _param_opt,
+        _param_alt_z, _param_alt,
+    ], od[
+        help.LABEL_POS: od[
+            'zpos': (_param_pos_z, ''),
+            'pos': (_param_pos, ''),
+        ],
+        help.LABEL_OPT: od[
+            'opt': (_param_opt, ''),
+            'zopt': (_param_opt_z, ''),
+        ],
+        help.LABEL_ALT: od[
+            '--zalt': (_param_alt_z, ''),
+            '--alt': (_param_alt, ''),
+        ],
+    ]
+
+    _param_pos_u = parser.PositionalParameter(
+        argument_name='upos', display_name='upos',
+        undocumented=True)
+    _param_opt_u = parser.OptionParameter(
+        argument_name='uopt', aliases=['--uopt'],
+        undocumented=True)
+    _param_alt_u = parser.AlternateCommandParameter(
+        aliases=['--ualt'], func=None,
+        undocumented=True)
+
+    undocumented = [
+        _param_pos, _param_pos_u,
+        _param_opt, _param_opt_u,
+        _param_alt, _param_alt_u,
+    ], od[
+        help.LABEL_POS: od[
+            'pos': (_param_pos, ''),
+        ],
+        help.LABEL_OPT: od[
+            'opt': (_param_opt, ''),
+        ],
+        help.LABEL_ALT: od[
+            '--alt': (_param_alt, ''),
+        ],
+    ]
+
+
+hfcd = help.HelpForClizeDocstring
+ANY_CLIZE_PARAM = any_instance_of(parser.Parameter)
+
+
+class HelpForClizeDocstringAddHelpstream(Fixtures):
+    def _test(self, signature, stream, pnames, primary, exp_help_state):
+        csig = parser.CliSignature.from_signature(s(signature))
+        self._do_test(hfcd.blank_from_signature(csig),
+                      stream, pnames, primary, exp_help_state)
+
+    def _do_test(self, help_state, stream, pnames, primary, exp_help_state):
+        help_state.add_helpstream(stream, pnames, primary)
+        self.assertEqual(attr.asdict(exp_help_state), attr.asdict(help_state))
+
+    empty = '', [], None, False, hfcd([], [], od[
+        help.LABEL_POS: od(),
+        help.LABEL_OPT: od(),
+        help.LABEL_ALT: od(),
+    ], {})
+
+    ignore_missing_param = '', [
+        (help.HELP_PARAM_DESC, "opt", None, "option"),
+    ], None, True, hfcd([], [], od[
+        help.LABEL_POS: od(),
+        help.LABEL_OPT: od(),
+        help.LABEL_ALT: od(),
+    ], {})
+
+    full = 'pos, *, opt', [
+        (help.HELP_HEADER, "Description.", False),
+        (help.HELP_HEADER, "More description.", False),
+        (help.HELP_HEADER, "Some code.", True),
+        (help.HELP_PARAM_DESC, "pos", None, "positional"),
+        (help.HELP_PARAM_AFTER, "pos", "after positional", False),
+        (help.HELP_PARAM_DESC, "opt", None, "option"),
+        (help.HELP_PARAM_AFTER, "opt", "after option", False),
+        (help.HELP_FOOTER, "A footer.", False),
+    ], None, True, hfcd([
+        "Description.", "More description.", "Some code.",
+    ], [
+        "A footer.",
+    ], od[
+        help.LABEL_POS: od[
+            "pos": (ANY_CLIZE_PARAM, "positional"),
+        ],
+        help.LABEL_OPT: od[
+            "opt": (ANY_CLIZE_PARAM, "option"),
+        ],
+        help.LABEL_ALT: od(),
+    ], {
+        "pos": ["after positional"],
+        "opt": ["after option"],
+    })
+
+    ignore_nonprimary_header_and_footer = "pos, *, opt", [
+        (help.HELP_HEADER, "Description.", False),
+        (help.HELP_HEADER, "More description.", False),
+        (help.HELP_HEADER, "Some code.", True),
+        (help.HELP_PARAM_DESC, "pos", None, "positional"),
+        (help.HELP_PARAM_AFTER, "pos", "after positional", False),
+        (help.HELP_PARAM_DESC, "opt", None, "option"),
+        (help.HELP_PARAM_AFTER, "opt", "after option", False),
+        (help.HELP_FOOTER, "A footer.", False),
+    ], None, False, hfcd([], [], od[
+        help.LABEL_POS: od[
+            "pos": (ANY_CLIZE_PARAM, "positional"),
+        ],
+        help.LABEL_OPT: od[
+            "opt": (ANY_CLIZE_PARAM, "option"),
+        ],
+        help.LABEL_ALT: od(),
+    ], {
+        "pos": ["after positional"],
+        "opt": ["after option"],
+    })
+
+    pnames = "pos, *, opt", [
+        (help.HELP_HEADER, "Description.", False),
+        (help.HELP_HEADER, "More description.", False),
+        (help.HELP_HEADER, "Some code.", True),
+        (help.HELP_PARAM_DESC, "pos", None, "positional"),
+        (help.HELP_PARAM_AFTER, "pos", "after positional", False),
+        (help.HELP_PARAM_DESC, "opt", None, "option"),
+        (help.HELP_PARAM_AFTER, "opt", "after option", False),
+        (help.HELP_FOOTER, "A footer.", False),
+    ], ['pos'], False, hfcd([], [], od[
+        help.LABEL_POS: od[
+            "pos": (ANY_CLIZE_PARAM, "positional"),
+        ],
+        help.LABEL_OPT: od[
+            "opt": (ANY_CLIZE_PARAM, ""),
+        ],
+        help.LABEL_ALT: od(),
+    ], {
+        "pos": ["after positional"],
+    })
+
+    label = 'pos, *, opt1, opt2, opt3', [
+        (help.HELP_PARAM_DESC, "pos", None, "positional"),
+        (help.HELP_PARAM_DESC, "opt1", None, "option 1"),
+        (help.HELP_PARAM_DESC, "opt2", "Label", "option 2"),
+        (help.HELP_PARAM_DESC, "opt3", "Label", "option 3"),
+    ], None, True, hfcd([], [], od[
+        help.LABEL_POS: od[
+            "pos": (ANY_CLIZE_PARAM, "positional"),
+        ],
+        help.LABEL_OPT: od[
+            "opt1": (ANY_CLIZE_PARAM, "option 1"),
+        ],
+        "Label": od[
+            "opt2": (ANY_CLIZE_PARAM, "option 2"),
+            "opt3": (ANY_CLIZE_PARAM, "option 3"),
+        ],
+        help.LABEL_ALT: od(),
+    ], {})
+
+    order = 'pos, *, opt1, opt2, opt3', [
+        (help.HELP_PARAM_DESC, "pos", None, "positional"),
+        (help.HELP_PARAM_DESC, "opt1", None, "option 1"),
+        (help.HELP_PARAM_DESC, "opt3", None, "option 3"),
+        (help.HELP_PARAM_DESC, "opt2", None, "option 2"),
+    ], None, True, hfcd([], [], od[
+        help.LABEL_POS: od[
+            "pos": (ANY_CLIZE_PARAM, "positional"),
+        ],
+        help.LABEL_OPT: od[
+            "opt1": (ANY_CLIZE_PARAM, "option 1"),
+            "opt3": (ANY_CLIZE_PARAM, "option 3"),
+            "opt2": (ANY_CLIZE_PARAM, "option 2"),
+        ],
+        help.LABEL_ALT: od(),
+    ], {})
+
+    label_order = 'pos, *, opt1, opt2, opt3', [
+        (help.HELP_PARAM_DESC, "pos", None, "positional"),
+        (help.HELP_PARAM_DESC, "opt1", None, "option 1"),
+        (help.HELP_PARAM_DESC, "opt3", "First label", "option 3"),
+        (help.HELP_PARAM_DESC, "opt2", "Second label", "option 2"),
+    ], None, True, hfcd([], [], od[
+        help.LABEL_POS: od[
+            "pos": (ANY_CLIZE_PARAM, "positional"),
+        ],
+        help.LABEL_OPT: od[
+            "opt1": (ANY_CLIZE_PARAM, "option 1"),
+        ],
+        "First label": od[
+            "opt3": (ANY_CLIZE_PARAM, "option 3"),
+        ],
+        "Second label": od[
+            "opt2": (ANY_CLIZE_PARAM, "option 2"),
+        ],
+        help.LABEL_ALT: od(),
+    ], {})
+
+    def test_invalid_help_type(self):
+        with self.assertRaises(ValueError):
+            self._test("", [
+                (object(),),
+            ], None, True, None)
 
 
 class WrappedFuncTests(Fixtures):
@@ -1054,6 +1480,32 @@ class DispatcherHelper(Fixtures):
             func1
             func2
     """
+
+    # TODO: change so that param: overrides a subcommand description
+    complex_description = """
+        This is a description.
+
+        It has paragraphs:
+
+            And code.
+
+        param: but this should be ignored
+        """, None, [''], [''], [
+            'sd --help [--usage]',
+            'sd func1 ',
+            'sd func1 --help [--usage]',
+        ], """
+            Usage: sd command [args...]
+
+            This is a description.
+
+            It has paragraphs:
+
+                And code.
+
+            Commands:
+                func1
+        """
 
     def test_dummy_external(self):
         @runner.Clize.as_is

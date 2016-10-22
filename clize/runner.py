@@ -233,8 +233,8 @@ class Clize(object):
 
 def _dispatcher_helper(*args, **kwargs):
     """alias for clize.help.DispatcherHelper, avoiding circular import"""
-    from clize.help import DispatcherHelper
-    return DispatcherHelper(*args, **kwargs)
+    from clize.help import ClizeHelp, HelpForSubcommands
+    return ClizeHelp(*args, builder=HelpForSubcommands.from_subject, **kwargs)
 
 
 @parser.value_converter(name='STR')

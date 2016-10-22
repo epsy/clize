@@ -18,12 +18,16 @@ except ImportError:
 import six
 
 
-class _Unset(object):
-    __slots__ = ()
+class Sentinel(object):
+    __slots__ = ('name')
+
+    def __init__(self, name):
+        self.name = name
+
     def __repr__(self):
-        return '<unset>'
-UNSET = _Unset()
-del _Unset
+        return self.name
+
+UNSET = Sentinel('<unset>')
 
 try:
     zip_longest = itertools.zip_longest

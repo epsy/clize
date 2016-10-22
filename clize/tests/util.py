@@ -44,3 +44,23 @@ class Tests(unittest2.TestCase):
 
 Fixtures = repeated_test.WithTestClass(Tests)
 tup = repeated_test.tup
+
+
+class Matching(object):
+    def __init__(self, condition):
+        self.condition = condition
+
+    def __eq__(self, other):
+        return self.condition(other)
+
+
+@Matching
+def any(other):
+    return True
+
+
+def any_instance_of(cls):
+    @Matching
+    def condition(obj):
+        return isinstance(obj, cls)
+    return condition
