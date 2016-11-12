@@ -30,6 +30,11 @@ import re
 import od
 import attr
 import six
+from docutils.frontend import OptionParser
+from docutils.parsers.rst import Parser
+from docutils.utils import new_document
+from docutils import nodes as dunodes, transforms
+from docutils.transforms import references
 from sigtools.modifiers import annotate, kwoargs
 
 from clize import runner, parser, util, parameters
@@ -543,6 +548,144 @@ class HelpForClizeDocstring(HelpForParameters):
             else:
                 raise ValueError("Unknown help item type: " + repr(ttype))
         self.sections[LABEL_ALT] = self.sections.pop(LABEL_ALT)
+
+
+def _du_text(node):
+    return ''.join(
+        n.astext() for n in node.traverse(dunodes.Text)
+    )
+
+
+def _du_paragraphs(node):
+    return [
+        _du_text(p)
+        for p in node.traverse(dunodes.paragraph)
+    ]
+
+
+def _du_get_child_element(node, NodeType):
+    el, = node.traverse(NodeType)
+    return el
+
+
+def _du_get_element_text(node):
+    return _du_get_child_element(node, dunodes.Text).astext()
+
+
+def _du_field_name_and_body(node):
+    name = None
+    body = None
+    for n in node.traverse():
+        if isinstance(n, dunodes.field_name):
+            name = n
+        elif isinstance(n, dunodes.field_body):
+            body = n
+    return name, body
+
+
+_NEWLINE_PAT = re.compile(r'(?P<dot>\.?)\n+')
+
+
+def _replace_newline(match):
+    if match.group('dot'):
+        return '.  '
+    else:
+        return ' '
+
+
+def _remove_newlines(text):
+    return _NEWLINE_PAT.sub(_replace_newline, text)
+
+
+def _paragraph_or_code(node):
+    return isinstance(node, (dunodes.paragraph, dunodes.literal_block))
+
+
+def _is_label(text, node):
+    next_node = node.next_node(descend=False, ascend=True)
+    return (
+        text.endswith(':')
+        and isinstance(next_node, dunodes.field_list)
+        )
+
+
+class _SphinxVisitor(dunodes.SparseNodeVisitor, object):
+    def __init__(self, *args, **kwargs):
+        super(_SphinxVisitor, self).__init__(*args, **kwargs)
+        self.result = []
+
+    def visit_paragraph(self, node):
+        text = _du_text(node)
+        if _is_label(text, node):
+            self.result.append(
+                (EL_LABEL, text[:-1])
+            )
+        else:
+            self.result.append(
+                (EL_FREE_TEXT, _remove_newlines(_du_text(node)), False)
+            )
+        raise dunodes.SkipChildren
+
+    def visit_literal_block(self, node):
+        self.result.append(
+            (EL_FREE_TEXT, _du_text(node), True)
+        )
+        raise dunodes.SkipChildren
+
+    def visit_field(self, node):
+        name, body = _du_field_name_and_body(node)
+        options = _du_text(name).split()
+        if options[0] == 'param':
+            param = options[-1]
+            paragraphs = body.traverse(_paragraph_or_code)
+            description = ""
+            if paragraphs and isinstance(paragraphs[0], dunodes.paragraph):
+                description = _remove_newlines(_du_text(paragraphs.pop(0)))
+            self.result.append(
+                (EL_PARAM_DESC, param, description)
+            )
+            for p in paragraphs:
+                text = _du_text(p)
+                preformatted = True
+                if isinstance(p, dunodes.paragraph):
+                    preformatted = False
+                    text = _remove_newlines(text)
+                self.result.append(
+                    (EL_AFTER, param, text, preformatted)
+                )
+        raise dunodes.SkipChildren
+
+    def __iter__(self):
+        return iter(self.result)
+
+
+def elements_from_sphinx_docstring(source):
+    """Reads a Sphinx.autodoc-compatible docstring into something
+    `helpstream_from_elements` can process.
+    """
+    parser = Parser()
+    settings = OptionParser(components=(Parser,)).get_default_values()
+    document = new_document("docstring", settings)
+    parser.parse(source, document)
+    transformer = transforms.Transformer(document)
+    transformer.add_transform(references.Substitutions)
+    transformer.apply_transforms()
+    visitor = _SphinxVisitor(document)
+    document.walk(visitor)
+    return visitor
+
+
+class HelpForSphinxDocstring(HelpForClizeDocstring):
+    """Builds generic parameter help from the docstrings of Clize instances
+
+    Understands docstrings written for Sphinx's :rst:dir:`autodoc
+    <sphinx:autofunction>`."""
+
+    def add_docstring(self, docstring, pnames, primary):
+        self.add_helpstream(
+            helpstream_from_elements(
+                elements_from_sphinx_docstring(docstring),
+            ), pnames, primary)
 
 
 def _alternate_usages(alternate_params):

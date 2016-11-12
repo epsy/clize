@@ -270,6 +270,7 @@ texinfo_documents = [
 intersphinx_mapping = {
     'python': ('http://docs.python.org/3/', None),
     'sigtools': ('http://sigtools.readthedocs.io/en/latest/', None),
+    'sphinx': ('http://www.sphinx-doc.org/en/stable/', None),
     }
 
 autoclass_content = 'both'

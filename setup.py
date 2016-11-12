@@ -16,7 +16,8 @@ setup(
         'attrs',
         'od',
         'repeated_test',
-        'unittest2'
+        'unittest2',
+        'docutils',
     ],
     extras_require={
         'datetime': ['python-dateutil'],

@@ -25,7 +25,7 @@ class WholeHelpTests(Fixtures):
         self._do_test(r, usage, help_str)
 
     def _do_test(self, runner, usage, help_str):
-        h = help.ClizeHelp(runner, None)
+        h = runner.helper
         h.prepare()
         pc_usage = h.cli('func --help', '--usage')
         p_usage = [l.rstrip() for l in h.show_full_usage('func')]
@@ -35,6 +35,11 @@ class WholeHelpTests(Fixtures):
         self.assertEqual('\n'.join(usage), pc_usage)
         self.assertEqual(help_str.split(), p_help_str.split())
         self.assertEqual(help_str.split(), pc_help_str.split())
+
+
+class ClizeWholeHelpTests(WholeHelpTests):
+    def _test(self, *args, **kwargs):
+        super(ClizeWholeHelpTests, self)._test(*args, **kwargs)
 
     simple = "one, *args, two", """
         Description
@@ -884,6 +889,339 @@ class HelpForClizeDocstringAddHelpstream(Fixtures):
             self._test("", [
                 (object(),),
             ], None, True, None)
+
+
+class SphinxTokenizerTests(Fixtures):
+    def _test(self, docstring, exp_tokens):
+        self.assertEqual(
+            exp_tokens,
+            list(help.elements_from_sphinx_docstring(inspect.cleandoc(docstring)))
+            )
+
+    paragraphs = """
+        This is a paragraph.
+
+        This paragraph
+        spans over
+        multiple lines.
+
+        Linebreaks after periods.
+        They carry two spaces.
+
+        But it doesn't break Mr. or Ms. Lastname's inline spacing.
+    """, [
+        (help.EL_FREE_TEXT, "This is a paragraph.", False),
+        (help.EL_FREE_TEXT, "This paragraph spans over multiple lines.", False),
+        (help.EL_FREE_TEXT, "Linebreaks after periods.  They carry two spaces.", False),
+        (help.EL_FREE_TEXT, "But it doesn't break Mr. or Ms. Lastname's inline spacing.", False),
+    ]
+
+    trailing_spaces = """
+        There are trailing spaces here.   \n\
+        They should be ignored.
+    """, [
+        (help.EL_FREE_TEXT, "There are trailing spaces here.  They should be ignored.", False),
+    ]
+
+    after = """
+        Description
+
+        :param opt1:
+            option 1 description.
+            Still option 1 description.
+
+            After option 1
+
+        Also after option 1
+
+        :param opt2: option 2 description.
+
+            After option 2
+
+        Footnotes
+    """, [
+        (help.EL_FREE_TEXT, "Description", False),
+        (help.EL_PARAM_DESC, "opt1", "option 1 description.  Still option 1 description."),
+        (help.EL_AFTER, "opt1", "After option 1", False),
+        (help.EL_FREE_TEXT, "Also after option 1", False),
+        (help.EL_PARAM_DESC, "opt2", "option 2 description."),
+        (help.EL_AFTER, "opt2", "After option 2", False),
+        (help.EL_FREE_TEXT, "Footnotes", False),
+    ]
+
+    fields = """
+        :noindex:
+
+        Description
+
+        :param str opt1: option 1 description
+        :param opt2: option 2 description
+        :type opt2: str
+        :return: a return value
+        :rtype: return value type
+        :raises ValueError: if there is an error in the value
+        :raises OtherEeror: Subnodes should be ignored in field bodies
+
+            ::
+
+                This is code.
+
+        Footnotes
+    """, [
+        (help.EL_FREE_TEXT, "Description", False),
+        (help.EL_PARAM_DESC, "opt1", "option 1 description"),
+        (help.EL_PARAM_DESC, "opt2", "option 2 description"),
+        (help.EL_FREE_TEXT, "Footnotes", False),
+    ]
+
+    markup = """
+        `docutils <https://pypi.python.org/pypi/docutils>`_ offers a *range*
+        of `different` markup ``options.``
+        Clize should **not** render most of them.
+
+        :param opt: This also applies *inside* parameters.
+    """, [
+        (help.EL_FREE_TEXT, "docutils offers a range of different markup "
+                             "options.  Clize should not render most of them.",
+         False),
+        (help.EL_PARAM_DESC, "opt", "This also applies inside parameters."),
+    ]
+
+    literal_block = """
+        Code can be denoted at the end of paragraphs::
+
+            This is
+            code.
+
+            This is still
+            code.
+
+        You can also begin them without a paragraph
+
+        ::
+
+            This is
+            also code.
+
+        :param opt1: They are also available in field bodies
+
+            ::
+
+                This is
+                code.
+
+        :param opt2:
+
+            ::
+
+                This is
+                also code.
+    """, [
+        (help.EL_FREE_TEXT, "Code can be denoted at the end of paragraphs:", False),
+        (help.EL_FREE_TEXT, "This is\ncode.\n\nThis is still\ncode.", True),
+        (help.EL_FREE_TEXT, "You can also begin them without a paragraph", False),
+        (help.EL_FREE_TEXT, "This is\nalso code.", True),
+        (help.EL_PARAM_DESC, "opt1", "They are also available in field bodies"),
+        (help.EL_AFTER, "opt1", "This is\ncode.", True),
+        (help.EL_PARAM_DESC, "opt2", ""),
+        (help.EL_AFTER, "opt2", "This is\nalso code.", True),
+    ]
+
+    code = """
+        .. code::
+
+            This is
+            code.
+
+        .. code:: python
+
+            def some_python(code):
+                pass
+
+        :param opt1: also in parameters
+
+            .. code::
+
+                This is
+                code.
+    """, [
+        (help.EL_FREE_TEXT, "This is\ncode.", True),
+        (help.EL_FREE_TEXT, "def some_python(code):\n    pass", True),
+        (help.EL_PARAM_DESC, "opt1", "also in parameters"),
+        (help.EL_AFTER, "opt1", "This is\ncode.", True),
+    ]
+
+    labels = """
+        Description
+
+        :param opt1: option 1
+
+        This is a label:
+
+        :param opt2: option 2
+        :param opt3: option 3
+
+        Another label:
+
+        :param opt4: option 4
+    """, [
+        (help.EL_FREE_TEXT, "Description", False),
+        (help.EL_PARAM_DESC, "opt1", "option 1"),
+        (help.EL_LABEL, "This is a label"),
+        (help.EL_PARAM_DESC, "opt2", "option 2"),
+        (help.EL_PARAM_DESC, "opt3", "option 3"),
+        (help.EL_LABEL, "Another label"),
+        (help.EL_PARAM_DESC, "opt4", "option 4"),
+    ]
+
+    substitution = """
+        Hello I am |name|.
+
+        .. |name| replace:: a computer program
+    """, [
+        (help.EL_FREE_TEXT, "Hello I am a computer program.", False),
+    ]
+
+
+def sphinx_helper_class(*args, **kwargs):
+    return help.ClizeHelp(
+        *args, builder=help.HelpForSphinxDocstring.from_subject, **kwargs)
+
+
+hfsd = help.HelpForSphinxDocstring
+
+
+class SphinxAddDocstringTests(Fixtures):
+    def _test(self, signature, docstring, pnames, primary, exp_help_state):
+        csig = parser.CliSignature.from_signature(s(signature))
+        self._do_test(hfsd.blank_from_signature(csig),
+                      docstring, pnames, primary, exp_help_state)
+
+    def _do_test(self, help_state, docstring, pnames, primary, exp_help_state):
+        help_state.add_docstring(docstring, pnames, primary)
+        self.assertEqual(attr.asdict(exp_help_state), attr.asdict(help_state))
+
+    description_and_args = "arg1, arg2, *, opt1, opt2", """
+        Description
+
+        :param arg1: This is arg1
+        :param arg2: This is arg2
+        :param opt1: This is opt1
+        :param opt2: This is opt2
+
+        Footnotes
+    """, None, True, hfsd([
+        "Description",
+    ], [
+        "Footnotes",
+    ], od[
+        help.LABEL_POS: od[
+            "arg1": (ANY_CLIZE_PARAM, "This is arg1"),
+            "arg2": (ANY_CLIZE_PARAM, "This is arg2"),
+        ],
+        help.LABEL_OPT: od[
+            "opt1": (ANY_CLIZE_PARAM, "This is opt1"),
+            "opt2": (ANY_CLIZE_PARAM, "This is opt2"),
+        ],
+        help.LABEL_ALT: od(),
+    ], {})
+
+    after = "*, opt1, opt2", """
+        Description
+
+        :param opt1:
+            option 1 description.
+            Still option 1 description.
+
+            After option 1
+
+        Also after option 1
+
+        :param opt2: option 2 description.
+
+            After option 2
+
+        Footnotes
+    """, None, True, hfsd([
+        "Description",
+    ], [
+        "Footnotes",
+    ], od[
+        help.LABEL_POS: od(),
+        help.LABEL_OPT: od[
+            "opt1": (ANY_CLIZE_PARAM, "option 1 description.  Still option 1 description."),
+            "opt2": (ANY_CLIZE_PARAM, "option 2 description."),
+        ],
+        help.LABEL_ALT: od(),
+    ], {
+        "opt1": ["After option 1", "Also after option 1"],
+        "opt2": ["After option 2"],
+    })
+
+
+class SphinxWholeHelpTests(WholeHelpTests):
+    def _test(self, sig, doc, usage, help_str):
+        func = f(sig, pre="from clize import Parameter as P")
+        func.__doc__ = doc
+        r = runner.Clize(func, helper_class=sphinx_helper_class)
+        self._do_test(r, usage, help_str)
+
+    description_and_args = "arg1, arg2, *, opt1, opt2", """
+        Description
+
+        :param arg1: This is arg1
+        :param arg2: This is arg2
+        :param opt1: This is opt1
+        :param opt2: This is opt2
+
+        Footnotes
+    """, ['func --opt1=STR --opt2=STR arg1 arg2', USAGE_HELP], """
+        Usage: func [OPTIONS] arg1 arg2
+
+        Description
+
+        Arguments:
+            arg1    This is arg1
+            arg2    This is arg2
+
+        Options:
+            --opt1=STR   This is opt1
+            --opt2=STR   This is opt2
+
+        Other actions:
+            -h, --help  Show the help
+
+        Footnotes
+    """
+
+    after = "*, opt1, opt2", """
+        Description
+
+        :param opt1: This is opt1.
+            Still in the first paragraph for opt1.
+
+            New paragraph for opt1
+
+        :param opt2: This is opt2
+
+        Footnotes
+    """, ['func --opt1=STR --opt2=STR', USAGE_HELP], """
+        Usage: func [OPTIONS]
+
+        Description
+
+        Options:
+            --opt1=STR   This is opt1.  Still in the first paragraph for opt1.
+
+        New paragraph for opt1
+
+            --opt2=STR   This is opt2
+
+        Other actions:
+            -h, --help  Show the help
+
+        Footnotes
+    """
 
 
 class WrappedFuncTests(Fixtures):
