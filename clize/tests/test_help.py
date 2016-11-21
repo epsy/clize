@@ -616,6 +616,22 @@ class ClizeOrganizerTests(Fixtures):
         (help.HELP_PARAM_DESC, "param2", None, "another description"),
     ]
 
+    explicit_after = [
+        (help.EL_PARAM_DESC, "param1", "param1 description"),
+        (help.EL_AFTER, "param1", "after param 1", False),
+        (help.EL_FREE_TEXT, "still after param 1", False),
+        (help.EL_PARAM_DESC, "param2", "param2 description"),
+        (help.EL_AFTER, "param2", "after param 2", False),
+        (help.EL_FREE_TEXT, "footnotes", False),
+    ], [
+        (help.HELP_PARAM_DESC, "param1", None, "param1 description"),
+        (help.HELP_PARAM_AFTER, "param1", "after param 1", False),
+        (help.HELP_PARAM_AFTER, "param1", "still after param 1", False),
+        (help.HELP_PARAM_DESC, "param2", None, "param2 description"),
+        (help.HELP_PARAM_AFTER, "param2", "after param 2", False),
+        (help.HELP_FOOTER, "footnotes", False)
+    ]
+
 
 class HelpForParametersBlankFromSignature(Fixtures):
     def _test(self, parameters, sections):

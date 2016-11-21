@@ -322,6 +322,14 @@ Designates the description for a parameter.
 """
 
 
+EL_AFTER = util.Sentinel('EL_AFTER')
+"""``(EL_AFTER, "param", "paragraph", is_preformatted)``
+
+Explicitly designates an additional paragraph after a parameter. Unlike
+`EL_FREE_TEXT`, this cannot be confused for a footer paragraph.
+"""
+
+
 def helpstream_from_elements(tokens):
     """
     Transforms an iterable of non-explicit ``EL_*`` elements to an iterable of
@@ -351,6 +359,9 @@ def helpstream_from_elements(tokens):
                 name, description = args
                 prev_param = name
                 yield HELP_PARAM_DESC, name, label, description
+            elif ttype == EL_AFTER:
+                name, text, preformatted = args
+                yield (HELP_PARAM_AFTER,) + args
             else:
                 raise ValueError("Unknown token: " + str(ttype))
     if prev_param is None:
