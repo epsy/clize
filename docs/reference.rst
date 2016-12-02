@@ -724,6 +724,7 @@ Inserting arbitrary values
         ans: 42
 
 
+.. _clize docstring:
 .. _docstring:
 
 Customizing the help using the docstring

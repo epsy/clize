@@ -134,6 +134,16 @@ Exceptions
    :no-undoc-members:
    :exclude-members: UserError,ArgumentError
 
+
+Help generation
+---------------
+
+.. automodule:: clize.help
+   :show-inheritance:
+   :members:
+   :no-undoc-members:
+
+
 Compability with older clize releases
 -------------------------------------
 

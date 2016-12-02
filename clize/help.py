@@ -2,6 +2,25 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
+"""
+`clize.help` manages the generation of help messages obtained using ``--help``.
+
+`.HelpCli` is the command-line interface for it. It is injected as an extra
+alternate option by `.Clize`. It can be replaced using `.Clize`'s
+``helper_class`` parameter.
+
+`.HelpForClizeDocstring` constructs the help for clize's docstring format.
+It is invoked by `.HelpCli.get_help` method. It can be swapped with the
+``builder`` parameter of `.HelpCli`.
+
+It uses `sigtools.specifiers.signature` to obtain which functions document the
+parameters, `.elements_from_clize_docstring` and `.helpstream_from_elements`
+process the docstring so it can be fed to
+`.HelpForClizeDocstring.add_docstring`.
+
+"""
+
+
 from __future__ import unicode_literals
 
 import itertools
@@ -31,24 +50,60 @@ def _filter_undocumented(params):
 
 
 LABEL_POS = "Arguments"
+"""The label for positional parameters"""
+
+
 LABEL_OPT = "Options"
+"""The default label for named parameters"""
+
+
 LABEL_ALT = "Other actions"
-
-EL_LABEL = util.Sentinel('EL_LABEL')
-EL_FREE_TEXT = util.Sentinel('EL_FREE_TEXT')
-EL_PARAM_DESC = util.Sentinel('EL_PARAM_DESC')
-
-HELP_HEADER = util.Sentinel('HELP_HEADER')
-HELP_FOOTER = util.Sentinel('HELP_FOOTER')
-HELP_PARAM_DESC = util.Sentinel('HELP_PARAM_DESC')
-HELP_PARAM_AFTER = util.Sentinel('HELP_PARAM_AFTER')
+"""The label for alternate actions like ``--help``"""
 
 
 @attr.s
 class HelpForParameters(object):
     """Stores and displays help for a CLI with positional parameters,
     named parameters and/or alternate actions designated by a named parameter
+
+    Example output in relation to attribute names::
+
+        header
+
+        section:
+            param1   Param1 description
+
+        After param2
+
+            param2   Param2 description
+
+        footer
+
+    .. attribute:: header
+        :annotation: = []
+
+        A list of strings representing paragraphs in the help
+        header/description.
+
+    .. attribute:: footer
+        :annotation: = []
+
+        A list of strings representing paragraphs in the help
+        footer after everything else.
+
+    .. attribute:: sections
+        :annotation: = OrderedDict("section_name" =>
+            OrderedDict("param_name" =>
+                (param, "description")))
+
+        Maps section names to parameters and their help.
+
+    .. attribute:: after
+        :annotation: = {"param_name": ["paragraph"]}
+
+        Maps parameter names to additional paragraphs.
     """
+
     header = attr.ib()
     footer = attr.ib()
     sections = attr.ib()
@@ -56,6 +111,17 @@ class HelpForParameters(object):
 
     @classmethod
     def blank_from_signature(cls, signature):
+        """Creates a blank instance with placeholders for the parameters in
+        ``signature``.
+
+        The parameters are sorted into three sections:
+
+        ============ ===================================
+        `.LABEL_POS` Positional parameters
+        `.LABEL_OPT` Named parameters
+        `.LABEL_ALT` Alternate options (e.g. ``--help``)
+        ============ ===================================
+        """
         s = util.OrderedDict((
             (LABEL_POS, util.OrderedDict()),
             (LABEL_OPT, util.OrderedDict()),
@@ -102,24 +168,30 @@ class HelpForParameters(object):
         )
 
     def show_usage(self, name):
-        return 'Usage: {name}{options}{space}{positional}'.format(
-            name=name,
-            options=' [OPTIONS]' if self._has_options else '',
-            space=' ' if self.sections[LABEL_POS] else '',
-            positional=' '.join(
-                str(param)
-                for param, _ in self.sections[LABEL_POS].values())
-            ),
+        """Returns a summary overview of the command's parameters.
+
+        Option parameters are collapsed as ``[OPTIONS]`` in the output.
+        """
+        ret = ['Usage:', name]
+        if self._has_options:
+            ret.append('[OPTIONS]')
+        ret.extend(
+            str(param)
+            for param, _ in self.sections[LABEL_POS].values())
+        return ' '.join(ret),
 
     def _alternate_usages(self):
         return _alternate_usages(self._alternate_params)
 
     def usages(self):
+        """Returns an iterable of all possible complete usage patterns"""
         yield ' '.join(str(param) for param in self._params_for_usage)
         for usage in self._alternate_usages():
             yield usage
 
     def show_full_usage(self, name):
+        """Returns an iterable of all possible complete usage patterns
+        including the command name"""
         for usage in self.usages():
             yield name + ' ' + usage
 
@@ -147,6 +219,7 @@ class HelpForParameters(object):
                 f.new_paragraph()
 
     def show_help(self, name):
+        """Produce the full help."""
         f = util.Formatter()
         f.extend(self.show_usage(name))
         f.new_paragraph()
@@ -185,6 +258,13 @@ CLIZEDOC_ARGUMENT_RE = re.compile(r'^(\w+): ?(.+)$')
 
 
 def elements_from_clize_docstring(source):
+    """Converts a string to an iterable of element tuples such as
+    ``(EL_FREE_TEXT, "text", False)``.
+
+    The result is suitable for `helpstream_from_elements`.
+
+    See below for which tuples are produced/understood.
+    """
     free_text = None
     for p in _split_clize_docstring(source):
         if p.startswith(' '):
@@ -213,7 +293,42 @@ def elements_from_clize_docstring(source):
         yield EL_FREE_TEXT, free_text, False
 
 
+EL_LABEL = util.Sentinel('EL_LABEL')
+"""``(EL_LABEL, "label")``
+
+Indicates that the subsequent `EL_PARAM_DESC` elements are under a section
+label.
+"""
+
+
+EL_FREE_TEXT = util.Sentinel('EL_FREE_TEXT')
+"""``(EL_FREE_TEXT, "paragraph", is_preformatted)``
+
+Designates some free text. May be converted into header text, footer text, or
+additional paragraphs after a parameter depending on context.
+
+The last free text elements at the end of a docstring are always considered
+to be the footer rather than additional paragraphs after a parameter.
+
+``is_preformatted`` is a boolean that indicates that the paragraph should not
+be reformatted.
+"""
+
+
+EL_PARAM_DESC = util.Sentinel('EL_PARAM_DESC')
+"""``(EL_PARAM_DESC, "param", "paragraph")``
+
+Designates the description for a parameter.
+"""
+
+
 def helpstream_from_elements(tokens):
+    """
+    Transforms an iterable of non-explicit ``EL_*`` elements to an iterable of
+    explicit ``HELP_*`` elements.
+
+    The result is suitable for `HelpForClizeDocstring.add_helpstream`.
+    """
     label = None
     prev_param = None
     free_text = []
@@ -246,6 +361,29 @@ def helpstream_from_elements(tokens):
             yield (HELP_FOOTER,) + ftext
 
 
+HELP_HEADER = util.Sentinel('HELP_HEADER')
+"""``(HELP_HEADER, "paragraph", is_preformatted)``
+
+Designates a paragraph that appears before the parameter descriptions.
+"""
+HELP_FOOTER = util.Sentinel('HELP_FOOTER')
+"""``(HELP_FOOTER, "paragraph", is_preformatted)``
+
+Designates a paragraph that appears after the parameter descriptions.
+"""
+HELP_PARAM_DESC = util.Sentinel('HELP_PARAM_DESC')
+"""``(HELP_PARAM_DESC, "param", "label", "paragraph")``
+
+Designates a parameter description. If no label was specified `None` should take its
+place.
+"""
+HELP_PARAM_AFTER = util.Sentinel('HELP_PARAM_AFTER')
+"""``(HELP_PARAM_AFTER, "param", "paragraph", is_preformatted)``
+
+Designates a paragraph after a parameter description.
+"""
+
+
 class HelpForClizeDocstring(HelpForParameters):
     """Builds generic parameter help from the docstrings of Clize instances
 
@@ -258,6 +396,25 @@ class HelpForClizeDocstring(HelpForParameters):
 
     @classmethod
     def from_subject(cls, subject, owner):
+        """Constructs a `HelpForClizeDocstring` instance and populates it with
+        data from a `.Clize` instance.
+
+        It uses the parameters' `.parser.Parameter.prepare_help` and reads
+        the docstrings of functions from which the parameters originate.
+
+        :param .Clize subject: The `.Clize` instance to document.
+        :param object owner: The object of which ``subject`` is a member of,
+            or `None`.
+
+            This typically has a value if a CLI is defined as a class::
+
+                class MyCli(object):
+                    @clize.Clize
+                    def cli(self, param):
+                        ...
+
+            ``owner`` would refer to an instance of ``MyCli``.
+        """
         ret = cls.blank_from_signature(subject.signature)
         ret.add_from_parameters(subject.signature.parameters.values())
         ret.add_from_parameter_sources(subject)
@@ -289,10 +446,16 @@ class HelpForClizeDocstring(HelpForParameters):
         return funcs.pop(len(funcs) - i)[0]
 
     def add_from_parameters(self, parameters):
+        """Uses `.parser.Parameter.prepare_help` on an iterable of parameters"""
         for param in parameters:
             param.prepare_help(self)
 
     def add_from_parameter_sources(self, subject):
+        """Processes the docstrings of the functions that have parameters
+        in ``subject`` and adds their information to this instance.
+
+        :param .Clize subject: the Clize runner to document
+        """
         func_signature = subject.func_signature
         funcs = util.OrderedDict()
         for pname in func_signature.parameters:
@@ -307,16 +470,33 @@ class HelpForClizeDocstring(HelpForParameters):
             self.add_docstring(
                 inspect.getdoc(func), pnames - self._documented, False)
 
-    def parse_docstring(self, docstring):
-        self.add_docstring(docstring, None, False)
-
     def add_docstring(self, docstring, pnames, primary):
+        """Parses and integrates info from a docstring to this instance.
+
+        :param str docstring: The docstring to be read. Must be de-indented
+            using something like `inspect.cleandoc`.
+        :param set pnames: If not `None`, only add info about these parameter
+            names.
+        :param bool primary: Add headers and footers from this docstring.
+        """
         self.add_helpstream(
             helpstream_from_elements(
                 elements_from_clize_docstring(docstring)),
             pnames, primary)
 
+    def parse_docstring(self, docstring):
+        """Alias of `add_docstring` for backwards compatibility."""
+        self.add_docstring(docstring, None, False)
+
     def add_helpstream(self, stream, pnames, primary):
+        """Add an iterable of tuples starting with ``HELP_`` to this instance.
+
+        :param iterable stream: An iterable of ``(HELP_*, ...)`` tuples,
+            as produced by `helpstream_from_elements`
+        :param set pnames: If not `None`, only add info about these parameter
+            names.
+        :param bool primary: Add headers and footers from this docstring.
+        """
         parameters = self._parameters
         for item in stream:
             ttype, args = item[0], item[1:]
@@ -368,6 +548,20 @@ def _alternate_usages(alternate_params):
 
 @attr.s
 class HelpForSubcommands(object):
+    """Stores help for subcommand dispatchers.
+
+    .. attribute:: subcommands
+
+        An ordered mapping of the subcommand names to their description.
+
+    .. attribute:: header
+
+        Iterable of paragraphs for the help header.
+
+    .. attribute:: footer
+
+        Iterable of paragraphs for the help footnotes.
+    """
     _usages = attr.ib()
     subcommands = attr.ib()
     header = attr.ib()
@@ -375,6 +569,16 @@ class HelpForSubcommands(object):
 
     @classmethod
     def from_subject(cls, subject, owner):
+        """Constructs a `.HelpForSubcommands` instance and populates it with
+        data from a `.Clize` instance.
+
+        It uses the parameters' `.parser.Parameter.prepare_help` and reads
+        the docstrings of functions from which the parameters originate.
+
+        :param .Clize subject: The `.Clize` instance to document.
+        :param .SubcommandDispatcher owner: The subcommand dispatcher being
+            documented.
+        """
         usages = cls._get_usages(subject.signature.alternate, owner.cmds.items())
         subcommands = od(
             (names, cls._get_description(command))
@@ -417,17 +621,18 @@ class HelpForSubcommands(object):
                 yield args[0]
 
     def show_help(self, name):
+        """Produce the full help."""
         f = util.Formatter()
         f.extend(self.show_usage(name))
         f.new_paragraph()
         f.extend(_lines_to_paragraphs(self.header))
         f.new_paragraph()
-        f.extend(self.show_subcommands())
+        f.extend(self._show_subcommands())
         f.new_paragraph()
         f.extend(_lines_to_paragraphs(self.footer))
         return f
 
-    def show_subcommands(self):
+    def _show_subcommands(self):
         f = util.Formatter()
         f.append('Commands:')
         with f.indent():
@@ -437,13 +642,18 @@ class HelpForSubcommands(object):
         return f
 
     def show_usage(self, name):
+        """Returns a summary overview of the dispatcher's command format."""
         yield 'Usage: {0} command [args...]'.format(name)
 
     def show_full_usage(self, name):
+        """Returns an iterable of all possible complete usage patterns
+        for subcommands including the command name"""
         for usage in self.usages():
             yield name + ' ' + usage
 
     def usages(self):
+        """Returns an iterable of all possible complete usage patterns for
+        all subcommands"""
         for usage in self._usages:
             yield usage
 
@@ -476,30 +686,36 @@ class HelpCli(object):
         return six.text_type(f)
 
     def get_help(self):
+        """Get the object """
         return self.builder(self.subject, self.owner)
-
-    def prepare(self):
-        """No-op for compatibility"""
-
-    def show(self, name):
-        return self.get_help().show_help(name)
-
-    def show_full_usage(self, name):
-        return self.get_help().show_full_usage(name)
-
-    def show_usage(self, name):
-        return self.get_help().show_usage(name)
-
-    def usages(self):
-        return self.get_help().usages()
 
     @property
     def description(self):
+        """A short description of this command"""
         header = self.get_help().header
         if header:
             return header[0]
         else:
             return ""
+
+    def prepare(self):
+        pass # No-op for backwards-compatibility
+
+    def show(self, name):
+        """Legacy alias of ``get_help().show_help(...)``"""
+        return self.get_help().show_help(name)
+
+    def show_full_usage(self, name):
+        """Legacy alias of ``get_help().show_full_usage(...)``"""
+        return self.get_help().show_full_usage(name)
+
+    def show_usage(self, name):
+        """Legacy alias of ``get_help().show_usage(...)``"""
+        return self.get_help().show_usage(name)
+
+    def usages(self):
+        """Legacy alias of ``get_help().usages(...)``"""
+        return self.get_help().usages()
 
 
 ClizeHelp = HelpCli
