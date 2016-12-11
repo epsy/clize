@@ -556,22 +556,6 @@ def _du_text(node):
     )
 
 
-def _du_paragraphs(node):
-    return [
-        _du_text(p)
-        for p in node.traverse(dunodes.paragraph)
-    ]
-
-
-def _du_get_child_element(node, NodeType):
-    el, = node.traverse(NodeType)
-    return el
-
-
-def _du_get_element_text(node):
-    return _du_get_child_element(node, dunodes.Text).astext()
-
-
 def _du_field_name_and_body(node):
     name = None
     body = None
