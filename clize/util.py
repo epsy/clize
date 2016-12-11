@@ -233,10 +233,12 @@ class _FormatterIndent(object):
 
 
 def get_terminal_width():
+    size = 0
     try:
-        return os.get_terminal_size().columns
+        size = os.get_terminal_size().columns
     except (AttributeError, OSError):
-        return 78
+        pass
+    return size if size > 20 else 78
 
 
 class Formatter(object):
