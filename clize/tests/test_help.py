@@ -17,11 +17,16 @@ from clize.tests.util import Fixtures, tup, any_instance_of
 USAGE_HELP = 'func --help [--usage]'
 
 
+def clize_helper_class(*args, **kwargs):
+    return help.ClizeHelp(
+        *args, builder=help.HelpForClizeDocstring.from_subject, **kwargs)
+
+
 class WholeHelpTests(Fixtures):
     def _test(self, sig, doc, usage, help_str):
         func = f(sig, pre="from clize import Parameter as P")
         func.__doc__ = doc
-        r = runner.Clize(func)
+        r = runner.Clize(func, helper_class=clize_helper_class)
         self._do_test(r, usage, help_str)
 
     def _do_test(self, runner, usage, help_str):
@@ -1221,6 +1226,74 @@ class SphinxWholeHelpTests(WholeHelpTests):
             -h, --help  Show the help
 
         Footnotes
+    """
+
+
+class AutodetectHelpFormatTests(WholeHelpTests):
+    def _test(self, sig, doc, exp_help_str):
+        func = f(sig, pre="from clize import Parameter as P")
+        func.__doc__ = doc
+        r = runner.Clize(func)
+        h = r.helper
+        pc_help_str = h.cli('func --help')
+        p_help_str = str(h.show('func'))
+        self.assertEqual(exp_help_str.split(), p_help_str.split())
+        self.assertEqual(exp_help_str.split(), pc_help_str.split())
+
+    sphinx_desc_params = "arg1, arg2, *, opt1, opt2", """
+        Description
+
+        :param arg1: This is arg1
+        :param arg2: This is arg2
+        :param opt1: This is opt1
+        :param opt2: This is opt2
+
+        Footnotes
+    """, """
+        Usage: func [OPTIONS] arg1 arg2
+
+        Description
+
+        Arguments:
+            arg1    This is arg1
+            arg2    This is arg2
+
+        Options:
+            --opt1=STR   This is opt1
+            --opt2=STR   This is opt2
+
+        Other actions:
+            -h, --help  Show the help
+
+        Footnotes
+    """
+
+    clize_desc_params = "one, *args, two", """
+        Description
+
+        one: Argument one
+
+        args: Other arguments
+
+        two: Option two
+
+        Footer
+    """, """
+        Usage: func [OPTIONS] one [args...]
+
+        Description
+
+        Arguments:
+            one     Argument one
+            args... Other arguments
+
+        Options:
+            --two=STR   Option two
+
+        Other actions:
+            -h, --help  Show the help
+
+        Footer
     """
 
 

@@ -400,14 +400,24 @@ Designates a paragraph after a parameter description.
 """
 
 
-class HelpForClizeDocstring(HelpForParameters):
+def elements_from_autodetected_docstring(docstring):
+    if not docstring:
+        return ()
+    document = document_from_sphinx_docstring(docstring)
+    if document.next_node(dunodes.field_list, include_self=True) is None:
+        return elements_from_clize_docstring(docstring)
+    else:
+        return elements_from_sphinx_document(document)
+
+
+class HelpForAutodetectedDocstring(HelpForParameters):
     """Builds generic parameter help from the docstrings of Clize instances
 
     Uses a custom docstring format. See :ref:`clize docstring`.
     """
 
     def __init__(self, *args, **kwargs):
-        super(HelpForClizeDocstring, self).__init__(*args, **kwargs)
+        super(HelpForAutodetectedDocstring, self).__init__(*args, **kwargs)
         self._documented = set()
 
     @classmethod
@@ -497,7 +507,7 @@ class HelpForClizeDocstring(HelpForParameters):
         """
         self.add_helpstream(
             helpstream_from_elements(
-                elements_from_clize_docstring(docstring)),
+                elements_from_autodetected_docstring(docstring)),
             pnames, primary)
 
     def parse_docstring(self, docstring):
@@ -548,6 +558,15 @@ class HelpForClizeDocstring(HelpForParameters):
             else:
                 raise ValueError("Unknown help item type: " + repr(ttype))
         self.sections[LABEL_ALT] = self.sections.pop(LABEL_ALT)
+
+
+class HelpForClizeDocstring(HelpForAutodetectedDocstring):
+    def add_docstring(self, docstring, pnames, primary):
+        """Parses a Clize docstring."""
+        self.add_helpstream(
+            helpstream_from_elements(
+                elements_from_clize_docstring(docstring)),
+            pnames, primary)
 
 
 def _du_text(node):
@@ -643,7 +662,7 @@ class _SphinxVisitor(dunodes.SparseNodeVisitor, object):
         return iter(self.result)
 
 
-def elements_from_sphinx_docstring(source):
+def document_from_sphinx_docstring(source):
     """Reads a Sphinx.autodoc-compatible docstring into something
     `helpstream_from_elements` can process.
     """
@@ -654,9 +673,16 @@ def elements_from_sphinx_docstring(source):
     transformer = transforms.Transformer(document)
     transformer.add_transform(references.Substitutions)
     transformer.apply_transforms()
+    return document
+
+def elements_from_sphinx_document(document):
     visitor = _SphinxVisitor(document)
     document.walk(visitor)
     return visitor
+
+def elements_from_sphinx_docstring(docstring):
+    return elements_from_sphinx_document(
+        document_from_sphinx_docstring(docstring))
 
 
 class HelpForSphinxDocstring(HelpForClizeDocstring):
@@ -801,7 +827,7 @@ class HelpCli(object):
     and other meta-information about a CLI"""
 
     def __init__(self, subject, owner,
-                 builder=HelpForClizeDocstring.from_subject):
+                 builder=HelpForAutodetectedDocstring.from_subject):
         self.subject = subject
         self.owner = owner
         self.builder = builder
