@@ -398,7 +398,7 @@ class ExtraParamsTests(Fixtures):
             ]
         exp_msg = ('Error: Arguments found before alternate '
                    'action parameter --alt')
-        with self.assertRaises(errors.ArgsBeforeAlternateCommand, msg=exp_msg):
+        with self.assertRaisesRegex(errors.ArgsBeforeAlternateCommand, exp_msg):
             self._test(*args)
 
     def test_param_extras(self):
@@ -419,7 +419,7 @@ class SigErrorTests(Fixtures):
     def _test(self, sig_str, args, exc_typ, message):
         sig = support.s(sig_str)
         csig = parser.CliSignature.from_signature(sig)
-        with self.assertRaises(exc_typ, msg='Error: ' + message):
+        with self.assertRaisesRegex(exc_typ, 'Error: ' + message):
             self.read_arguments(csig, args)
 
     not_enough_pos = (
@@ -446,7 +446,7 @@ class SigErrorTests(Fixtures):
         'Unknown option \'-a\'')
     unknown_kv_guess = (
         '*, bar', ['--baa'], errors.UnknownOption,
-        'Unknown option \'--baa\'. Did you mean \'--bar\'?')
+        'Unknown option \'--baa\'\\. Did you mean \'--bar\'?')
     unknown_kw_no_guess = (
         '*, bar', ['--foo'], errors.UnknownOption,
         'Unknown option \'--foo\'')
