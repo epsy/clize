@@ -1083,13 +1083,7 @@ class CliBoundArguments(object):
         del self.sticky, self.posarg_only, self.skip, self.unsatisfied
 
     def get_best_guess(self, passed_in_arg):
-        if len(self.sig.aliases) > 0:
-            closest_match = max(self.sig.aliases, \
-                key=partial(util.compute_similarity, passed_in_arg))
-            if util.compute_similarity(passed_in_arg, closest_match) >= \
-                self.threshold:
-                return closest_match
-        return None
+        return util.closest_option(passed_in_arg, list(self.sig.aliases))
 
     def __iter__(self):
         yield self.func

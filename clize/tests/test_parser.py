@@ -452,7 +452,7 @@ class SigErrorTests(Fixtures):
         'Unknown option \'--foo\'')
     original_name_guess = (
         '*, thisOption', ['--thisOption'], errors.UnknownOption,
-        'Unknown option \'--thisOption\'\\. Did you mean \'--this-option\'?')
+        'Unknown option \'--thisOption\'\\. Did you mean \'--this-option\'\?')
     missing_value = (
         '*, one', ['--one'], errors.MissingValue,
         'No value found after --one')

@@ -5,7 +5,7 @@
 """various"""
 
 import os
-from functools import update_wrapper
+from functools import partial, update_wrapper
 import itertools
 import textwrap
 from difflib import SequenceMatcher
@@ -37,6 +37,16 @@ except AttributeError:
 def compute_similarity(word1, word2):
     seq_matcher = SequenceMatcher(None, word1, word2)
     return seq_matcher.ratio()
+
+
+def closest_option(search, options, threshold=0.6):
+    if len(options) > 0:
+        checker = partial(compute_similarity, search)
+        closest_match = max(options, key=checker)
+        if checker(closest_match) >= threshold:
+            return closest_match
+    return None
+
 
 def to_kebap_case(s):
     had_letter = False

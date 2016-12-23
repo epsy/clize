@@ -388,6 +388,18 @@ class RunnerTests(Tests):
         self.assertRaises(errors.ArgumentError, ru, 'test', 'func2', 'abc')
         self.assertRaises(errors.ArgumentError, ru, 'test', 'func3')
 
+    def test_subcommand_error(self):
+        def snake_case():
+            raise NotImplementedError
+        def CamelCase():
+            raise NotImplementedError
+        ru = runner.Clize.get_cli([snake_case, CamelCase])
+        message = (
+            'test: Unknown command "CamelCase"\\. Did you mean "camel-case"\\?'
+            '\nUsage: test command \\[args\\.\\.\\.\\]')
+        with self.assertRaisesRegex(errors.ArgumentError, message):
+            ru('test', 'CamelCase')
+
     def assert_systemexit(self, __code, __func, *args, **kwargs):
         try:
             __func(*args, **kwargs)

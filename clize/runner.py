@@ -237,11 +237,6 @@ def _dispatcher_helper(*args, **kwargs):
     return ClizeHelp(*args, builder=HelpForSubcommands.from_subject, **kwargs)
 
 
-@parser.value_converter(name='STR')
-def lowercase(arg):
-    return arg.lower()
-
-
 class SubcommandDispatcher(object):
     clizer = Clize
 
@@ -253,12 +248,17 @@ class SubcommandDispatcher(object):
         self.clize_kwargs = kwargs
 
     @annotate(name=parameters.pass_name,
-              command=(lowercase, parser.Parameter.LAST_OPTION))
+              command=parser.Parameter.LAST_OPTION)
     def _cli(self, name, command, *args):
         try:
-            func = self.cmds_by_name[command]
+            func = self.cmds_by_name[command.lower()]
         except KeyError:
-            raise errors.ArgumentError('Unknwon command "{0}"'.format(command))
+            guess = util.closest_option(command, list(self.cmds_by_name))
+            if guess:
+                raise errors.ArgumentError(
+                    'Unknown command "{0}". Did you mean "{1}"?'
+                    .format(command, guess))
+            raise errors.ArgumentError('Unknown command "{0}"'.format(command))
         return func('{0} {1}'.format(name, command), *args)
 
     @property
