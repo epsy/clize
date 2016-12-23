@@ -2,8 +2,11 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
+import sys
+import io
 import inspect
 from itertools import count
+import contextlib
 
 import attr
 import od
@@ -900,7 +903,8 @@ class SphinxTokenizerTests(Fixtures):
     def _test(self, docstring, exp_tokens):
         self.assertEqual(
             exp_tokens,
-            list(help.elements_from_sphinx_docstring(inspect.cleandoc(docstring)))
+            list(help.elements_from_sphinx_docstring(
+                inspect.cleandoc(docstring), 'func'))
             )
 
     paragraphs = """
@@ -1103,7 +1107,7 @@ class SphinxAddDocstringTests(Fixtures):
                       docstring, pnames, primary, exp_help_state)
 
     def _do_test(self, help_state, docstring, pnames, primary, exp_help_state):
-        help_state.add_docstring(docstring, pnames, primary)
+        help_state.add_docstring(docstring, 'func', pnames, primary)
         self.assertEqual(attr.asdict(exp_help_state), attr.asdict(help_state))
 
     description_and_args = "arg1, arg2, *, opt1, opt2", """
@@ -1297,10 +1301,24 @@ class AutodetectHelpFormatTests(WholeHelpTests):
     """
 
 
+@contextlib.contextmanager
+def capture_stderr():
+    orig_stderr = sys.stderr
+    stderr = io.StringIO()
+    try:
+        sys.stderr = stderr
+        yield stderr
+    finally:
+        sys.stderr = orig_stderr
+
+
 class ElementsFromAutodetectedDocstringTests(Fixtures):
-    def _test(self, docstring, exp_helpstream):
-        helpstream = help.elements_from_autodetected_docstring(docstring)
-        self.assertEqual(exp_helpstream, list(helpstream))
+    def _test(self, docstring, exp_helpstream, exp_stderr=u''):
+        with capture_stderr() as stderr:
+            helpstream = list(help.elements_from_autodetected_docstring(
+                docstring, 'func'))
+        self.assertEqual(exp_helpstream, helpstream)
+        self.assertEqual(exp_stderr.split(), stderr.getvalue().split())
 
     none = None, []
     empty = "", []
@@ -1330,7 +1348,10 @@ class ElementsFromAutodetectedDocstringTests(Fixtures):
         (help.EL_FREE_TEXT, 'Description', False),
         (help.EL_PARAM_DESC, 'param', 'param desc'),
         (help.EL_FREE_TEXT, 'backquotes `like that one don\'t generate text in the help', False),
-    ]
+    ], """
+        func:6: (WARNING/2) Inline interpreted text or phrase reference
+        start-string without end-string.
+    """
 
     sphinx_has_sphinx_error_in_param_desc = """
         Description
@@ -1339,7 +1360,10 @@ class ElementsFromAutodetectedDocstringTests(Fixtures):
     """, [
         (help.EL_FREE_TEXT, 'Description', False),
         (help.EL_PARAM_DESC, 'param', 'deals with backquotes `like that one'),
-    ]
+    ], """
+        func:4: (WARNING/2) Inline interpreted text or phrase reference
+        start-string without end-string.
+    """
 
 
 class WrappedFuncTests(Fixtures):

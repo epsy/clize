@@ -23,6 +23,8 @@ process the docstring so it can be fed to
 
 from __future__ import unicode_literals
 
+import sys
+import io
 import itertools
 import inspect
 import re
@@ -400,13 +402,14 @@ Designates a paragraph after a parameter description.
 """
 
 
-def elements_from_autodetected_docstring(docstring):
+def elements_from_autodetected_docstring(docstring, name):
     if not docstring:
         return ()
-    document = document_from_sphinx_docstring(docstring)
+    document, errout = document_from_sphinx_docstring(docstring, name)
     if document.next_node(dunodes.field_list, include_self=True) is None:
         return elements_from_clize_docstring(docstring)
     else:
+        sys.stderr.write(errout)
         return elements_from_sphinx_document(document)
 
 
@@ -491,12 +494,12 @@ class HelpForAutodetectedDocstring(HelpForParameters):
             funcs.items(),
             key=lambda i: func_signature.sources['+depths'].get(i[0], 1000))
         real_subject = self._pop_real_subject(funcs, subject) or subject
-        self.add_docstring(inspect.getdoc(real_subject), None, True)
+        self.add_docstring(inspect.getdoc(real_subject), real_subject.__name__, None, True)
         for func, pnames in funcs:
             self.add_docstring(
-                inspect.getdoc(func), pnames - self._documented, False)
+                inspect.getdoc(func), func.__name__, pnames - self._documented, False)
 
-    def add_docstring(self, docstring, pnames, primary):
+    def add_docstring(self, docstring, name, pnames, primary):
         """Parses and integrates info from a docstring to this instance.
 
         :param str docstring: The docstring to be read. Must be de-indented
@@ -507,12 +510,12 @@ class HelpForAutodetectedDocstring(HelpForParameters):
         """
         self.add_helpstream(
             helpstream_from_elements(
-                elements_from_autodetected_docstring(docstring)),
+                elements_from_autodetected_docstring(docstring, name)),
             pnames, primary)
 
     def parse_docstring(self, docstring):
         """Alias of `add_docstring` for backwards compatibility."""
-        self.add_docstring(docstring, None, False)
+        self.add_docstring(docstring, "docstring", None, False)
 
     def add_helpstream(self, stream, pnames, primary):
         """Add an iterable of tuples starting with ``HELP_`` to this instance.
@@ -561,7 +564,7 @@ class HelpForAutodetectedDocstring(HelpForParameters):
 
 
 class HelpForClizeDocstring(HelpForAutodetectedDocstring):
-    def add_docstring(self, docstring, pnames, primary):
+    def add_docstring(self, docstring, name, pnames, primary):
         """Parses a Clize docstring."""
         self.add_helpstream(
             helpstream_from_elements(
@@ -685,27 +688,29 @@ class _SphinxVisitor(dunodes.SparseNodeVisitor, object):
         return iter(self.result)
 
 
-def document_from_sphinx_docstring(source):
+def document_from_sphinx_docstring(source, name):
     """Reads a Sphinx.autodoc-compatible docstring into something
     `helpstream_from_elements` can process.
     """
     parser = Parser()
     settings = OptionParser(components=(Parser,)).get_default_values()
-    document = new_document("docstring", settings)
+    errout = settings.warning_stream = io.StringIO()
+    document = new_document(name, settings)
     parser.parse(source, document)
     transformer = transforms.Transformer(document)
     transformer.add_transform(references.Substitutions)
     transformer.apply_transforms()
-    return document
+    return document, errout.getvalue()
 
 def elements_from_sphinx_document(document):
     visitor = _SphinxVisitor(document)
     document.walk(visitor)
     return visitor
 
-def elements_from_sphinx_docstring(docstring):
-    return elements_from_sphinx_document(
-        document_from_sphinx_docstring(docstring))
+def elements_from_sphinx_docstring(docstring, name):
+    document, errout = document_from_sphinx_docstring(docstring, name)
+    sys.stderr.write(errout)
+    return elements_from_sphinx_document(document)
 
 
 class HelpForSphinxDocstring(HelpForClizeDocstring):
@@ -714,10 +719,10 @@ class HelpForSphinxDocstring(HelpForClizeDocstring):
     Understands docstrings written for Sphinx's :rst:dir:`autodoc
     <sphinx:autofunction>`."""
 
-    def add_docstring(self, docstring, pnames, primary):
+    def add_docstring(self, docstring, name, pnames, primary):
         self.add_helpstream(
             helpstream_from_elements(
-                elements_from_sphinx_docstring(docstring),
+                elements_from_sphinx_docstring(docstring, name),
             ), pnames, primary)
 
 
