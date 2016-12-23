@@ -38,8 +38,24 @@ def compute_similarity(word1, word2):
     seq_matcher = SequenceMatcher(None, word1, word2)
     return seq_matcher.ratio()
 
+def to_kebap_case(s):
+    had_letter = False
+    for c in s:
+        if c == '_':
+            if had_letter:
+                had_letter = False
+                yield '-'
+        elif c.isupper():
+            if had_letter:
+                yield '-'
+            yield c.lower()
+            had_letter = True
+        else:
+            yield c
+            had_letter = True
+
 def name_py2cli(name, kw=False):
-    name = name.strip('_').replace('_', '-')
+    name = ''.join(to_kebap_case(name)).rstrip('-')
     if kw:
         if len(name) > 1:
             return '--' + name

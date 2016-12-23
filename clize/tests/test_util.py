@@ -212,3 +212,31 @@ class FormatterTests(Fixtures):
                 with f.indent(10):
                     cols.append('lll2',
                         'c c c c c c c c c c c c c c c c c c c c c c')
+
+
+class NameConversionTests(Fixtures):
+    def _test(self, name, exp_converted_name):
+        self.assertEqual(exp_converted_name, util.name_py2cli(name))
+
+    one_word = "name", "name"
+    snake_case = "compound_name", "compound-name"
+    camel_case = "CompoundName", "compound-name"
+    dromedary_case = "compoundName", "compound-name"
+    camel_snake_case = "Compound_Name", "compound-name"
+    avoiding_name = "list_", "list"
+    private_name = "_name", "name"
+
+
+class KeywordNameConversionTests(Fixtures):
+    def _test(self, name, exp_converted_name):
+        self.assertEqual(exp_converted_name, util.name_py2cli(name, kw=True))
+
+    one_letter = "n", "-n"
+    one_word = "name", "--name"
+    snake_case = "compound_name", "--compound-name"
+    camel_case = "CompoundName", "--compound-name"
+    dromedary_case = "compoundName", "--compound-name"
+    camel_snake_case = "Compound_Name", "--compound-name"
+    avoiding_name = "list_", "--list"
+    private_name = "_name", "--name"
+    private_one_letter = "_n", "-n"
