@@ -1297,6 +1297,51 @@ class AutodetectHelpFormatTests(WholeHelpTests):
     """
 
 
+class ElementsFromAutodetectedDocstringTests(Fixtures):
+    def _test(self, docstring, exp_helpstream):
+        helpstream = help.elements_from_autodetected_docstring(docstring)
+        self.assertEqual(exp_helpstream, list(helpstream))
+
+    none = None, []
+    empty = "", []
+
+    clize_sphinx_error = """
+        this is an :unknown:`ref`
+    """, [
+        (help.EL_FREE_TEXT, 'this is an :unknown:`ref`', False),
+    ]
+
+    clize_has_sphinx_error = """
+        Description
+
+        param: deals with backquotes `like that one
+    """, [
+        (help.EL_FREE_TEXT, 'Description', False),
+        (help.EL_PARAM_DESC, 'param', 'deals with backquotes `like that one'),
+    ]
+
+    sphinx_has_sphinx_error_in_free_text = """
+        Description
+
+        :param param: param desc
+
+        backquotes `like that one don't generate text in the help
+    """, [
+        (help.EL_FREE_TEXT, 'Description', False),
+        (help.EL_PARAM_DESC, 'param', 'param desc'),
+        (help.EL_FREE_TEXT, 'backquotes `like that one don\'t generate text in the help', False),
+    ]
+
+    sphinx_has_sphinx_error_in_param_desc = """
+        Description
+
+        :param param: deals with backquotes `like that one
+    """, [
+        (help.EL_FREE_TEXT, 'Description', False),
+        (help.EL_PARAM_DESC, 'param', 'deals with backquotes `like that one'),
+    ]
+
+
 class WrappedFuncTests(Fixtures):
     def _test(self, sig, wrapper_sigs, doc, wrapper_docs, help_str):
         ifunc = f(sig, pre="from clize import Parameter")

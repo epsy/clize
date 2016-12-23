@@ -569,10 +569,23 @@ class HelpForClizeDocstring(HelpForAutodetectedDocstring):
             pnames, primary)
 
 
-def _du_text(node):
-    return ''.join(
-        n.astext() for n in node.traverse(dunodes.Text)
-    )
+class _NodeSeeker(dunodes.GenericNodeVisitor, object):
+    def __init__(self, *args, **kwargs):
+        include = kwargs.pop('include')
+        exclude = kwargs.pop('exclude', (dunodes.system_message,))
+        super(_NodeSeeker, self).__init__(*args, **kwargs)
+        self.include = include
+        self.exclude = exclude
+        self.result = []
+
+    def __iter__(self):
+        return iter(self.result)
+
+    def default_visit(self, node):
+        if isinstance(node, self.exclude):
+            raise dunodes.SkipChildren
+        elif isinstance(node, self.include):
+            self.result.append(node)
 
 
 def _du_field_name_and_body(node):
@@ -600,10 +613,6 @@ def _remove_newlines(text):
     return _NEWLINE_PAT.sub(_replace_newline, text)
 
 
-def _paragraph_or_code(node):
-    return isinstance(node, (dunodes.paragraph, dunodes.literal_block))
-
-
 def _is_label(text, node):
     next_node = node.next_node(descend=False, ascend=True)
     return (
@@ -617,38 +626,49 @@ class _SphinxVisitor(dunodes.SparseNodeVisitor, object):
         super(_SphinxVisitor, self).__init__(*args, **kwargs)
         self.result = []
 
+    def seek_nodes(self, node, include, exclude=(dunodes.system_message)):
+        visitor = _NodeSeeker(self.document, include=include, exclude=exclude)
+        node.walk(visitor)
+        return list(visitor)
+
+    def text(self, *args, **kwargs):
+        return ''.join(
+            node.astext()
+            for node in self.seek_nodes(*args, include=(dunodes.Text,), **kwargs)
+        )
+
     def visit_paragraph(self, node):
-        text = _du_text(node)
+        text = self.text(node)
         if _is_label(text, node):
             self.result.append(
                 (EL_LABEL, text[:-1])
             )
         else:
             self.result.append(
-                (EL_FREE_TEXT, _remove_newlines(_du_text(node)), False)
+                (EL_FREE_TEXT, _remove_newlines(self.text(node)), False)
             )
         raise dunodes.SkipChildren
 
     def visit_literal_block(self, node):
         self.result.append(
-            (EL_FREE_TEXT, _du_text(node), True)
+            (EL_FREE_TEXT, self.text(node), True)
         )
         raise dunodes.SkipChildren
 
     def visit_field(self, node):
         name, body = _du_field_name_and_body(node)
-        options = _du_text(name).split()
+        options = self.text(name).split()
         if options[0] == 'param':
             param = options[-1]
-            paragraphs = body.traverse(_paragraph_or_code)
+            paragraphs = self.seek_nodes(body, include=(dunodes.paragraph, dunodes.literal_block))
             description = ""
             if paragraphs and isinstance(paragraphs[0], dunodes.paragraph):
-                description = _remove_newlines(_du_text(paragraphs.pop(0)))
+                description = _remove_newlines(self.text(paragraphs.pop(0)))
             self.result.append(
                 (EL_PARAM_DESC, param, description)
             )
             for p in paragraphs:
-                text = _du_text(p)
+                text = self.text(p)
                 preformatted = True
                 if isinstance(p, dunodes.paragraph):
                     preformatted = False
@@ -656,6 +676,9 @@ class _SphinxVisitor(dunodes.SparseNodeVisitor, object):
                 self.result.append(
                     (EL_AFTER, param, text, preformatted)
                 )
+        raise dunodes.SkipChildren
+
+    def visit_system_message(self, node):
         raise dunodes.SkipChildren
 
     def __iter__(self):
