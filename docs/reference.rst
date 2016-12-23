@@ -724,7 +724,6 @@ Inserting arbitrary values
         ans: 42
 
 
-.. _clize docstring:
 .. _docstring:
 .. _clize docstring:
 
