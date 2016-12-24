@@ -275,7 +275,7 @@ intersphinx_mapping = {
 
 autoclass_content = 'both'
 autodoc_member_order = 'bysource'
-autodoc_default_flags = 'members', 'undoc-members'
+autodoc_default_flags = ['members', 'undoc-members']
 
 rst_prolog = """
 

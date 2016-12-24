@@ -28,7 +28,7 @@ class NoDupesObjectDirective(python.PyObject):
         indextext = self.get_index_text(modname, name_cls)
         if indextext:
             self.indexnode['entries'].append(('single', indextext,
-                                              fullname, ''))
+                                              fullname, '', None))
 
     def get_index_text(self, *args, **kwargs):
         back = self.objtype
@@ -73,7 +73,7 @@ def add_moredoc(app, objtype):
     directive = type("NoDupes"+dircls.__name__,
                      (NoDupesObjectDirective, dircls), {})
     python.PythonDomain.directives['more' + dirname] = directive
-    app.add_directive('py:more' + dirname, directive)
+    #app.add_directive('py:more' + dirname, directive)
 
 
 def setup(app):
