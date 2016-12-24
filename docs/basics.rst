@@ -183,6 +183,9 @@ The change reflects on the command and its help when run::
     Other actions:
       -h, --help   Show the help
 
+.. seealso:: :ref:`name conversion`
+
+
 Collecting all positional arguments
 -----------------------------------
 

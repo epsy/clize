@@ -125,7 +125,9 @@ argument to `.run`:
     Sorry I forgot it all :(
 
 Alternatively, as with :ref:`alternate commands <alternate commands>`, you can
-pass in an :term:`python:iterable`, a `dict` or an `~collections.OrderedDict`.
+pass in an :term:`python:iterable` of functions, a `dict` or an
+`~collections.OrderedDict`.  If you pass an iterable of functions, :ref:`name
+conversion <name conversion>` will apply.
 
 Because it isn't passed a regular function with a docstring, Clize can't
 determine an appropriate description from a docstring. You can explicitly give

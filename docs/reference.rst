@@ -274,10 +274,6 @@ pass them as strings in the parameter's annotation:
     $ python named.py --param value
     par value
 
-All parameter names are converted by removing any underscores (``_``) off the
-extremities of the string and replacing the remaining ones with dashes (``-``).
-
-
 .. _named param py2:
 
 Python 2 support for named parameters
@@ -300,6 +296,40 @@ decorators from `sigtools.modifiers` to emulate them.
 ``@autokwoargs``                    All parameters with defaut values
 ``@autokwoargs(exceptions=['fg'])`` Same, except for ``fg``
 =================================== ===================================
+
+.. _name conversion:
+
+Name conversion
+...............
+
+So you can best follow Python's naming conventions, Clize alters parameter
+names to CLI conventions so that they always match ``--kebap-case``.  While
+Python recommends ``snake_case`` for identifiers such as parameter names,
+Clize also handles words denoted by capitalization:
+
+===================== =======================
+Python parameter name CLI parameter name
+===================== =======================
+``param``             ``--param``
+``p``                 ``-p``
+``snake_case``        ``--snake-case``
+``list_``             ``--list``
+``capitalizedOnce``   ``--capitalized-once``
+``CapitalizedTwice``  ``--capitalized-twice``
+===================== =======================
+
+Clize replaces underscores (``_``) with dashes (``-``), and uppercase
+characters with a dash followed by the equivalent lowercase character.  Dashes
+are deduplicated and removed from the extremities.
+
+Short option names (those that are only one letter) are prepended with one dash
+(``-``).  Long option names are prepended with two dashes (``--``). No dash is
+prepended for subcommand names.
+
+.. note::
+
+    You do not need to consider this when :ref:`documenting parameters
+    <docstring>`. Simply match the parameter in your Python sources.
 
 
 .. _option param:
@@ -746,8 +776,9 @@ two newlines.
 Documenting positional parameters
 .................................
 
-To document a parameter, start a paragraph with the name of the parameter you
-want to document followed by a |colon|, followed by text:
+To document a parameter, start a paragraph with the name of the parameter (as
+seen in the Python source) you want to document followed by a |colon|, followed
+by text:
 
 .. code-block:: python
     :emphasize-lines: 5, 7
