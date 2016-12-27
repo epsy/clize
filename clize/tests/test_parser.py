@@ -497,9 +497,10 @@ class BadParamTests(Fixtures):
     def _uc(arg):
         raise NotImplementedError
     unknown_callable = 'one: uc', {'uc': _uc}, "Unknown annotation " + repr(_uc)
+    _ud = UnknownDefault('stuff')
     bad_custom_default = (
-        'one=bd', {'bd': UnknownDefault('stuff')},
-        "<class 'clize.tests.test_parser.UnknownDefault'> is not a value converter")
+        'one=bd', {'bd': _ud},
+        "Cannot find value converter for " + repr(_ud))
     coerce_twice = 'one: co', {'co': (str, int)}, "Coercion function specified twice in annotation: str int"
     dup_pconverter = (
         'one: a',

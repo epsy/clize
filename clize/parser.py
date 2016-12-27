@@ -735,7 +735,10 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
     kwargs['default'] = default if not kwargs.get('required') else util.UNSET
     kwargs['conv'] = conv
     if prev_conv is None and default is not util.UNSET and default is not None:
-        kwargs['conv'] = get_value_converter(type(default))
+        try:
+            kwargs['conv'] = get_value_converter(type(default))
+        except ValueError:
+            raise ValueError("Cannot find value converter for " + repr(default))
 
     if named:
         kwargs['aliases'] = [
