@@ -481,26 +481,31 @@ class UnknownDefault(object):
 
 
 class BadParamTests(Fixtures):
-    def _test(self, sig_str, locals=None):
-        if locals is None:
-            locals = {}
+    def _test(self, sig_str, locals, exp_msg):
         sig = support.s(sig_str, pre='from clize import Parameter', locals=locals)
         params = list(sig.parameters.values())
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as ar:
             parser.CliSignature.convert_parameter(params[0])
+        if exp_msg is not None:
+            self.assertEqual(exp_msg, str(ar.exception))
 
-    alias_superfluous = 'one: "a"',
-    alias_spaces = '*, one: "a b"',
-    alias_duplicate = '*, one: dup', {'dup': ('a', 'a')}
-    unknown_annotation = 'one: ua', {'ua': UnknownAnnotation()}
+    alias_superfluous = 'one: "a"', {}, "Cannot give aliases for a positional parameter."
+    alias_spaces = '*, one: "a b"', {}, "Cannot have whitespace in aliases."
+    alias_duplicate = '*, one: dup', {'dup': ('a', 'a')}, "Duplicate alias 'a'"
+    _ua = UnknownAnnotation()
+    unknown_annotation = 'one: ua', {'ua': _ua}, "Unknown annotation " + repr(_ua)
     def _uc(arg):
         raise NotImplementedError
-    unknown_callable = 'one: uc', {'uc': _uc}
-    bad_custom_default = 'one=bd', {'bd': UnknownDefault('stuff')}
-    coerce_twice = 'one: co', {'co': (str, int)}
-    dup_pconverter = 'one: a', {'a': (parser.default_converter,
-                                      parser.default_converter)}
-    unimplemented_parameter = '**kwargs',
+    unknown_callable = 'one: uc', {'uc': _uc}, "Unknown annotation " + repr(_uc)
+    bad_custom_default = (
+        'one=bd', {'bd': UnknownDefault('stuff')},
+        "<class 'clize.tests.test_parser.UnknownDefault'> is not a value converter")
+    coerce_twice = 'one: co', {'co': (str, int)}, "Coercion function specified twice in annotation: str int"
+    dup_pconverter = (
+        'one: a',
+        {'a': (parser.default_converter, parser.default_converter)},
+        "A custom parameter converter must be the first element of a parameter's annotation")
+    unimplemented_parameter = '**kwargs', {}, "This converter cannot convert parameter 'kwargs'"
 
 
 

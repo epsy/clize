@@ -631,7 +631,7 @@ def is_parameter_converter(obj):
 
 def unimplemented_parameter(argument_name, **kwargs):
     raise ValueError(
-        "This converter cannot convert parameter {0!r},".format(argument_name)
+        "This converter cannot convert parameter {0!r}".format(argument_name)
         )
 
 
@@ -698,7 +698,7 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
     if Parameter.LAST_OPTION in annotations:
         kwargs['last_option'] = True
 
-    set_coerce = False
+    prev_conv = None
     for thing in annotations:
         if isinstance(thing, Parameter):
             return thing
@@ -712,12 +712,11 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
             except ValueError:
                 pass
             else:
-                if set_coerce:
+                if prev_conv is not None:
                     raise ValueError(
                         "Coercion function specified twice in annotation: "
-                        "{0.__name__} {1.__name__}".format(conv, thing))
-                conv = conv
-                set_coerce = True
+                        "{0.__name__} {1.__name__}".format(prev_conv, thing))
+                prev_conv = thing
                 continue
         if isinstance(thing, six.string_types):
             if not named:
@@ -731,11 +730,11 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
             continue
         if isinstance(thing, ParameterFlag):
             continue
-        raise ValueError(thing)
+        raise ValueError("Unknown annotation " + repr(thing))
 
     kwargs['default'] = default if not kwargs.get('required') else util.UNSET
     kwargs['conv'] = conv
-    if not set_coerce and default is not util.UNSET and default is not None:
+    if prev_conv is None and default is not util.UNSET and default is not None:
         kwargs['conv'] = get_value_converter(type(default))
 
     if named:
