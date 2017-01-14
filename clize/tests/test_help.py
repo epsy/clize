@@ -1348,10 +1348,10 @@ class ElementsFromAutodetectedDocstringTests(Fixtures):
         (help.EL_FREE_TEXT, 'Description', False),
         (help.EL_PARAM_DESC, 'param', 'param desc'),
         (help.EL_FREE_TEXT, 'backquotes `like that one don\'t generate text in the help', False),
-    ], """
-        func:6: (WARNING/2) Inline interpreted text or phrase reference
-        start-string without end-string.
-    """
+    ], (
+        "func:6: (WARNING/2) Inline interpreted text or phrase reference "
+        "start-string without end-string."
+    )
 
     sphinx_has_sphinx_error_in_param_desc = """
         Description
@@ -1360,10 +1360,10 @@ class ElementsFromAutodetectedDocstringTests(Fixtures):
     """, [
         (help.EL_FREE_TEXT, 'Description', False),
         (help.EL_PARAM_DESC, 'param', 'deals with backquotes `like that one'),
-    ], """
-        func:4: (WARNING/2) Inline interpreted text or phrase reference
-        start-string without end-string.
-    """
+    ], (
+        "func:4: (WARNING/2) Inline interpreted text or phrase reference "
+        "start-string without end-string."
+    )
 
 
 class WrappedFuncTests(Fixtures):
