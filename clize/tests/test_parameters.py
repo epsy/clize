@@ -34,7 +34,7 @@ def _test_help(self, sig_info, doc, expected):
     f = support.f(sig_str, locals={'a': annotation})
     f.__doc__ = doc
     cli = runner.Clize.get_cli(f)
-    self.assertEqual(expected.split(), cli('func', '--help').split())
+    self.assertLinesEqual(expected, cli('func', '--help'))
 
 
 class RepTests(Fixtures):
@@ -221,32 +221,35 @@ class MappedTests(Fixtures):
         func = support.f('par:a', locals={'a': RepTests.mapped_basic[1]})
         out, err = self.crun(func, ['name', 'list'])
         self.assertEqual('', err.getvalue())
-        self.assertEqual(
-            """name: Possible values for par:
-            hello h1
-            goodbye h2""".split(),
-            out.getvalue().split())
+        self.assertLinesEqual(
+            """
+            name: Possible values for par:
+              hello     h1
+              goodbye   h2""",
+            out.getvalue())
 
     def test_show_list_alt(self):
         func = support.f('par:a',
                         locals={'a': RepTests.mapped_alternate_list[1]})
         out, err = self.crun(func, ['name', 'options'])
         self.assertEqual('', err.getvalue())
-        self.assertEqual(
-            """name: Possible values for par:
-            hello h1
-            goodbye h2""".split(),
-            out.getvalue().split())
+        self.assertLinesEqual(
+            """
+            name: Possible values for par:
+              hello     h1
+              goodbye   h2""",
+            out.getvalue())
 
     def test_show_list_morekw(self):
         func = support.f('par:a', locals={'a': RepTests.mapped_basic[1]})
         out, err = self.crun(func, ['name', 'list', '-k', 'xyz'])
         self.assertEqual('', err.getvalue())
-        self.assertEqual(
-            """name: Possible values for par:
-            hello h1
-            goodbye h2""".split(),
-            out.getvalue().split())
+        self.assertLinesEqual(
+            """
+            name: Possible values for par:
+              hello     h1
+              goodbye   h2""",
+            out.getvalue())
 
 
 baf = errors.BadArgumentFormat
@@ -279,8 +282,7 @@ class MappedHelpTests(Fixtures):
     default = RepTests.mapped_default, "par: type of greeting", """
         Usage: func [par]
         Arguments:
-          par          type of greeting (default: hello,
-                       use "list" for options)
+          par          type of greeting (default: hello, use "list" for options)
         Other actions:
           -h, --help   Show the help
     """
@@ -301,9 +303,9 @@ class MappedHelpTests(Fixtures):
     kw = RepTests.mapped_kw, "par: type of greeting", """
         Usage: func [OPTIONS]
         Options:
-          --par=STR   type of greeting
+          --par=STR    type of greeting
         Other actions:
-          -h, --help  Show the help
+          -h, --help   Show the help
     """
 
 
@@ -317,11 +319,13 @@ class OneOfTests(Fixtures):
         func = support.f('par:a', locals={'a': RepTests.oneof_help[1]})
         out, err = self.crun(func, ['name', 'list'])
         self.assertEqual('', err.getvalue())
-        self.assertEqual(
-            """name: Possible values for par:
-            hello h1
-            bye h2""".split(),
-            out.getvalue().split())
+        self.assertLinesEqual(
+            """
+            name: Possible values for par:
+              hello   h1
+              bye     h2
+            """,
+            out.getvalue())
 
 
 class MultiTests(Fixtures):
@@ -400,10 +404,12 @@ class MultiHelpTests(Fixtures):
 
     basic = RepTests.multi_basic, "par: addresses", """
         Usage: func [OPTIONS]
+
         Options:
-          --par=STR   addresses
+          --par=STR    addresses
+
         Other actions:
-          -h, --help  Show the help
+          -h, --help   Show the help
     """
 
 
@@ -535,7 +541,7 @@ class DecoHelpTests(Fixtures):
         f = support.f(sig_str, locals={'a': annotation})
         f.__doc__ = doc
         cli = runner.Clize.get_cli(f)
-        self.assertEqual(expected.split(), cli('func', '--help').split())
+        self.assertLinesEqual(expected, cli('func', '--help'))
 
     @parameters.argument_decorator
     @modifiers.kwoargs(start='kw')
@@ -543,15 +549,18 @@ class DecoHelpTests(Fixtures):
         raise NotImplementedError
     undoc = 'par: a', _undoc, "par: things", """
         Usage: func [OPTIONS] --kw=STR [--flag] [--kwd=STR] [-i INT] par
+
         Arguments:
-            par     things
+          par          things
+
         Options:
-            --kw=STR
-            --flag
-            --kwd=STR   (default: D)
-            -i INT      (default: 0)
+          --kw=STR
+          --flag
+          --kwd=STR     (default: D)
+          -i INT        (default: 0)
+
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
     """
 
 
@@ -571,14 +580,14 @@ class DecoHelpTests(Fixtures):
     doc = 'par: a', _doc, "par: things", """
         Usage: func [OPTIONS] --kw=STR [--flag] [--kwd=STR] [-i INT] par
         Arguments:
-            par     things
+          par          things
         Options:
-            --kw=STR    KW
-            --flag      FLAG
-            --kwd=STR   KWD (default: D)
-            -i INT      I (default: 0)
+          --kw=STR     KW
+          --flag       FLAG
+          --kwd=STR    KWD (default: D)
+          -i INT       I (default: 0)
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
     """
 
 
@@ -601,14 +610,14 @@ class DecoHelpTests(Fixtures):
     label = 'par: a', _label, "par: things", """
         Usage: func [OPTIONS] --kw=STR [--flag] [--kwd=STR] [-i INT] par
         Arguments:
-            par     things
+          par          things
         Qualifies parameters of kind "_label":
-            --kw=STR    KW
-            --flag      FLAG
-            --kwd=STR   KWD (default: D)
-            -i INT      I (default: 0)
+          --kw=STR     KW
+          --flag       FLAG
+          --kwd=STR    KWD (default: D)
+          -i INT       I (default: 0)
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
     """
 
     @parameters.argument_decorator
@@ -630,27 +639,27 @@ class DecoHelpTests(Fixtures):
     subst = 'par: a', _subst, "par: things", """
         Usage: func [OPTIONS] --kw=STR [--flag] [--kwd=STR] [-i INT] par
         Arguments:
-            par     things
+          par          things
         Qualifies par:
-            --kw=STR    KW
-            --flag      FLAG
-            --kwd=STR   KWD (default: D)
-            -i INT      I (default: 0)
+          --kw=STR     KW
+          --flag       FLAG
+          --kwd=STR    KWD (default: D)
+          -i INT       I (default: 0)
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
     """
 
     subst_kw = '*, par: a = 15', _subst, "par: things", """
         Usage: func [OPTIONS]
         Options:
-            --par=INT     things (default: 15)
+          --par=INT    things (default: 15)
         Qualifies --par:
-            --kw=STR    KW
-            --flag      FLAG
-            --kwd=STR   KWD (default: D)
-            -i INT      I (default: 0)
+          --kw=STR     KW
+          --flag       FLAG
+          --kwd=STR    KWD (default: D)
+          -i INT       I (default: 0)
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
     """
 
 
@@ -658,14 +667,14 @@ class DecoHelpTests(Fixtures):
     nest_doc = 'par: a', RepTests._nest, "par: things", """
         Usage: func [OPTIONS] --ab=STR [--why=STR [--zed=STR] --cd=STR] par
         Arguments:
-            par     things
+          par          things
         Options:
-            --ab=STR
-            --cd=STR    (default: cd)
-            --why=STR
-            --zed=STR   (default: zed)
+          --ab=STR
+          --cd=STR      (default: cd)
+          --why=STR
+          --zed=STR     (default: zed)
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
     """
 
 class PnTests(Fixtures):

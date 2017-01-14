@@ -41,8 +41,8 @@ class WholeHelpTests(Fixtures):
         p_help_str = str(h.show('func'))
         self.assertEqual(usage, p_usage)
         self.assertEqual('\n'.join(usage), pc_usage)
-        self.assertEqual(help_str.split(), p_help_str.split())
-        self.assertEqual(help_str.split(), pc_help_str.split())
+        self.assertLinesEqual(help_str, p_help_str)
+        self.assertLinesEqual(help_str, pc_help_str)
 
 
 class ClizeWholeHelpTests(WholeHelpTests):
@@ -65,14 +65,14 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Description
 
         Arguments:
-            one     Argument one
-            args... Other arguments
+          one          Argument one
+          args...      Other arguments
 
         Options:
-            --two=STR   Option two
+          --two=STR    Option two
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
 
         Footer
     """
@@ -105,18 +105,18 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Description
 
         Arguments:
-            one     Argument one (type: INT)
-            two     Argument two (type: INT, default: 2)
-            three   Argument three
-            args... Other arguments (type: INT)
+          one           Argument one (type: INT)
+          two           Argument two (type: INT, default: 2)
+          three         Argument three
+          args...       Other arguments (type: INT)
 
         Options:
-            --alpha=STR  Option alpha
-            --beta=INT   Option beta
-            --gamma=INT  Option gamma (default: 5)
+          --alpha=STR   Option alpha
+          --beta=INT    Option beta
+          --gamma=INT   Option gamma (default: 5)
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
 
         Footer
     """
@@ -133,11 +133,11 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Description
 
         Arguments:
-            one     Argument one
-            two     Argument two
+          one          Argument one
+          two          Argument two
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
     """
 
     opt_out_of_order = "*, one, two", """
@@ -148,11 +148,11 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Usage: func [OPTIONS]
 
         Options:
-            --two=STR   Option two
-            --one=STR   Option one
+          --two=STR    Option two
+          --one=STR    Option one
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
     """
 
     empty_docstring = "one, two, *, alpha, beta", "", [
@@ -161,15 +161,15 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Usage: func [OPTIONS] one two
 
         Arguments:
-            one
-            two
+          one
+          two
 
         Options:
-            --alpha=STR
-            --beta=STR
+          --alpha=STR
+          --beta=STR
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
     """
 
     short_name = '*, a', """
@@ -178,10 +178,10 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Usage: func [OPTIONS]
 
         Options:
-            -a STR  alpha
+          -a STR       alpha
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
     """
 
     label = "*, alpha, beta", """
@@ -198,13 +198,13 @@ class ClizeWholeHelpTests(WholeHelpTests):
         desc
 
         Options:
-            --alpha=STR  Stuff
+          --alpha=STR   Stuff
 
         Formatting options:
-            --beta=STR  Other stuff
+          --beta=STR    Other stuff
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
     """
 
     label_multi = "*, alpha, beta", """
@@ -221,11 +221,11 @@ class ClizeWholeHelpTests(WholeHelpTests):
         desc
 
         Formatting options:
-            --alpha=STR  Stuff
-            --beta=STR  Other stuff
+          --alpha=STR   Stuff
+          --beta=STR    Other stuff
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
     """
 
     label_merge = "*, alpha, beta", """
@@ -244,11 +244,11 @@ class ClizeWholeHelpTests(WholeHelpTests):
         desc
 
         Formatting options:
-            --alpha=STR  Stuff
-            --beta=STR  Other stuff
+          --alpha=STR   Stuff
+          --beta=STR    Other stuff
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
     """
 
     label_posarg = "one, two, *args, alpha", """
@@ -271,15 +271,15 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Description
 
         Arguments:
-            one     Argument one
-            two     Argument two
-            args... Other arguments
+          one           Argument one
+          two           Argument two
+          args...       Other arguments
 
         Label:
-            --alpha=STR   Option alpha
+          --alpha=STR   Option alpha
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
 
         Footer
     """
@@ -304,14 +304,14 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Description
 
         Arguments:
-            one     Argument one
-            two     Argument two
+          one           Argument one
+          two           Argument two
 
         Options:
-            --alpha=STR   Option alpha
+          --alpha=STR   Option alpha
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
 
         Footer
     """
@@ -344,25 +344,25 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Description
 
         Arguments:
-            one     Argument one
+          one           Argument one
 
         after one
 
-            two     Argument two
+          two           Argument two
 
         after two
 
         Options:
-            --alpha=STR   Option alpha
+          --alpha=STR   Option alpha
 
         after alpha
 
-            --beta=STR   Option beta
+          --beta=STR    Option beta
 
         after beta
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
 
         Footer
     """
@@ -380,7 +380,7 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Description
 
         Other actions:
-        -h, --help  Show the help
+          -h, --help   Show the help
 
         Footer
     """
@@ -398,10 +398,10 @@ class ClizeWholeHelpTests(WholeHelpTests):
         Description
 
         Options:
-        -6  Use IPv6?
+          -6           Use IPv6?
 
         Other actions:
-        -h, --help  Show the help
+          -h, --help   Show the help
 
         Footer
     """
@@ -418,8 +418,8 @@ class ClizeWholeHelpTests(WholeHelpTests):
             Usage: func
 
             Other actions:
-            -h, --help  Show the help
-            --alt
+              -h, --help   Show the help
+              --alt
         """)
 
 
@@ -446,7 +446,7 @@ class ClizeWholeHelpTests(WholeHelpTests):
             Usage: func [OPTIONS]
 
             Options:
-                I am    a custom parameter!
+              I am         a custom parameter!
 
             There is stuff after me.
 
@@ -455,7 +455,7 @@ class ClizeWholeHelpTests(WholeHelpTests):
             After param
 
             Other actions:
-                -h, --help  Show the help
+              -h, --help   Show the help
         """)
 
 
@@ -1190,15 +1190,15 @@ class SphinxWholeHelpTests(WholeHelpTests):
         Description
 
         Arguments:
-            arg1    This is arg1
-            arg2    This is arg2
+          arg1         This is arg1
+          arg2         This is arg2
 
         Options:
-            --opt1=STR   This is opt1
-            --opt2=STR   This is opt2
+          --opt1=STR   This is opt1
+          --opt2=STR   This is opt2
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
 
         Footnotes
     """
@@ -1220,14 +1220,14 @@ class SphinxWholeHelpTests(WholeHelpTests):
         Description
 
         Options:
-            --opt1=STR   This is opt1.  Still in the first paragraph for opt1.
+          --opt1=STR   This is opt1.  Still in the first paragraph for opt1.
 
         New paragraph for opt1
 
-            --opt2=STR   This is opt2
+          --opt2=STR   This is opt2
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
 
         Footnotes
     """
@@ -1241,8 +1241,8 @@ class AutodetectHelpFormatTests(WholeHelpTests):
         h = r.helper
         pc_help_str = h.cli('func --help')
         p_help_str = str(h.show('func'))
-        self.assertEqual(exp_help_str.split(), p_help_str.split())
-        self.assertEqual(exp_help_str.split(), pc_help_str.split())
+        self.assertLinesEqual(exp_help_str, p_help_str)
+        self.assertLinesEqual(exp_help_str, pc_help_str)
 
     sphinx_desc_params = "arg1, arg2, *, opt1, opt2", """
         Description
@@ -1259,15 +1259,15 @@ class AutodetectHelpFormatTests(WholeHelpTests):
         Description
 
         Arguments:
-            arg1    This is arg1
-            arg2    This is arg2
+          arg1         This is arg1
+          arg2         This is arg2
 
         Options:
-            --opt1=STR   This is opt1
-            --opt2=STR   This is opt2
+          --opt1=STR   This is opt1
+          --opt2=STR   This is opt2
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
 
         Footnotes
     """
@@ -1288,14 +1288,14 @@ class AutodetectHelpFormatTests(WholeHelpTests):
         Description
 
         Arguments:
-            one     Argument one
-            args... Other arguments
+          one          Argument one
+          args...      Other arguments
 
         Options:
-            --two=STR   Option two
+          --two=STR    Option two
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help   Show the help
 
         Footer
     """
@@ -1318,7 +1318,7 @@ class ElementsFromAutodetectedDocstringTests(Fixtures):
             helpstream = list(help.elements_from_autodetected_docstring(
                 docstring, 'func'))
         self.assertEqual(exp_helpstream, helpstream)
-        self.assertEqual(exp_stderr.split(), stderr.getvalue().split())
+        self.assertLinesEqual(exp_stderr, stderr.getvalue())
 
     none = None, []
     empty = "", []
@@ -1379,7 +1379,7 @@ class WrappedFuncTests(Fixtures):
         h = help.ClizeHelp(r, None)
         h.prepare()
         p_help_str = str(h.show('func'))
-        self.assertEqual(help_str.split(), p_help_str.split())
+        self.assertLinesEqual(help_str, p_help_str)
 
     args = 'one, *, alpha', [
         'three, *args, gamma, **kwargs',
@@ -1388,17 +1388,17 @@ class WrappedFuncTests(Fixtures):
         Usage: func [OPTIONS] two three one
 
         Arguments:
-            two
-            three
-            one
+          two
+          three
+          one
 
         Options:
-            --alpha=STR
-            --beta=STR
-            --gamma=STR
+          --alpha=STR
+          --beta=STR
+          --gamma=STR
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
     """
 
     docs = 'one, *, alpha', [
@@ -1420,17 +1420,17 @@ class WrappedFuncTests(Fixtures):
         Usage: func [OPTIONS] two three one
 
         Arguments:
-            two     Two
-            three   Three
-            one     One
+          two           Two
+          three         Three
+          one           One
 
         Options:
-            --alpha=STR Alpha
-            --beta=STR  Beta
-            --gamma=STR Gamma
+          --alpha=STR   Alpha
+          --beta=STR    Beta
+          --gamma=STR   Gamma
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
     """
 
     separate_labels = 'one, *, alpha', [
@@ -1456,21 +1456,21 @@ class WrappedFuncTests(Fixtures):
         Usage: func [OPTIONS] two three one
 
         Arguments:
-            two     Two
-            three   Three
-            one     One
+          two           Two
+          three         Three
+          one           One
 
         Options:
-            --alpha=STR Alpha
+          --alpha=STR   Alpha
 
         Label beta:
-            --beta=STR  Beta
+          --beta=STR    Beta
 
         Label gamma:
-            --gamma=STR Gamma
+          --gamma=STR   Gamma
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
     """
 
     merged_labels = 'one, *, alpha', [
@@ -1496,19 +1496,19 @@ class WrappedFuncTests(Fixtures):
         Usage: func [OPTIONS] two three one
 
         Arguments:
-            two     Two
-            three   Three
-            one     One
+          two           Two
+          three         Three
+          one           One
 
         Options:
-            --alpha=STR Alpha
+          --alpha=STR   Alpha
 
         Label:
-            --beta=STR  Beta
-            --gamma=STR Gamma
+          --beta=STR    Beta
+          --gamma=STR   Gamma
 
         Other actions:
-            -h, --help  Show the help
+          -h, --help    Show the help
     """
 
 
@@ -1531,7 +1531,7 @@ class AutoforwardedFuncTests(Fixtures):
         h = help.ClizeHelp(r, None)
         h.prepare()
         p_help_str = str(h.show('func'))
-        self.assertEqual(help_str.split(), p_help_str.split())
+        self.assertLinesEqual(help_str, p_help_str)
 
     def _decorator_three(func):
         @autokwoargs
@@ -1552,17 +1552,17 @@ class AutoforwardedFuncTests(Fixtures):
         Description
 
         Arguments:
-        one     param one
-        two     param two
-        alpha   param alpha
-        beta    param beta
+          one           param one
+          two           param two
+          alpha         param alpha
+          beta          param beta
 
         Options:
-        --gamma=STR     param gamma
-        --three=INT     param three (default: 3)
+          --gamma=STR   param gamma
+          --three=INT   param three (default: 3)
 
         Other actions:
-        -h, --help      Show the help
+          -h, --help    Show the help
     """)
     @_decorator_three
     @autokwoargs
@@ -1605,19 +1605,19 @@ class AutoforwardedFuncTests(Fixtures):
         description in func
 
         Arguments:
-        one     param one in subject
-        two     param two
-        beta
+          one           param one in subject
+          two           param two
+          beta
 
         Options:
-        --gamma=STR     param gamma
-        --three=INT     param three (default: 3)
+          --gamma=STR   param gamma
+          --three=INT   param three (default: 3)
 
         Label:
-        --four=INT      param four (default: 4)
+          --four=INT    param four (default: 4)
 
         Other actions:
-        -h, --help      Show the help
+          -h, --help    Show the help
     """)
     @_decorator_four
     @autokwoargs
@@ -1694,32 +1694,33 @@ class AutoforwardedFuncTests(Fixtures):
 
     @tup("""
         Usage: func [OPTIONS] one two four five alpha beta
+
         description in func
 
         Arguments:
-        one     param one
+          one           param one
         free in decorator A after one
-        two     param two
+          two           param two
         free in decorator A after two
-        four    param four
+          four          param four
         free in decorator B after four
-        five    param five
+          five          param five
         free in decorator B after five
-        alpha   param alpha
+          alpha         param alpha
         free in func after alpha
-        beta    param beta
+          beta          param beta
         free in func after beta
 
         Options:
-        --gamma=STR     param gamma
+          --gamma=STR   param gamma
         free in func after gamma
-        --three=INT     param three (default: 3)
+          --three=INT   param three (default: 3)
         free in decorator A after three
-        --six=INT       param six (default: 6)
+          --six=INT     param six (default: 6)
         free in decorator B after six
 
         Other actions:
-        -h, --help      Show the help
+          -h, --help    Show the help
 
         footnotes in func
     """)
@@ -1752,18 +1753,18 @@ class AutoforwardedFuncTests(Fixtures):
         Usage: func [OPTIONS] one two beta
 
         Arguments:
-        one     param one
-        two     param two
-        beta    param beta
+          one           param one
+          two           param two
+          beta          param beta
 
         Options:
-        --three=INT   param three takeover (default: 3)
+          --three=INT   param three takeover (default: 3)
 
         Label:
-        --four=INT    param four (default: 4)
+          --four=INT    param four (default: 4)
 
         Other actions:
-        -h, --help      Show the help
+          -h, --help    Show the help
     """)
     @_decorator_four
     def doc_takeover(alpha, beta):
@@ -1778,14 +1779,14 @@ class AutoforwardedFuncTests(Fixtures):
         Usage: func alpha beta spam ham eggs
 
         Arguments:
-        alpha   param alpha
-        beta    param beta
-        spam    param spam
-        ham     param ham
-        eggs    param eggs takeover
+          alpha        param alpha
+          beta         param beta
+          spam         param spam
+          ham          param ham
+          eggs         param eggs takeover
 
         Other actions:
-        -h, --help      Show the help
+          -h, --help   Show the help
     """)
     def main_forwards_to_other(alpha, beta, *args, **kwargs):
         """
@@ -1927,7 +1928,7 @@ class DispatcherHelper(Fixtures):
         p_usage = list(h.show_full_usage('sd'))
         p_help_str = str(h.show('sd'))
         self.assertEqual(usage, p_usage)
-        self.assertEqual(help_str.split(), p_help_str.split())
+        self.assertLinesEqual(help_str, p_help_str)
 
     simple = "Description", "Footnotes", [
         'one, *, alpha', 'two, *, beta'
@@ -1955,8 +1956,8 @@ class DispatcherHelper(Fixtures):
         Description
 
         Commands:
-            func1   Func1 description
-            func2   Func2 description
+          func1   Func1 description
+          func2   Func2 description
 
         Footnotes
     """
@@ -1973,8 +1974,8 @@ class DispatcherHelper(Fixtures):
         Usage: sd command [args...]
 
         Commands:
-            func1
-            func2
+          func1
+          func2
     """
 
     # TODO: change so that param: overrides a subcommand description
@@ -2000,7 +2001,7 @@ class DispatcherHelper(Fixtures):
                 And code.
 
             Commands:
-                func1
+              func1
         """
 
     def test_dummy_external(self):
@@ -2018,8 +2019,8 @@ class DispatcherHelper(Fixtures):
         Usage: sd command [args...]
 
         Commands:
-            ext
-            func
+          ext
+          func
         """)
 
     def test_external_with_dummyhelp(self):
@@ -2039,8 +2040,8 @@ class DispatcherHelper(Fixtures):
         Usage: sd command [args...]
 
         Commands:
-            ext     Ext
-            func    Func
+          ext    Ext
+          func   Func
         """)
 
     def test_external_with_usage(self):
@@ -2062,6 +2063,6 @@ class DispatcherHelper(Fixtures):
         Usage: sd command [args...]
 
         Commands:
-            ext
-            func
+          ext
+          func
         """)

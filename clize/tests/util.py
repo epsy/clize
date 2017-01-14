@@ -4,6 +4,7 @@
 
 import os
 import sys
+import inspect
 import unittest2
 from contextlib import contextmanager
 
@@ -40,6 +41,13 @@ class Tests(unittest2.TestCase):
             yield
         finally:
             os.chdir(cwd)
+
+    def assertLinesEqual(self, expected, actual):
+        exp_split = list(filter(None,
+            (line.rstrip() for line in inspect.cleandoc(expected).split('\n'))))
+        act_split = list(filter(None,
+            (line.rstrip() for line in actual.split('\n'))))
+        self.assertEqual(exp_split, act_split)
 
 
 Fixtures = repeated_test.WithTestClass(Tests)
