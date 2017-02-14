@@ -100,11 +100,11 @@ the same way.
     :emphasize-lines: 16
 
 Simply provide an additional argument to the wrapped function. It will
-automaticmlly be skipped during argument parsing and will be omitted from
+automatically be skipped during argument parsing and will be omitted from
 the help.
 
 You can apply the decorator like before, with each decorated function receiving
-the ``brnach`` argument as suplied by the decorator.
+the ``branch`` argument as suplied by the decorator.
 
 .. literalinclude:: /../examples/deco_provide_arg.py
     :lines: 2,18-42
