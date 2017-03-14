@@ -573,10 +573,11 @@ class HelpForClizeDocstring(HelpForAutodetectedDocstring):
 
 
 class _NodeSeeker(dunodes.GenericNodeVisitor, object):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, node, *args, **kwargs):
         include = kwargs.pop('include')
         exclude = kwargs.pop('exclude', (dunodes.system_message,))
         super(_NodeSeeker, self).__init__(*args, **kwargs)
+        self.node = node
         self.include = include
         self.exclude = exclude
         self.result = []
@@ -585,7 +586,7 @@ class _NodeSeeker(dunodes.GenericNodeVisitor, object):
         return iter(self.result)
 
     def default_visit(self, node):
-        if isinstance(node, self.exclude):
+        if isinstance(node, self.exclude) and node != self.node:
             raise dunodes.SkipChildren
         elif isinstance(node, self.include):
             self.result.append(node)
@@ -630,7 +631,7 @@ class _SphinxVisitor(dunodes.SparseNodeVisitor, object):
         self.result = []
 
     def seek_nodes(self, node, include, exclude=(dunodes.system_message)):
-        visitor = _NodeSeeker(self.document, include=include, exclude=exclude)
+        visitor = _NodeSeeker(node, self.document, include=include, exclude=exclude)
         node.walk(visitor)
         return list(visitor)
 
