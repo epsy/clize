@@ -490,14 +490,22 @@ class HelpForAutodetectedDocstring(HelpForParameters):
         for pname in func_signature.parameters:
             for func in func_signature.sources[pname]:
                 funcs.setdefault(func, set()).add(pname)
+        for func in func_signature.sources['+depths']:
+            funcs.setdefault(func, set())
         funcs = sorted(
             funcs.items(),
             key=lambda i: func_signature.sources['+depths'].get(i[0], 1000))
         real_subject = self._pop_real_subject(funcs, subject) or subject
         self.add_docstring(inspect.getdoc(real_subject), real_subject.__name__, None, True)
         for func, pnames in funcs:
-            self.add_docstring(
-                inspect.getdoc(func), func.__name__, pnames - self._documented, False)
+            try:
+                fname = func.__name__
+            except AttributeError:
+                pass
+            else:
+                self.add_docstring(
+                    inspect.getdoc(func), fname,
+                    pnames - self._documented, False)
 
     def add_docstring(self, docstring, name, pnames, primary):
         """Parses and integrates info from a docstring to this instance.

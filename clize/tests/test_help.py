@@ -1799,6 +1799,30 @@ class AutoforwardedFuncTests(Fixtures):
         _other_func(*args, **kwargs)
 
 
+    @tup("""
+        Usage: func [OPTIONS] one two
+
+        Description from func
+
+        Arguments:
+          one           param one
+        free in decorator A after one
+          two           param two
+        free in decorator A after two
+
+        Options:
+          --three=INT   param three (default: 3)
+        free in decorator A after three
+
+        Other actions:
+          -h, --help    Show the help
+    """)
+    @_decorator_1
+    def deepest_has_no_params():
+        """Description from func"""
+        return
+
+
 class FormattingTests(Fixtures):
     def _test(self, sig, doc, help_str):
         try:
