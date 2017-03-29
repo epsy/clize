@@ -57,11 +57,9 @@ interface for it:
 
 .. _about:
 
-About Clize
------------
-
 .. toctree::
     :maxdepth: 1
+    :caption: About Clize
 
     why
     alternatives
@@ -71,12 +69,8 @@ About Clize
 
 .. _tutorial:
 
-Getting started
----------------
-
-This section contains tutorials for the most commonly used features of Clize.
-
 .. toctree::
+    :caption: Getting started
 
     basics
     dispatching
@@ -85,12 +79,8 @@ This section contains tutorials for the most commonly used features of Clize.
 
 .. _guides:
 
-Guides
-------
-
-These documents document specific aspects or usages of Clize.
-
 .. toctree::
+    :caption: Guides
 
     parser
     porting
@@ -99,12 +89,10 @@ These documents document specific aspects or usages of Clize.
 
 .. _references:
 
-Reference
----------
-
 The user reference lists all capabilities of each kind of parameter. The API reference comes in handy if you're extending clize.
 
 .. toctree::
+    :caption: Reference
 
     reference
     docstring-reference
@@ -112,12 +100,10 @@ The user reference lists all capabilities of each kind of parameter. The API ref
 
 .. _project doc:
 
-Project documentation
----------------------
-
 Information on how Clize is organized as a project.
 
 .. toctree::
+    :caption: Project documentation
 
     releases
     contributing
