@@ -11,8 +11,8 @@ import contextlib
 import attr
 import od
 from sigtools.support import f, s
-from sigtools.modifiers import autokwoargs
-from sigtools.wrappers import wrapper_decorator
+from sigtools.modifiers import autokwoargs, kwoargs
+from sigtools.wrappers import wrapper_decorator, decorator
 
 from clize import runner, help, parser, util
 from clize.tests.util import Fixtures, tup, any_instance_of
@@ -1525,6 +1525,11 @@ def _other_func(spam, ham, eggs):
     pass
 
 
+@kwoargs('delegated_to')
+def _order_del(delegated_to):
+    """:param delegated_to: delegated_to param"""
+
+
 class AutoforwardedFuncTests(Fixtures):
     def _test(self, func, help_str):
         r = runner.Clize(func)
@@ -1821,6 +1826,45 @@ class AutoforwardedFuncTests(Fixtures):
     def deepest_has_no_params():
         """Description from func"""
         return
+
+
+    @decorator
+    @kwoargs('one')
+    def _order_1(func, one, *args, **kwargs):
+        """:param one: one param"""
+        return func(*args, **kwargs)
+
+    @decorator
+    @kwoargs('two', 'override')
+    def _order_2(func, two, override, *args, **kwargs):
+        """
+        :param two: two param
+        :param override: override param
+        """
+        return func(*args, **kwargs)
+
+    @tup("""
+        Usage: func [OPTIONS]
+
+        Options:
+          --main=STR           main param
+          --override=STR       overriden in main
+          --one=STR            one param
+          --two=STR            two param
+          --delegated-to=STR   delegated_to param
+
+        Other actions:
+          -h, --help           Show the help
+    """)
+    @_order_1
+    @_order_2
+    @kwoargs('main')
+    def sources_order(main, *args, **kwargs):
+        """
+        :param main: main param
+        :param override: overriden in main
+        """
+        return _order_del(*args, **kwargs)
 
 
 class FormattingTests(Fixtures):
