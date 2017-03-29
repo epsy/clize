@@ -107,6 +107,7 @@ The user reference lists all capabilities of each kind of parameter. The API ref
 .. toctree::
 
     reference
+    docstring-reference
     api
 
 .. _project doc:

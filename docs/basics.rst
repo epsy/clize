@@ -123,6 +123,9 @@ As you would expect, it translates to this::
 
 .. seealso:: :ref:`docstring`
 
+
+.. _tutorial options:
+
 Accepting options
 -----------------
 
