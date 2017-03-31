@@ -8,9 +8,26 @@
 User reference
 ==============
 
-
 Clize deduces what kind of parameter to pick for the CLI depending on what kind
 of parameter is found on the Python function as well as its annotations.
+
+.. note::
+
+    For how parameters are converted between Python and CLI:
+
+    * :ref:`pos param`
+    * :ref:`extra posargs`
+    * :ref:`named param`
+
+
+.. _using annotations:
+
+Using annotations
+-----------------
+
+You can use annotations defined throughout this document to refine parameter
+conversion (or change it completely). Here's a primer on how to use these
+annotations.
 
 
 .. _py2 annotations:
@@ -329,7 +346,8 @@ prepended for subcommand names.
 .. note::
 
     You do not need to consider this when :ref:`documenting parameters
-    <docstring>`. Simply match the parameter in your Python sources.
+    <docstring>`. Simply match the way the parameter is written in your Python
+    sources.
 
 
 .. _option param:

@@ -82,8 +82,8 @@ the following command runs the test suite against Python 3.4 only::
     tox -e py34
 
 Branches linked in a pull request will be run through the test suite on
-TravisCI and the results are linked back in the pull request. You can use this
-if installing all supported Python versions is impreactical for you.
+TravisCI and the results are linked back in the pull request.  Feel free to do
+this if installing all supported Python versions is impractical for you.
 
 `coverage.py <http://nedbatchelder.com/code/coverage/>`_ is used to measure
 code coverage. New code is expected to have full code coverage. You can run the
@@ -93,7 +93,7 @@ test suite through it using::
 
 It will print the measured code coverage and generate webpages with
 line-by-line coverage information in ``htmlcov``. Note that the ``cover``
-target requires Python 3.4.
+target requires Python 3.4 or greater.
 
 
 .. _generating docs:
