@@ -40,6 +40,7 @@ class ConverterTests(Fixtures):
 class FileConverterTests(Tests):
     def setUp(self):
         self.temp = tempfile.mkdtemp()
+        self.completed = False
 
     def tearDown(self):
         shutil.rmtree(self.temp)
@@ -65,9 +66,11 @@ class FileConverterTests(Tests):
                 self.assertEqual(f.name, path)
                 self.assertEqual(f.mode, 'r')
             self.assertTrue(f.closed)
+            self.completed = True
         o, e = self.crun(func, ['test', path])
         self.assertFalse(o.getvalue())
         self.assertFalse(e.getvalue())
+        self.assertTrue(self.completed)
 
     def test_file_write(self):
         path = os.path.join(self.temp, 'afile')
@@ -79,9 +82,11 @@ class FileConverterTests(Tests):
                 self.assertEqual(f.mode, 'w')
             self.assertTrue(f.closed)
             self.assertTrue(os.path.exists(path))
+            self.completed = True
         o, e = self.crun(func, ['test', path])
         self.assertFalse(o.getvalue())
         self.assertFalse(e.getvalue())
+        self.assertTrue(self.completed)
 
     def test_file_missing(self):
         path = os.path.join(self.temp, 'afile')
@@ -108,13 +113,20 @@ class FileConverterTests(Tests):
             'test: Bad value for afile: Directory does not exist: '))
 
     def test_current_dir(self):
+        path = 'afile'
         @modifiers.annotate(afile=converters.file(mode='w'))
         def func(afile):
-            pass
+            with afile as f:
+                self.assertEqual(f.name, path)
+                self.assertEqual(f.mode, 'w')
+            self.assertTrue(f.closed)
+            self.assertTrue(os.path.exists(path))
+            self.completed = True
         with self.cd(self.temp):
-            stdout, stderr = self.crun(func, ['test', 'afile'])
+            stdout, stderr = self.crun(func, ['test', path])
             self.assertFalse(stdout.getvalue())
             self.assertFalse(stderr.getvalue())
+        self.assertTrue(self.completed)
 
     def test_noperm_file_write(self):
         path = os.path.join(self.temp, 'afile')
