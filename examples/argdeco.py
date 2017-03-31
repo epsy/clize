@@ -7,9 +7,8 @@ def capitalize(arg, *, capitalize:('c', 'upper')=False, reverse:'r'=False):
     """
     Options to qualify {param}:
 
-    capitalize: Make {param} uppercased
-
-    reverse: Reverse {param}
+    :param capitalize: Make {param} uppercased
+    :param reverse: Reverse {param}
     """
     if capitalize:
         arg = arg.upper()
@@ -20,7 +19,7 @@ def capitalize(arg, *, capitalize:('c', 'upper')=False, reverse:'r'=False):
 
 def main(*args:capitalize):
     """
-    args: stuff
+    :param args: Words to print
     """
     return ' '.join(args)
 

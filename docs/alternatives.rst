@@ -55,9 +55,8 @@ The above example can be performed using Clize as follows::
     def accumulator(*integers, sum_=False):
         """Process some integers.
 
-        integers: integers for the accumulator
-
-        sum_: sum the integers (default: find the max)
+        :param integers: integers for the accumulator
+        :param sum_: sum the integers (default: find the max)
         """
         f = sum if sum_ else max
         return f(integers)

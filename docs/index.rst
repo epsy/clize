@@ -13,7 +13,7 @@ Clize is an argument parser for `Python <https://www.python.org/>`_. It focuses 
 Here's an example:
 
 .. literalinclude:: /../examples/hello.py
-   :emphasize-lines: 3,17
+   :emphasize-lines: 3,16
 
 `~clize.run` takes the function and automatically produces a command-line
 interface for it:

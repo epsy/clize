@@ -104,7 +104,7 @@ function a docstring::
     def echo(word):
         """Echoes word back
 
-        word: One word or quoted string to echo back
+        :param word: One word or quoted string to echo back
         """
         return word
 
@@ -139,11 +139,9 @@ Let's add a pair of options to specify a prefix and suffix around each line of
     def echo(word, *, prefix='', suffix=''):
         """Echoes text back
 
-        word: One word or quoted string to echo back
-
-        prefix: Prepend this to each line in word
-
-        suffix: Append this to each line in word
+        :param word: One word or quoted string to echo back
+        :param prefix: Prepend this to each line in word
+        :param suffix: Append this to each line in word
         """
         if prefix or suffix:
             return '\n'.join(prefix + line + suffix
@@ -207,11 +205,9 @@ that it should receive at least one argument, you will have to tell Clize that
     def echo(*text:Parameter.REQUIRED, prefix='', suffix=''):
         """Echoes text back
 
-        text: The text to echo back
-
-        prefix: Prepend this to each line in word
-
-        suffix: Append this to each line in word
+        :param text: The text to echo back
+        :param prefix: Prepend this to each line in word
+        :param suffix: Append this to each line in word
         """
         text = ' '.join(text)
         if prefix or suffix:
@@ -235,13 +231,10 @@ to reverse the input::
     def echo(*text:Parameter.REQUIRED, prefix='', suffix='', reverse=False):
         """Echoes text back
 
-        text: The text to echo back
-
-        reverse: Reverse text before processing
-
-        prefix: Prepend this to each line in word
-
-        suffix: Append this to each line in word
+        :param text: The text to echo back
+        :param reverse: Reverse text before processing
+        :param prefix: Prepend this to each line in word
+        :param suffix: Append this to each line in word
 
         """
         text = ' '.join(text)
@@ -268,15 +261,11 @@ Clize will always give you an integer::
              prefix='', suffix='', reverse=False, repeat=1):
         """Echoes text back
 
-        text: The text to echo back
-
-        reverse: Reverse text before processing
-
-        repeat: Amount of times to repeat text
-
-        prefix: Prepend this to each line in word
-
-        suffix: Append this to each line in word
+        :param text: The text to echo back
+        :param reverse: Reverse text before processing
+        :param repeat: Amount of times to repeat text
+        :param prefix: Prepend this to each line in word
+        :param suffix: Append this to each line in word
 
         """
         text = ' '.join(text)
@@ -333,7 +322,7 @@ Let's say we want to give an error if the word *spam* is in the text. To do so,
 one option is to raise an :class:`ArgumentError` from within your function:
 
 .. literalinclude:: /../examples/echo.py
-   :emphasize-lines: 19-20
+   :emphasize-lines: 14-15
 
 ::
 

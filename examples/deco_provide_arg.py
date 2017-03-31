@@ -10,9 +10,8 @@ def get_branch_object(repository, branch_name):
 def with_branch(wrapped, *args, repository='.', branch='master', **kwargs):
     """Decorate with this so your function receives a branch object
 
-    repository: A directory belonging to the repository to operate on
-
-    branch: The name of the branch to operate on
+    :param repository: A directory belonging to the repository to operate on
+    :param branch: The name of the branch to operate on
     """
     return wrapped(*args, branch=get_branch_object(repository, branch), **kwargs)
 
@@ -27,7 +26,7 @@ def diff(*, branch=None):
 def commit(*text, branch=None):
     """Commit the changes.
 
-    text: A message to store alongside the commit
+    :param text: A message to store alongside the commit
     """
     return "All saved.: " + ' '.join(text)
 

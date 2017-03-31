@@ -57,7 +57,7 @@ def with_logger(wrapped, *args, log:log_level=logging.CRITICAL, **kwargs):
     """
     Logging options:
 
-    log: The desired log level"""
+    :param log: The desired log level"""
     logger = logging.getLogger('myapp')
     logger.setLevel(log)
     logger.addHandler(logging.StreamHandler())

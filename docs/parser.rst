@@ -157,7 +157,7 @@ parameter to only allow values from a given list:
     def func(breakfast:parameters.one_of('ham', 'spam')):
         """Serves breakfast
 
-        breakfast: what food to serve
+        :parser breakfast: what food to serve
         """
         print("{0} is served!".format(breakfast))
 
@@ -230,7 +230,7 @@ Creating a parameter class for us to edit
     def func(breakfast:one_of('ham', 'spam')):
         """Serves breakfast
 
-        breakfast: what food to serve
+        :parser breakfast: what food to serve
         """
         print("{0} is served!".format(breakfast))
 

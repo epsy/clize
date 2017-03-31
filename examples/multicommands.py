@@ -4,7 +4,7 @@ from clize import run
 def add(*text):
     """Adds an entry to the to-do list.
 
-    text: The text associated with the entry.
+    :param text: The text associated with the entry.
     """
     return "OK I will remember that."
 

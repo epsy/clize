@@ -7,7 +7,7 @@ def with_uppercase(wrapped, *args, uppercase=False, **kwargs):
     """
     Formatting options:
 
-    uppercase: Print output in capitals
+    :param uppercase: Print output in capitals
     """
     ret = wrapped(*args, **kwargs)
     if uppercase:
@@ -20,7 +20,7 @@ def with_uppercase(wrapped, *args, uppercase=False, **kwargs):
 def hello_world(name=None):
     """Says hello world
 
-    name: Who to say hello to
+    :param name: Who to say hello to
     """
     if name is not None:
         return 'Hello ' + name

@@ -6,9 +6,8 @@ from clize import run
 def hello_world(name=None, no_capitalize=False):
     """Greets the world or the given name.
 
-    name: If specified, only greet this person.
-
-    no_capitalize: Don't capitalize the given name.
+    :param name: If specified, only greet this person.
+    :param no_capitalize: Don't capitalize the given name.
     """
     if name:
         if not no_capitalize:

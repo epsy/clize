@@ -113,7 +113,7 @@ def mapped(values, list_name='list', case_sensitive=None):
         The default is to guess based on the contents of values.
 
     .. literalinclude:: /../examples/mapped.py
-        :lines: 4-16
+        :lines: 4-15
 
     """
     return parser.use_mixin(MappedParameter, kwargs={
@@ -389,7 +389,7 @@ def argument_decorator(f):
     to qualify another.
 
     .. literalinclude:: /../examples/argdeco.py
-       :lines: 5-25
+       :lines: 5-24
     """
     return parser.use_mixin(
         DecoratedArgumentParameter, kwargs={'decorator': f})

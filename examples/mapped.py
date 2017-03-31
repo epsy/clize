@@ -9,9 +9,8 @@ greeting = parameters.mapped([
 
 def main(name='world', *, kind:('k', greeting)='Hello'):
     """
-    name: Who is the message for?
-
-    kind: What kind of message should be given to name?
+    :param name: Who is the message for?
+    :param kind: What kind of message should be given to name?
     """
     return '{0} {1}!'.format(kind, name)
 

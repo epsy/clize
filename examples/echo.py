@@ -4,16 +4,11 @@ def echo(*text:Parameter.REQUIRED,
          prefix:'p'='', suffix:'s'='', reverse:'r'=False, repeat:'n'=1):
     """Echoes text back
 
-    text: The text to echo back
-
-    reverse: Reverse text before processing
-
-    repeat: Amount of times to repeat text
-
-    prefix: Prepend this to each line in word
-
-    suffix: Append this to each line in word
-
+    :param text: The text to echo back
+    :param reverse: Reverse text before processing
+    :param repeat: Amount of times to repeat text
+    :param prefix: Prepend this to each line in word
+    :param suffix: Append this to each line in word
     """
     text = ' '.join(text)
     if 'spam' in text:

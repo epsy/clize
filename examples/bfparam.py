@@ -45,7 +45,7 @@ def one_of(*values):
 def func(breakfast:one_of('ham', 'spam')):
     """Serves breakfast
 
-    breakfast: what food to serve
+    :param breakfast: what food to serve
     """
     print("{0} is served!".format(breakfast))
 

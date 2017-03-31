@@ -96,8 +96,8 @@ You can also provide the decorated function with additional arguments much in
 the same way.
 
 .. literalinclude:: /../examples/deco_provide_arg.py
-    :lines: 1,3-17
-    :emphasize-lines: 16
+    :lines: 1,3-16
+    :emphasize-lines: 15
 
 Simply provide an additional argument to the wrapped function. It will
 automatically be skipped during argument parsing and will be omitted from
@@ -107,7 +107,7 @@ You can apply the decorator like before, with each decorated function receiving
 the ``branch`` argument as suplied by the decorator.
 
 .. literalinclude:: /../examples/deco_provide_arg.py
-    :lines: 2,18-42
+    :lines: 2,17-42
 
 
 .. _ex arg deco:
@@ -130,18 +130,16 @@ mini argument parser just for one argument:
         """
         Options for {param}:
 
-        port: Which port to connect on
-
-        _6: Use IPv6?
+        :parser port: Which port to connect on
+        :parser _6: Use IPv6?
         """
         return (arg, port, _6)
 
 
     def get_page(server:read_server, path):
         """
-        server: The server to contact
-
-        path: The path of the resource to fetch
+        :parser server: The server to contact
+        :parser path: The path of the resource to fetch
         """
         print("Connecting to", server, "to get", path)
 
@@ -193,18 +191,16 @@ on ``*args`` parameters, as each argument meant for it can have its own options:
         """
         Options for {param}:
 
-        port: Which port to connect on
-
-        _6: Use IPv6?
+        :param port: Which port to connect on
+        :param _6: Use IPv6?
         """
         return (arg, port, _6)
 
 
     def get_page(path, *servers:read_server):
         """
-        server: The server to contact
-
-        path: The path of the resource to fetch
+        :param server: The server to contact
+        :param path: The path of the resource to fetch
         """
         print("Connecting to", servers, "to get", path)
 
