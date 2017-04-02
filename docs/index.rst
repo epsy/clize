@@ -62,6 +62,8 @@ interface for it:
     .. toctree::
         :caption: Clize documentation
 
+.. raw:: latex
+
     \part{About Clize}
 
 .. toctree::
@@ -76,7 +78,7 @@ interface for it:
 
 .. _tutorial:
 
-.. only:: latex
+.. raw:: latex
 
     \part{Getting started}
 
@@ -90,7 +92,7 @@ interface for it:
 
 .. _guides:
 
-.. only:: latex
+.. raw:: latex
 
     \part{Guides}
 
@@ -104,7 +106,7 @@ interface for it:
 
 .. _references:
 
-.. only:: latex
+.. raw:: latex
 
     \part{Reference}
 
@@ -119,7 +121,7 @@ The user reference lists all capabilities of each kind of parameter. The API ref
 
 .. _project doc:
 
-.. only:: latex
+.. raw:: latex
 
     \part{Project documentation}
 
