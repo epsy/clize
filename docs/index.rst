@@ -57,6 +57,13 @@ interface for it:
 
 .. _about:
 
+.. only:: latex
+
+    .. toctree::
+        :caption: Clize documentation
+
+    \part{About Clize}
+
 .. toctree::
     :maxdepth: 1
     :caption: About Clize
@@ -69,6 +76,10 @@ interface for it:
 
 .. _tutorial:
 
+.. only:: latex
+
+    \part{Getting started}
+
 .. toctree::
     :caption: Getting started
 
@@ -78,6 +89,10 @@ interface for it:
 
 
 .. _guides:
+
+.. only:: latex
+
+    \part{Guides}
 
 .. toctree::
     :caption: Guides
@@ -89,6 +104,10 @@ interface for it:
 
 .. _references:
 
+.. only:: latex
+
+    \part{Reference}
+
 The user reference lists all capabilities of each kind of parameter. The API reference comes in handy if you're extending clize.
 
 .. toctree::
@@ -99,6 +118,10 @@ The user reference lists all capabilities of each kind of parameter. The API ref
     api
 
 .. _project doc:
+
+.. only:: latex
+
+    \part{Project documentation}
 
 Information on how Clize is organized as a project.
 
