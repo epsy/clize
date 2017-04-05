@@ -249,6 +249,19 @@ class ParameterWithValue(Parameter):
         """Tells if the parameter has no default value."""
         return self.default is util.UNSET
 
+    def read_argument(self, ba, i):
+        """Uses `.get_value`, `.coerce_value` and `.set_value` to process
+        an argument"""
+        self.set_value(ba, self.coerce_value(self.get_value(ba, i), ba))
+
+    def set_value(self, ba, value):
+        """Save the value for this parameter
+
+        Usually accomplished by adding to `ba.args <CliBoundArguments.args>` or
+        `ba.kwargs <CliBoundArguments.kwargs>`.
+        """
+        raise NotImplementedError
+
     def coerce_value(self, arg, ba):
         """Coerces ``arg`` using the `.conv` function. Raises
         `.errors.BadArgumentFormat` if the coercion function raises
@@ -365,8 +378,11 @@ class OptionParameter(NamedParameter, ParameterWithValue,
         already present."""
         if self.argument_name in ba.kwargs:
             raise errors.DuplicateNamedArgument()
-        val = self.get_value(ba, i)
-        ba.kwargs[self.argument_name] = self.coerce_value(val, ba)
+        super(OptionParameter, self).read_argument(ba, i)
+
+    def set_value(self, ba, value):
+        """Set the value in `ba.kwargs <CliBoundArguments.kwargs>`"""
+        ba.kwargs[self.argument_name] = value
 
     def format_type(self):
         """Returns a string designation of the value type."""
@@ -416,10 +432,9 @@ class FlagParameter(OptionParameter):
         arg = ba.in_args[i]
         if arg[1] == '-':
             name, sep, val = arg.partition('=')
-            ba.kwargs[self.argument_name] = (
-                self.coerce_value(val, ba) if sep else self.value)
+            self.set_value(ba, self.coerce_value(val, ba) if sep else self.value)
         else:
-            ba.kwargs[self.argument_name] = self.value
+            self.set_value(ba, self.value)
             self.redispatch_short_arg(arg[2:], ba, i)
 
     def format_argument(self, long_alias):
@@ -454,7 +469,7 @@ class IntOptionParameter(OptionParameter):
             return
 
         val, rest = split_int_rest(arg)
-        ba.kwargs[self.argument_name] = self.coerce_value(val, ba)
+        self.set_value(ba, self.coerce_value(val, ba))
 
         self.redispatch_short_arg(rest, ba, i)
 
@@ -462,9 +477,9 @@ class IntOptionParameter(OptionParameter):
 class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
     """Equivalent of a positional-only parameter in Python."""
 
-    def read_argument(self, ba, i):
+    def set_value(self, ba, val):
         """Stores the argument in `CliBoundArguments.args`."""
-        ba.args.append(self.coerce_value(self.get_value(ba, i), ba))
+        ba.args.append(val)
 
     def help_parens(self):
         """Puts the value type in parenthesis since it isn't shown in
@@ -495,9 +510,13 @@ class MultiParameter(ParameterWithValue):
         raise NotImplementedError
 
     def read_argument(self, ba, i):
+        """Reset read_argument to avoid hitting `OptionParameter.read_argument`
+        which checks for duplicate parameters"""
+        self.set_value(ba, self.coerce_value(self.get_value(ba, i), ba))
+
+    def set_value(self, ba, val):
         """Adds passed argument to the collection returned
         by `get_collection`."""
-        val = self.coerce_value(self.get_value(ba, i), ba)
         col = self.get_collection(ba)
         col.append(val)
         if self.min <= len(col):
