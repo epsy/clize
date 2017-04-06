@@ -389,6 +389,7 @@ class OptionParameter(NamedParameter, ParameterWithValue,
         return util.name_type2cli(self.conv)
 
     def format_argument(self, long_alias):
+        """Format the value type for the parameter"""
         return ('=' if long_alias else ' ') + self.format_type()
 
     def get_all_names(self):
@@ -438,6 +439,10 @@ class FlagParameter(OptionParameter):
             self.redispatch_short_arg(arg[2:], ba, i)
 
     def format_argument(self, long_alias):
+        """Formats the argument value type for usage messages.
+
+        This is usually empty unless the flag uses a non-boolean flag.
+        """
         if not long_alias or self.conv == is_true:
             return ''
         return ('[=' if long_alias else ' [') + self.format_type() + ']'
