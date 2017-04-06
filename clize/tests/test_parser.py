@@ -214,8 +214,11 @@ class FromSigTests(Fixtures):
 
 
 class SigTests(Fixtures):
-    def _test(self, sig_str, str_rep, args, posargs, kwargs):
+    def _test(self, sig_str, *args, **kwargs):
         sig = support.s(sig_str, locals={'P': parser.Parameter})
+        self._do_test(sig, *args, **kwargs)
+
+    def _do_test(self, sig, str_rep, args, posargs, kwargs):
         csig = parser.CliSignature.from_signature(sig)
         ba = self.read_arguments(csig, args)
         self.assertEqual(str(csig), str_rep)
@@ -384,6 +387,27 @@ class SigTests(Fixtures):
         ba.args[:] = []
         with self.assertRaises(ValueError):
             param.set_value(ba, 'inserted')
+
+    def test_vconverter_keep_default(self):
+        @parser.value_converter
+        def conv(arg):
+            return 'converted'
+        sig = support.s('*, par:conv="default"', locals={'conv': conv})
+        self._do_test(sig, '[--par=CONV]', (), [], {})
+
+    def test_vconverter_convert_default(self):
+        @parser.value_converter(convert_default=True)
+        def conv(arg):
+            return 'converted'
+        sig = support.s('*, par:conv="default"', locals={'conv': conv})
+        self._do_test(sig, '[--par=CONV]', (), [], {'par': 'converted'})
+
+    def test_vconverter_convert_default_after_pos(self):
+        @parser.value_converter(convert_default=True)
+        def conv(arg):
+            return 'converted'
+        sig = support.s('first="otherdefault", par:conv="default"', locals={'conv': conv})
+        self._do_test(sig, '[first] [par]', (), ['otherdefault', 'converted'], {})
 
 
 class ExtraParamsTests(Fixtures):

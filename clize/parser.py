@@ -173,14 +173,29 @@ class HelperParameter(Parameter):
 
 
 @modifiers.kwoargs(start='name')
-def value_converter(func=None, name=None):
+def value_converter(func=None, name=None, convert_default=False):
     """Callables decorated with this can be used as a value converter.
+
+    :param str name: Use this name to designate the parameter value type.
+
+        This should be in uppercase, with as few words as possible and no word
+        delimiters.
+
+        The default is the name of the decorated function or type, modified to
+        follow this rule.
+
+    :param bool convert_default: If true, the value converter will be called
+        with the default parameter value if none was supplied. Otherwise, the
+        default parameter is used as-is.
+
+        Make sure to handle `None` appropriately if you override this.
 
     See :ref:`value converter`.
     """
     def decorate(func):
         info = {
             'name': util.name_type2cli(func) if name is None else name,
+            'convert_default': convert_default,
         }
         try:
             func._clize__value_converter = info
@@ -289,6 +304,16 @@ class ParameterWithValue(Parameter):
         """Shows the default value in the parameter description."""
         if self.default is not util.UNSET and self.default is not None:
             yield 'default: ' + str(self.default)
+
+    def post_parse(self, ba):
+        super(ParameterWithValue, self).post_parse(ba)
+        try:
+            info = self.conv._clize__value_converter
+        except AttributeError:
+            pass
+        else:
+            if self.default != util.UNSET and info['convert_default']:
+                self.set_value(ba, self.coerce_value(self.default, ba))
 
 
 class NamedParameter(Parameter):
