@@ -65,6 +65,12 @@ class _FileOpener(object):
         if self.arg != self.stdio or not self.keep_stdio_open:
             self.f.close()
 
+def _none_guard(cls, maybe_none, *args, **kwargs):
+    if maybe_none is None:
+        return None
+    else:
+        return cls(maybe_none, *args, **kwargs)
+
 def file(stdio='-', keep_stdio_open=False, **kwargs):
     """Takes a file argument and provides a Python object that opens a file
 
@@ -80,11 +86,25 @@ def file(stdio='-', keep_stdio_open=False, **kwargs):
         or *stdout*.
 
     Other arguments will be relayed to `io.open`.
+
+    This converter also opens the file or stream designated by the default
+    value::
+
+        def main(inf: file()='-'):
+            with inf as f:
+                print(f)
+
+    .. code-block:: console
+
+        $ python3 ./main.py
+        <_io.TextIOWrapper name='<stdin>' mode='r' encoding='UTF-8'>
+
+
     """
     return parser.value_converter(
-        partial(_FileOpener, kwargs=kwargs,
+        partial(_none_guard, _FileOpener, kwargs=kwargs,
                 stdio=stdio, keep_stdio_open=keep_stdio_open),
-        name='FILE')
+        name='FILE', convert_default=True)
 
 def _convert_ioerror(arg, exc):
     nexc = errors.ArgumentError('{0.strerror}: {1!r}'.format(exc, arg))

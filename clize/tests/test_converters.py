@@ -128,6 +128,31 @@ class FileConverterTests(Tests):
             self.assertFalse(stderr.getvalue())
         self.assertTrue(self.completed)
 
+    def test_default_value(self):
+        path = os.path.join(self.temp, 'default')
+        open(path, 'w').close()
+        @modifiers.annotate(afile=converters.file())
+        def func(afile=path):
+            with afile as f:
+                self.assertEqual(f.name, path)
+                self.assertEqual(f.mode, 'r')
+            self.assertTrue(f.closed)
+            self.completed = True
+        stdout, stderr = self.crun(func, ['test'])
+        self.assertFalse(stdout.getvalue())
+        self.assertFalse(stderr.getvalue())
+        self.assertTrue(self.completed)
+
+    def test_default_none_value(self):
+        @modifiers.annotate(afile=converters.file())
+        def func(afile=None):
+            self.assertIs(afile, None)
+            self.completed = True
+        stdout, stderr = self.crun(func, ['test'])
+        self.assertFalse(stdout.getvalue())
+        self.assertFalse(stderr.getvalue())
+        self.assertTrue(self.completed)
+
     def test_noperm_file_write(self):
         path = os.path.join(self.temp, 'afile')
         open(path, mode='w').close()
