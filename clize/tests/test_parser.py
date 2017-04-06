@@ -334,6 +334,57 @@ class SigTests(Fixtures):
         with self.assertRaises(errors.UnknownOption):
             csig.read_arguments(['--new', 'abc'], 'test')
 
+    def test_posparam_set_value_parameter_not_present(self):
+        param = parser.PositionalParameter(argument_name='two', display_name='two')
+        sig = support.s('one, two')
+        csig = parser.CliSignature.from_signature(sig)
+        ba = parser.CliBoundArguments(csig, ['one', 'two'], 'func')
+        with self.assertRaises(ValueError):
+            param.set_value(ba, 'inserted')
+
+    def test_posparam_set_value_only(self):
+        param = parser.PositionalParameter(argument_name='one', display_name='one')
+        sig = support.s('one:par', locals={'par': param})
+        csig = parser.CliSignature.from_signature(sig)
+        ba = parser.CliBoundArguments(csig, ['one'], 'func')
+        ba.args[:] = []
+        param.set_value(ba, 'inserted')
+        self.assertEqual(ba.args, ['inserted'])
+
+    def test_posparam_set_value_already_set(self):
+        param = parser.PositionalParameter(argument_name='two', display_name='two')
+        sig = support.s('one, two:par', locals={'par': param})
+        csig = parser.CliSignature.from_signature(sig)
+        ba = parser.CliBoundArguments(csig, ['one', 'two'], 'func')
+        param.set_value(ba, 'inserted')
+        self.assertEqual(ba.args, ['one', 'inserted'])
+
+    def test_posparam_set_value_after_set(self):
+        param = parser.PositionalParameter(argument_name='two', display_name='two')
+        sig = support.s('one, two:par', locals={'par': param})
+        csig = parser.CliSignature.from_signature(sig)
+        ba = parser.CliBoundArguments(csig, ['one', 'two'], 'func')
+        ba.args[1:] = []
+        param.set_value(ba, 'inserted')
+        self.assertEqual(ba.args, ['one', 'inserted'])
+
+    def test_posparam_set_value_after_default(self):
+        param = parser.PositionalParameter(argument_name='two', display_name='two', default="two")
+        sig = support.s('one="one", two:par="two"', locals={'par': param})
+        csig = parser.CliSignature.from_signature(sig)
+        ba = parser.CliBoundArguments(csig, [], 'func')
+        param.set_value(ba, 'inserted')
+        self.assertEqual(ba.args, ['one', 'inserted'])
+
+    def test_posparam_set_value_after_missing(self):
+        param = parser.PositionalParameter(argument_name='two', display_name='two')
+        sig = support.s('one, two:par', locals={'par': param})
+        csig = parser.CliSignature.from_signature(sig)
+        ba = parser.CliBoundArguments(csig, ['one', 'two'], 'func')
+        ba.args[:] = []
+        with self.assertRaises(ValueError):
+            param.set_value(ba, 'inserted')
+
 
 class ExtraParamsTests(Fixtures):
     def _test(self, sig_str, extra, args, posargs, kwargs, func):

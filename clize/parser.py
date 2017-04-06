@@ -483,8 +483,32 @@ class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
     """Equivalent of a positional-only parameter in Python."""
 
     def set_value(self, ba, val):
-        """Stores the argument in `CliBoundArguments.args`."""
-        ba.args.append(val)
+        """Stores the argument at the appropriate position
+        in `ba.args <CliBoundArguments.args>`.
+
+        If `ba.args <CliBoundArguments.args>` is not filled up to this
+        parameter's position yet, it will be filled with default values.
+
+        :raises ValueError: when setting a parameter after unsatisfied
+            parameters with no default value.
+        """
+        matched = util.zip_longest(ba.sig.positional, ba.args, fillvalue=util.UNSET)
+        for i, (param, arg) in enumerate(matched):
+            if param is self:
+                if arg is util.UNSET:
+                    ba.args.append(val)
+                else:
+                    ba.args[i] = val
+                return
+            else:
+                if arg is util.UNSET:
+                    if param.default != util.UNSET:
+                        ba.args.append(param.default)
+                    else:
+                        raise ValueError(
+                            "Can't set parameters after required parameters")
+        else:
+            raise ValueError("{!r} not present in signature".format(self))
 
     def help_parens(self):
         """Puts the value type in parenthesis since it isn't shown in
