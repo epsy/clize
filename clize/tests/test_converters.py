@@ -72,6 +72,21 @@ class FileConverterTests(Tests):
         self.assertFalse(e.getvalue())
         self.assertTrue(self.completed)
 
+    def test_not_called(self):
+        path = os.path.join(self.temp, 'afile')
+        open(path, 'w').close()
+        @modifiers.annotate(afile=converters.file)
+        def func(afile):
+            with afile as f:
+                self.assertEqual(f.name, path)
+                self.assertEqual(f.mode, 'r')
+            self.assertTrue(f.closed)
+            self.completed = True
+        o, e = self.crun(func, ['test', path])
+        self.assertFalse(o.getvalue())
+        self.assertFalse(e.getvalue())
+        self.assertTrue(self.completed)
+
     def test_file_write(self):
         path = os.path.join(self.temp, 'afile')
         @modifiers.annotate(afile=converters.file(mode='w'))

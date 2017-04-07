@@ -7,7 +7,9 @@ import io
 import os
 from functools import partial
 
-from clize import parser, errors
+from sigtools.modifiers import autokwoargs
+
+from clize import parser, errors, util
 
 
 @parser.value_converter(name='TIME')
@@ -71,7 +73,10 @@ def _none_guard(cls, maybe_none, *args, **kwargs):
     else:
         return cls(maybe_none, *args, **kwargs)
 
-def file(stdio='-', keep_stdio_open=False, **kwargs):
+
+@parser.value_converter(name='FILE', convert_default=True)
+@autokwoargs(exceptions=['arg'])
+def file(arg=util.UNSET, stdio='-', keep_stdio_open=False, **kwargs):
     """Takes a file argument and provides a Python object that opens a file
 
     ::
@@ -101,10 +106,13 @@ def file(stdio='-', keep_stdio_open=False, **kwargs):
 
 
     """
+    if arg is not util.UNSET:
+        return _none_guard(_FileOpener, arg, kwargs, stdio, keep_stdio_open)
     return parser.value_converter(
         partial(_none_guard, _FileOpener, kwargs=kwargs,
                 stdio=stdio, keep_stdio_open=keep_stdio_open),
         name='FILE', convert_default=True)
+
 
 def _convert_ioerror(arg, exc):
     nexc = errors.ArgumentError('{0.strerror}: {1!r}'.format(exc, arg))
