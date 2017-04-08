@@ -341,7 +341,7 @@ class SigTests(Fixtures):
         param = parser.PositionalParameter(argument_name='two', display_name='two')
         sig = support.s('one, two')
         csig = parser.CliSignature.from_signature(sig)
-        ba = parser.CliBoundArguments(csig, ['one', 'two'], 'func')
+        ba = parser.CliBoundArguments(csig, [], 'func', args=['one', 'two'])
         with self.assertRaises(ValueError):
             param.set_value(ba, 'inserted')
 
@@ -349,8 +349,7 @@ class SigTests(Fixtures):
         param = parser.PositionalParameter(argument_name='one', display_name='one')
         sig = support.s('one:par', locals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
-        ba = parser.CliBoundArguments(csig, ['one'], 'func')
-        ba.args[:] = []
+        ba = parser.CliBoundArguments(csig, [], 'func', args=[])
         param.set_value(ba, 'inserted')
         self.assertEqual(ba.args, ['inserted'])
 
@@ -358,7 +357,7 @@ class SigTests(Fixtures):
         param = parser.PositionalParameter(argument_name='two', display_name='two')
         sig = support.s('one, two:par', locals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
-        ba = parser.CliBoundArguments(csig, ['one', 'two'], 'func')
+        ba = parser.CliBoundArguments(csig, [], 'func', args=['one', 'two'])
         param.set_value(ba, 'inserted')
         self.assertEqual(ba.args, ['one', 'inserted'])
 
@@ -366,8 +365,7 @@ class SigTests(Fixtures):
         param = parser.PositionalParameter(argument_name='two', display_name='two')
         sig = support.s('one, two:par', locals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
-        ba = parser.CliBoundArguments(csig, ['one', 'two'], 'func')
-        ba.args[1:] = []
+        ba = parser.CliBoundArguments(csig, [], 'func', args=['one'])
         param.set_value(ba, 'inserted')
         self.assertEqual(ba.args, ['one', 'inserted'])
 
@@ -375,7 +373,7 @@ class SigTests(Fixtures):
         param = parser.PositionalParameter(argument_name='two', display_name='two', default="two")
         sig = support.s('one="one", two:par="two"', locals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
-        ba = parser.CliBoundArguments(csig, [], 'func')
+        ba = parser.CliBoundArguments(csig, [], 'func', args=[])
         param.set_value(ba, 'inserted')
         self.assertEqual(ba.args, ['one', 'inserted'])
 
@@ -383,8 +381,7 @@ class SigTests(Fixtures):
         param = parser.PositionalParameter(argument_name='two', display_name='two')
         sig = support.s('one, two:par', locals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
-        ba = parser.CliBoundArguments(csig, ['one', 'two'], 'func')
-        ba.args[:] = []
+        ba = parser.CliBoundArguments(csig, [], 'func', args=[])
         with self.assertRaises(ValueError):
             param.set_value(ba, 'inserted')
 

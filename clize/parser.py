@@ -11,6 +11,7 @@ from functools import partial, wraps
 
 import six
 from sigtools import modifiers
+import attr
 
 from clize import errors, util
 
@@ -971,7 +972,9 @@ class CliSignature(object):
         :param sequence args: The CLI arguments, minus the script name.
         :param str name: The script name.
         """
-        return CliBoundArguments(self, args, name)
+        ba = CliBoundArguments(self, args, name)
+        ba.process_arguments()
+        return ba
 
     def __str__(self):
         return ' '.join(
@@ -1007,6 +1010,7 @@ class _SeekFallbackCommand(object):
                 return True
 
 
+@attr.s
 class CliBoundArguments(object):
     """Command line arguments bound to a `.CliSignature` instance.
 
@@ -1092,22 +1096,35 @@ class CliBoundArguments(object):
     """
     threshold = 0.75
 
-    def __init__(self, sig, args, name):
-        self.sig = sig
-        self.name = name
-        self.in_args = tuple(args)
-        self.func = None
-        self.post_name = []
-        self.args = []
-        self.kwargs = {}
-        self.meta = {}
+    sig = attr.ib()
+    in_args = attr.ib(convert=tuple)
+    name = attr.ib()
 
+    func = attr.ib(default=None)
+    post_name = attr.ib(default=attr.Factory(list))
+    args = attr.ib(default=attr.Factory(list))
+    kwargs = attr.ib(default=attr.Factory(dict))
+    meta = attr.ib(default=attr.Factory(dict))
+
+    posparam = attr.ib(init=False)
+    namedparam = attr.ib(init=False)
+    unsatisfied = attr.ib(init=False)
+    posarg_only = attr.ib(init=False)
+    skip = attr.ib(init=False)
+
+    def process_arguments(self):
+        """Process the arguments in `.in_args`, setting the `.func`,
+        `.post_name`, `.args` and `.kwargs` attributes as a result.
+
+        This methods reads `str`s from `.in_args`. For each one, it finds the
+        relevant `Parameter` instance in `.posparam` or `.namedparam` and
+        delegates processing to it """
         self.posparam = iter(self.sig.positional)
         self.namedparams = dict(self.sig.aliases)
+        self.unsatisfied = set(self.sig.required)
         self.sticky = None
         self.posarg_only = False
         self.skip = 0
-        self.unsatisfied = set(self.sig.required)
 
         with _SeekFallbackCommand():
             for i, arg in enumerate(self.in_args):
