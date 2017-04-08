@@ -30,6 +30,7 @@ Parser
 .. autofunction:: use_mixin
 
 .. autoclass:: CliBoundArguments
+    :no-undoc-members:
 
 .. autoclass:: Parameter
    :show-inheritance:

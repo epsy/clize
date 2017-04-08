@@ -1065,6 +1065,19 @@ class CliBoundArguments(object):
        The iterator over the positional parameters used to process positional
        arguments.
 
+    .. attribute:: namedparam
+       :annotation: = dict(sig.aliases)
+
+       The `dict` used to look up named parameters from their names.
+
+       It is copied here so that the argument parsing process may add or remove
+       parameters without affecting the original signature.
+
+    .. attribute:: unsatisfied
+       :annotation: = set(sig.required)
+
+       Required parameters that haven't yet been satisfied.
+
     .. attribute:: sticky
        :annotation: = None
 
@@ -1082,19 +1095,12 @@ class CliBoundArguments(object):
 
        Amount of arguments to skip.
 
-    .. attribute:: unsatisfied
-       :annotation: = set(<required parameters>)
-
-       Required parameters that haven't yet been satisfied.
-
     """
 
-    """
-    Similarity threshold below which argument suggestions are dropped. Used
-    when the user enters an incorrect argument and we try to suggest a valid
-    argument instead.
-    """
     threshold = 0.75
+    """Similarity threshold below which argument suggestions are dropped. Used
+    when the user enters an incorrect argument and we try to suggest a valid
+    argument instead."""
 
     sig = attr.ib()
     in_args = attr.ib(convert=tuple)
@@ -1116,7 +1122,7 @@ class CliBoundArguments(object):
         """Process the arguments in `.in_args`, setting the `.func`,
         `.post_name`, `.args` and `.kwargs` attributes as a result.
 
-        This methods reads `str`s from `.in_args`. For each one, it finds the
+        This methods reads `str`'s from `.in_args`. For each one, it finds the
         relevant `Parameter` instance in `.posparam` or `.namedparam` and
         delegates processing to it """
         self.posparam = iter(self.sig.positional)
