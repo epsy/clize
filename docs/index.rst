@@ -2,13 +2,18 @@
 clize: Turn functions into command-line interfaces
 **************************************************
 
-Clize is an argument parser for `Python <https://www.python.org/>`_. It focuses on minimizing the effort required to create them:
+Clize is an argument parser for `Python <https://www.python.org/>`_.  You can
+use Clize as an alternative to ``argparse`` if you want an even easier way to
+create command-line interfaces.
 
-* Command-line interfaces are created by passing functions to `clize.run`.
-* Parameter types are deduced from the functions' parameters.
-* A ``--help`` message is generated from your docstrings.
-* Decorators can be used to reuse functionality across functions.
-* Clize can be extended with new parameter behavior.
+.. rubric:: With Clize, you can:
+
+* Create command-line interfaces by creating functions and passing them to
+  `clize.run`.
+* Enjoy a CLI automatically created from your functions' parameters.
+* Bring your users familiar ``--help`` messages generated from your docstrings.
+* Reuse functionality across multiple commands using decorators.
+* Extend Clize with new parameter behavior.
 
 Here's an example:
 
