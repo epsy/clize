@@ -301,6 +301,8 @@ decorators from `sigtools.modifiers` to emulate them.
 
 .. code-block:: python
 
+    from sigtools.modifiers import DECORATOR
+
     @DECORATOR
     def func(ab, cd, de=None, fg=None, hi=None):
         ...
