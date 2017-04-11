@@ -19,7 +19,8 @@ contraints:
   are stored.
 
 This document explains each step of the CLI inference and argument parsing
-process. An example shows how you can add a custom kind of parameter.
+process. There is a walkthrough of the argument process and an example that
+shows how you can add a custom parameter.
 
 
 .. _parser overview:
@@ -69,6 +70,7 @@ is the process followed for each parameter:
 
 
 .. _default-converter:
+.. _default converter:
 
 The default parameter converter
 ...............................
@@ -139,6 +141,124 @@ The both of these methods are expected to discard the parameter from
 parameters, when applicable. The `~.CliBoundArguments.sticky`,
 `~.CliBoundArguments.posarg_only` and `~.CliBoundArguments.skip` can also be
 modified to change the ongoing argument reading process.
+
+
+.. _parser process example:
+
+Walkthrough: The parsing process
+--------------------------------
+
+Let's examine the steps Clize takes when executing this function:
+
+.. code-block:: python
+
+    from clize import run, parameters, converters
+
+    def main(pos1, pos2:converters.file(), *, opt, mul: (parameters.multi(), 'm')):
+        ...
+
+    run(main)
+
+As an example, we'll use this command. It should fail because ``--opt`` is
+given twice. However, ``--help`` will still display the help.
+
+.. code-block:: console
+
+    $ python3 ./example.py one two --opt o1 -mm1 --mul m2 --opt o2 --help -mm3
+
+First of all Clize will convert the function parameters to a CLI object it can
+use.  For this it looks at every parameter:
+
+* ``pos1`` has no annotations.  The :ref:`default parameter converter <default
+  converter>` transforms it into a `PositionalParameter` instance to
+  match its behavior as a Python positional parameter.
+* ``pos2`` has an annotation.  It's a :ref:`value converter <value converter>`.
+  Again, the default parameter converter uses `PositionalParameter` to
+  represent it.
+* ``opt`` is a keyword-only parameter.  The default converter uses an
+  `OptionParameter` instance to represent it.
+* ``mul`` has a tuple with two items as annotation.  The first one,
+  `clize.parameters.multi` is a parameter converter.  Clize uses it instead of the
+  default converter.  This parameter converter returns a custom parameter for
+  this parameter.
+* `.Clize` adds a parameter to trigger the help, an instance of
+  `FallbackCommandParameter`.
+
+These parameters are used to create an instance of `CliSignature`.
+
+`CliSignature.read_arguments()` is called by `.Clize.read_commandline`
+with the arguments ``sys.argv[1:]`` and the program name ``sys.argv[0]``.
+This creates an instance of `CliBoundArguments` with this data and starts the
+parsing process with its `~CliBoundArguments.process_arguments` method.
+
+This method enumerates every input argument (`ba.in_args
+<CliBoundArguments.in_args>`, ``sys.argv[1:]``):
+
+1. ``one`` doesn't start with a ``-``, so it tries to get the next positional
+   parameter from `ba.posparam <CliBoundArguments.posparam>`.
+
+   This is the `PositionalParameter` instance that was created for ``pos1``.
+
+   ``CliBoundArguments`` calls `read_argument(ba, i)
+   <ParameterWithValue.read_argument>` on this instance. ``ba`` is the
+   ``CliBoundArguments`` instance and ``i`` is the position in `ba.in_args
+   <CliBoundArguments.in_args>`
+
+   No converter or default was specified so it just takes ``ba.in_args[i]``
+   and stores it in `ba.args <CliBoundArguments.args>`.
+
+2. ``two`` also doesn't start with a ``-``, so it is matched with the next
+   positional parameter, the `PositionalParameter` for ``pos2``.
+
+   This one has a value converter, which gets called with the text value.
+   The converter returns an object which the parameter just stores in
+   `ba.args <CliBoundArguments.args>`.
+
+3. ``--opt`` starts with ``-``, so ``CliBoundArguments`` looks it up in
+   `ba.namedparam <CliBoundArguments.namedparam>`.
+
+   `OptionParameter.read_argument` reads ``ba.in_args[i+1]`` and saves it as
+   `ba.kwargs[opt] <CliBoundArguments.kwargs>`.  It sets `ba.skip
+   <CliBoundArguments.skip>` to 1 so that the parser skips over ``o1`` instead
+   of processing it as a positional argument.
+
+4. ``-mm1`` starts with ``-`` so it is recognized as an option.
+
+   Because there is only one ``-``, Clize looks up the parameter with just the
+   first letter.  It finds that ``-m`` maps to the parameter created by
+   `clize.parameters.multi`.
+
+   That parameter instance sees that it's being invoked as a short-form
+   parameter and that a value is attached to the parameter name.  It extracts
+   this value and adds it to a list assigned to ``ba.kwargs['mul']``.
+
+5. ``--mul`` is also matched to the same parameter instance. It adds it to
+   ``ba.kwargs['mul']`` and sets ``ba.skip = 1``
+
+6. ``--opt`` is seen agsin.  ``OptionParameter.read_argument`` sees that
+   ``ba.kwargs['opt']`` already exists and raises an exception.
+
+7. Before the exception propagates past ``CliBoundArguments`` it scans the
+   remaining arguments for any argument matching one in `ba.sig.alternate
+   <CliSignature.alternate>`.  It finds ``--help`` and calls the its
+   `~FallbackCommandParameter.read_argument` method.
+
+   That method clears the existing values in `ba.args <CliBoundArguments.args>`
+   and `ba.kwargs <CliBoundArguments.kwargs>` and sets `ba.func
+   <CliBoundArguments.func>`.
+
+Execution leaves the parser loop at this point before it has a chance to
+process ``-mm3``.  The `CliBoundArguments` object is complete.  At this stage
+it has:
+
+* `ba.func <CliBoundArguments.func>` set to a function that will display the
+  help.  (It is a CLI itself.)
+* `ba.args <CliBoundArguments.args>` is set to a list with the program name
+  suffixed with ``--help``.  This is so that the ``--help`` CLI can receive an
+  accurate program name as first argument.
+
+Going back up the call chain, `.Clize.read_commandline` calls
+``ba.func(^ba.args)`` and thus launching the help.
 
 
 .. _new param example:
