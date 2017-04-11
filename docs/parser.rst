@@ -18,6 +18,11 @@ contraints:
 * Other arguments are processed by the positional parameters in the order they
   are stored.
 
+You are free to have your custom parameters edit the `CliBoundArguments`
+object, including changing the available parameters mid-parsing through
+`ba.posparam <CliBoundArguments.posparam>` or `ba.namedparam
+<CliBoundArguments.namedparam>``.
+
 This document explains each step of the CLI inference and argument parsing
 process. There is a walkthrough of the argument process and an example that
 shows how you can add a custom parameter.
