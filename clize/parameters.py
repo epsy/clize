@@ -28,9 +28,23 @@ class MappedParameter(parser.ParameterWithValue):
             for name in names:
                 name_ = name.lower()
                 if name_ in used:
-                    raise ValueError('Duplicate key when uncased')
+                    raise ValueError(
+                        "Duplicate allowed values for parameter {}: {}"
+                        .format(self, name_))
                 used.add(name_)
                 yield name_, target
+
+    def _ensure_no_duplicate_names(self, values):
+        used = set()
+        for value in values:
+            _, names, _ = value
+            for name in names:
+                if name in used:
+                    raise ValueError(
+                        "Duplicate allowed values for parameter {}: {}"
+                        .format(self, name))
+                used.add(name)
+            yield value
 
     @util.property_once
     def values_table(self):
@@ -46,7 +60,7 @@ class MappedParameter(parser.ParameterWithValue):
                 return new_values
         return dict(
             (name, target)
-            for target, names, _ in self.values
+            for target, names, _ in self._ensure_no_duplicate_names(self.values)
             for name in names)
 
     def coerce_value(self, value, ba):

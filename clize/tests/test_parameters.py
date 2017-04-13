@@ -21,13 +21,10 @@ def _test_annotated_error(
     sig_str, annotation, str_rep = sig_info
     sig = support.s(sig_str, locals={'a': annotation})
     csig = parser.CliSignature.from_signature(sig)
-    with self.assertRaises(exc):
+    with self.assertRaises(exc) as catcher:
         self.read_arguments(csig, in_args)
     if message is not None:
-        try:
-            self.read_arguments(csig, in_args)
-        except exc as e:
-            self.assertEqual('Error: ' + message, str(e))
+        self.assertEqual(message, str(catcher.exception))
 
 def _test_help(self, sig_info, doc, expected):
     sig_str, annotation, _ = sig_info
@@ -73,10 +70,18 @@ class RepTests(Fixtures):
         (1, ['thing'], 'h'),
         (2, ['Thing'], 'h'),
         ]), 'par')
-    mapped_bad_icase = ('par:a', parameters.mapped([
+    mapped_duplicate = ('par:a', parameters.mapped([
+        (1, ['thing'], 'h'),
+        (2, ['thing'], 'h'),
+        ], case_sensitive=True), 'par')
+    mapped_duplicate_icase = ('par:a', parameters.mapped([
         (1, ['thing'], 'h'),
         (2, ['Thing'], 'h'),
         ], case_sensitive=False), 'par')
+    mapped_duplicate_unspecified = ('par:a', parameters.mapped([
+        (1, ['thing'], 'h'),
+        (2, ['thing'], 'h'),
+        ]), 'par')
 
     oneof_basic = 'par:a', parameters.one_of('hello', 'goodbye', 'bye'), 'par'
     oneof_help = (
@@ -258,15 +263,27 @@ baf = errors.BadArgumentFormat
 class MappedErrorTests(Fixtures):
     _test = _test_annotated_error
 
-    not_found = RepTests.mapped_basic, ['dog'], baf, 'Bad value for par: dog'
+    not_found = (
+        RepTests.mapped_basic, ['dog'],
+        baf, 'Error: Bad value for par: dog')
     forced_scase = (
         RepTests.mapped_force_scase, ['thing'],
-        baf, 'Bad value for par: thing')
-    bas_icase = RepTests.mapped_bad_icase, ['anything'], ValueError
+        baf, 'Error: Bad value for par: thing')
+    duplicate = (
+        RepTests.mapped_duplicate, ['thing'], ValueError,
+        "Duplicate allowed values for parameter par: thing")
+    duplicate_icase = (
+        RepTests.mapped_duplicate_icase, ['thing'], ValueError,
+        "Duplicate allowed values for parameter par: thing")
+    duplicate_unspecified = (
+        RepTests.mapped_duplicate, ['thing'], ValueError,
+        "Duplicate allowed values for parameter par: thing")
     alternate = (
         RepTests.mapped_alternate_list, ['list'],
-        baf, 'Bad value for par: list')
-    none = RepTests.mapped_no_list, ['list'], baf, 'Bad value for par: list'
+        baf, 'Error: Bad value for par: list')
+    none = (
+        RepTests.mapped_no_list, ['list'],
+        baf, 'Error: Bad value for par: list')
 
 
 class MappedHelpTests(Fixtures):
@@ -381,18 +398,18 @@ class MultiErrorTests(Fixtures):
 
     max_passed_1 = (
         RepTests.multi_max, ('--par=1', '--par=2', '--par=3'),
-        errors.TooManyValues, 'Received too many values for --par')
+        errors.TooManyValues, 'Error: Received too many values for --par')
     max_passed_2 = (
         RepTests.multi_max, ('--par=1', '--par=2', '--par=3', '--par=4'),
-        errors.TooManyValues, 'Received too many values for --par')
+        errors.TooManyValues, 'Error: Received too many values for --par')
 
     a_req_not_met = RepTests.margs_req, (), errors.MissingRequiredArguments
     a_min_not_met_1 = (
         RepTests.margs_min, ('one',), errors.NotEnoughValues,
-        'Received too few values for args')
+        'Error: Received too few values for args')
     a_min_not_met_2 = (
         RepTests.margs_min, ('one',), errors.NotEnoughValues,
-        'Received too few values for args')
+        'Error: Received too few values for args')
 
     a_max_passed_1 = RepTests.margs_max, ('1', '2', '3'), errors.TooManyValues
     a_max_passed_2 = (
