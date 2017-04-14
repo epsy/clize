@@ -193,7 +193,7 @@ def multi(min=0, max=None):
         kwargs={
             'min': min,
             'max': max,
-        })
+        }, name="multi")
 
 
 class _ComposedProperty(object):
@@ -452,10 +452,14 @@ def value_inserter(value_factory):
         for the parameter. The current `.parser.CliBoundArguments` instance
         is passed as argument, ie. ``value_factory(ba)``.
     """
+    try:
+        name = value_factory.__name__
+    except AttributeError:
+        name = repr(value_factory)
     uc = parser.use_class(
         pos=InserterPositionalParameter, named=InserterNamedParameter,
-        kwargs={'value_factory': value_factory}
-        )
+        kwargs={'value_factory': value_factory},
+        name='value_inserter({})'.format(name))
     update_wrapper(uc, value_factory)
     return uc
 

@@ -8,6 +8,7 @@ interpret function signatures and read commandline arguments
 
 import itertools
 from functools import partial, wraps
+import warnings
 
 import six
 from sigtools import modifiers
@@ -687,7 +688,8 @@ class AlternateCommandParameter(FallbackCommandParameter):
         return super(AlternateCommandParameter, self).read_argument(ba, i)
 
 
-def parameter_converter(obj):
+@modifiers.kwoargs(start='name')
+def parameter_converter(obj=None, name=None):
     """Decorates a callable to be interpreted as a parameter converter
     when passed as an annotation.
 
@@ -695,7 +697,17 @@ def parameter_converter(obj):
     objects passed as annotations, without the parameter converter itself.
     It is expected to return a `clize.parser.Parameter` instance or
     `Parameter.IGNORE`."""
+    if obj is None:
+        return partial(parameter_converter, name=name)
     obj._clize__parameter_converter = True
+    if name:
+        obj.__name__ = name
+    elif not getattr(obj, '__name__', None):
+        warnings.warn(
+            "Nameless parameter converter {!r}. "
+            "Please specify one using the 'name' parameter of "
+            "parameter_converter".format(obj),
+            RuntimeWarning, stacklevel=3)
     return obj
 
 
@@ -711,12 +723,14 @@ def unimplemented_parameter(argument_name, **kwargs):
 
 @modifiers.autokwoargs
 def use_class(
+        name=None,
         pos=unimplemented_parameter, varargs=unimplemented_parameter,
         named=unimplemented_parameter, varkwargs=unimplemented_parameter,
         kwargs={}):
     """Creates a parameter converter similar to the default converter that
     picks one of 4 factory functions depending on the type of parameter.
 
+    :param name str: A name to set on the parameter converter.
     :param pos: The parameter factory for positional parameters.
     :param varargs: The parameter factory for ``*args``-like parameters.
     :param named: The parameter factory for keyword parameters.
@@ -728,12 +742,18 @@ def use_class(
     :param collections.abc.Mapping kwargs: additional arguments to pass
         to the chosen factory.
     """
-    return parameter_converter(
-        partial(_use_class, pos, varargs, named, varkwargs, kwargs))
+    conv = partial(_use_class, pos, varargs, named, varkwargs, kwargs)
+    if not name:
+        warnings.warn(
+            "Nameless parameter converter. Please specify the name argument "
+            "when calling use_class",
+            RuntimeWarning, stacklevel=3)
+        name = repr(conv)
+    return parameter_converter(conv, name=name)
 
 
 @modifiers.autokwoargs
-def use_mixin(cls, kwargs={}):
+def use_mixin(cls, kwargs={}, name=None):
     """Like ``use_class``, but creates classes inheriting from ``cls`` and
     one of ``PositionalParameter``, ``ExtraPosArgsParameter``, and
     ``OptionParameter``
@@ -741,13 +761,17 @@ def use_mixin(cls, kwargs={}):
     :param cls: The class to use as mixin.
     :param collections.abc.Mapping kwargs: additional arguments to pass
         to the chosen factory.
+    :param name: The name to use for the converter.  Uses ``cls``'s name
+        if unset.
     """
     class _PosWithMixin(cls, PositionalParameter): pass
     class _VarargsWithMixin(cls, ExtraPosArgsParameter): pass
     class _NamedWithMixin(cls, OptionParameter): pass
+    if not name:
+        name = cls.__name__
     return use_class(pos=_PosWithMixin, varargs=_VarargsWithMixin,
                      named=_NamedWithMixin,
-                     kwargs=kwargs)
+                     name=name, kwargs=kwargs)
 
 
 def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
@@ -853,9 +877,8 @@ def named_parameter(**kwargs):
 default_converter = use_class(
     pos=pos_parameter, varargs=ExtraPosArgsParameter,
     named=named_parameter,
-    )
+    name='default_converter')
 """The default parameter converter. It is described in detail in :ref:`default-converter`."""
-default_converter.__name__ = 'default_converter'
 
 
 def _develop_extras(params):

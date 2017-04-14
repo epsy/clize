@@ -432,7 +432,7 @@ class ClizeWholeHelpTests(WholeHelpTests):
                 f.extend(after)
         func = f(
             "*, param: a",
-            locals={'a': parser.use_class(named=CustParam)})
+            locals={'a': parser.use_class(named=CustParam, name="cust")})
         func.__doc__ = """
             param: Param desc
 
