@@ -705,8 +705,8 @@ def is_parameter_converter(obj):
 
 def unimplemented_parameter(argument_name, **kwargs):
     raise ValueError(
-        "This converter cannot convert parameter {0!r}".format(argument_name)
-        )
+        "This converter cannot convert parameter {0!r} to a CLI parameter"
+        .format(argument_name))
 
 
 @modifiers.autokwoargs
@@ -779,8 +779,9 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
         if callable(thing):
             if is_parameter_converter(thing):
                 raise ValueError(
-                    "A custom parameter converter must be the first element "
-                    "of a parameter's annotation")
+                    "Parameter converter {!r} must be the first element "
+                    "of a parameter's annotation"
+                    .format(getattr(thing, '__name__', thing)))
             try:
                 conv = get_value_converter(thing)
             except ValueError:
@@ -788,7 +789,7 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
             else:
                 if prev_conv is not None:
                     raise ValueError(
-                        "Coercion function specified twice in annotation: "
+                        "Value converter specified twice in annotation: "
                         "{0.__name__} {1.__name__}".format(prev_conv, thing))
                 prev_conv = thing
                 continue
@@ -804,7 +805,11 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
             continue
         if isinstance(thing, ParameterFlag):
             continue
-        raise ValueError("Unknown annotation " + repr(thing))
+        raise ValueError(
+            "Unknown annotation {!r}\n"
+            "If you intended for it to be a value or parameter converter, "
+            "make sure the appropriate decorator was applied."
+            .format(thing))
 
     kwargs['default'] = default if not kwargs.get('required') else util.UNSET
     kwargs['conv'] = conv
@@ -812,7 +817,13 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
         try:
             kwargs['conv'] = get_value_converter(type(default))
         except ValueError:
-            raise ValueError("Cannot find value converter for " + repr(default))
+            raise ValueError(
+                "Cannot find value converter for default value {!r}. "
+                "Please specify one as an annotation.\n"
+                "If the default value's type should be used to "
+                "convert the value, make sure it is decorated "
+                "with clize.parser.value_converter()"
+                .format(default))
 
     if named:
         kwargs['aliases'] = [
@@ -844,6 +855,7 @@ default_converter = use_class(
     named=named_parameter,
     )
 """The default parameter converter. It is described in detail in :ref:`default-converter`."""
+default_converter.__name__ = 'default_converter'
 
 
 def _develop_extras(params):

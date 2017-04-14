@@ -124,8 +124,9 @@ class property_once(object):
             return obj.__dict__[self.key] # could happen if we've been
                                           # assigned to multiple names
         except KeyError:
-            ret = obj.__dict__[self.key] = self.func(obj)
-            return ret
+            pass
+        ret = obj.__dict__[self.key] = self.func(obj)
+        return ret
 
     def __repr__(self):
         return '<property_once from {0!r}>'.format(self.func)

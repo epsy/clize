@@ -565,20 +565,32 @@ class BadParamTests(Fixtures):
     alias_spaces = '*, one: "a b"', {}, "Cannot have whitespace in aliases."
     alias_duplicate = '*, one: dup', {'dup': ('a', 'a')}, "Duplicate alias 'a'"
     _ua = UnknownAnnotation()
-    unknown_annotation = 'one: ua', {'ua': _ua}, "Unknown annotation " + repr(_ua)
+    unknown_annotation = (
+        'one: ua', {'ua': _ua}, "Unknown annotation " + repr(_ua) + "\n"
+        "If you intended for it to be a value or parameter converter, "
+        "make sure the appropriate decorator was applied.")
     def _uc(arg):
         raise NotImplementedError
-    unknown_callable = 'one: uc', {'uc': _uc}, "Unknown annotation " + repr(_uc)
+    unknown_callable = (
+        'one: uc', {'uc': _uc}, "Unknown annotation " + repr(_uc) + "\n"
+        "If you intended for it to be a value or parameter converter, "
+        "make sure the appropriate decorator was applied.")
     _ud = UnknownDefault('stuff')
     bad_custom_default = (
         'one=bd', {'bd': _ud},
-        "Cannot find value converter for " + repr(_ud))
-    coerce_twice = 'one: co', {'co': (str, int)}, "Coercion function specified twice in annotation: str int"
+        "Cannot find value converter for default value " + repr(_ud) + ". "
+        "Please specify one as an annotation.\n"
+        "If the default value's type should be used to convert the value, "
+        "make sure it is decorated with clize.parser.value_converter()")
+    coerce_twice = 'one: co', {'co': (str, int)}, "Value converter specified twice in annotation: str int"
     dup_pconverter = (
         'one: a',
         {'a': (parser.default_converter, parser.default_converter)},
-        "A custom parameter converter must be the first element of a parameter's annotation")
-    unimplemented_parameter = '**kwargs', {}, "This converter cannot convert parameter 'kwargs'"
+        "Parameter converter 'default_converter' must be the first "
+        "element of a parameter's annotation")
+    unimplemented_parameter = (
+        '**kwargs', {},
+        "This converter cannot convert parameter 'kwargs' to a CLI parameter")
 
 
 
