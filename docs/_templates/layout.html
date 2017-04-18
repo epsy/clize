@@ -1,3 +1,12 @@
 {% extends "!layout.html" %}
 
 {% set css_files = css_files + ['_static/clize_style.css'] %}
+
+{%- block extrahead %}
+<script>
+  ((window.gitter = {}).chat = {}).options = {
+    room: 'epsy/clize'
+  };
+</script>
+<script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
+{% endblock %}
