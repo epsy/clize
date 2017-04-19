@@ -4,9 +4,8 @@ from setuptools import setup
 
 setup(
     name='clize',
-    version='4.0a1',
-    description='Automatic command-line argument parsing '
-                'converted from your function parameters',
+    version='4.0b1',
+    description='Turn functions into command-line interfaces',
     license='MIT',
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
