@@ -1,7 +1,46 @@
+.. currentmodule:: clize
+
 .. _releases:
 
 Release notes
 =============
+
+.. _v4.0:
+
+4.0 (WIP)
+---------
+
+* Clize now parses Sphinx-style docstrings.  It becomes the recommended way of
+  documenting functions, as it is interoperable and not specific to Clize.
+* Value converters can now convert the default value for their parameter.
+  Specify ``convert_default=True`` when decorating with
+  `~clize.parser.value_converter`.
+* `clize.converters.file`:
+
+  * you can use it without parenthesis now: ``def func(infile:converters.file):``
+  * it now converts the default parameter:  ``infile:converters.file='-'``
+    gives a file opener for stdin if no value was provided by the user
+
+* `parameters.mapped`: Raises an error when two identical values are given.
+* Improved error messages for incorrect annotations.
+* Parameter converters must have a name.  You can now specify one using the
+  ``name=`` keyword argument to `~parser.parameter_converter`.
+* Clize now shows a hint if a subcommand is misspelled.
+* Dropped Python 2.6 support.  Use Clize 3.1 if you need to support it.
+* Fix wrong docstring being used for header/footer text when the intended
+  function had no (visible) parameters.
+* Extension API changes:
+
+  * `parser.CliBoundArguments` now uses the ``attrs`` package.  Instead of
+    parsing arguments on instantiation, it has a process_arguments method for
+    this.  This is a breaking change if you were instantiating it directly
+    rather than use `parser.CliSignature.read_arguments`
+  * Separate the value setting logic in `~parser.ParameterWithValue` to a
+    `~clize.parser.ParameterWithValue.set_value` method.  Most parameter types
+    don't need to override `~clize.parser.ParameterWithValue.read_argument`
+    anymore.
+  * Separated the help CLI from documentation generation and display.  Also
+    comes with more ``attrs``.  This API is now documented.
 
 
 .. _v3.1:
