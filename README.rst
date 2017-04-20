@@ -20,7 +20,7 @@ Clize is an argument parser for `Python <https://www.python.org/>`_.  You can
 use Clize as an alternative to ``argparse`` if you want an even easier way to
 create command-line interfaces.
 
-.. rubric:: With Clize, you can:
+**With Clize, you can:**
 
 * Create command-line interfaces by creating functions and passing them to
   `clize.run`.
@@ -29,7 +29,7 @@ create command-line interfaces.
 * Reuse functionality across multiple commands using decorators.
 * Extend Clize with new parameter behavior.
 
-.. rubric:: Here's an example:
+**Here's an example:**
 
 .. code-block:: python
 
