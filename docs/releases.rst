@@ -7,8 +7,8 @@ Release notes
 
 .. _v4.0:
 
-4.0 (WIP)
----------
+4.0 (2017-04-19)
+----------------
 
 * Clize now parses Sphinx-style docstrings.  It becomes the recommended way of
   documenting functions, as it is interoperable and not specific to Clize.
