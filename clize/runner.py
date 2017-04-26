@@ -368,3 +368,11 @@ def run(args=None, catch=(), exit=True, out=None, err=None, *fn, **kwargs):
         if exit:
             sys.exit()
 
+_commands = []
+def cmdline(func):
+    """Decorator to collect functions for subsequent dispatch
+
+    After decorating all your functions, call cmdline.run() to do the work."""
+    _commands.append(func)
+    return func
+cmdline.run = lambda: run(*_commands)
