@@ -1027,13 +1027,13 @@ class SphinxTokenizerTests(Fixtures):
                 also code.
     """, [
         (help.EL_FREE_TEXT, "Code can be denoted at the end of paragraphs:", False),
-        (help.EL_FREE_TEXT, "This is\ncode.\n\nThis is still\ncode.", True),
+        (help.EL_FREE_TEXT, "    This is\n    code.\n    \n    This is still\n    code.", True),
         (help.EL_FREE_TEXT, "You can also begin them without a paragraph", False),
-        (help.EL_FREE_TEXT, "This is\nalso code.", True),
+        (help.EL_FREE_TEXT, "    This is\n    also code.", True),
         (help.EL_PARAM_DESC, "opt1", "They are also available in field bodies"),
-        (help.EL_AFTER, "opt1", "This is\ncode.", True),
+        (help.EL_AFTER, "opt1", "    This is\n    code.", True),
         (help.EL_PARAM_DESC, "opt2", ""),
-        (help.EL_AFTER, "opt2", "This is\nalso code.", True),
+        (help.EL_AFTER, "opt2", "    This is\n    also code.", True),
     ]
 
     code = """
@@ -1054,10 +1054,10 @@ class SphinxTokenizerTests(Fixtures):
                 This is
                 code.
     """, [
-        (help.EL_FREE_TEXT, "This is\ncode.", True),
-        (help.EL_FREE_TEXT, "def some_python(code):\n    pass", True),
+        (help.EL_FREE_TEXT, "    This is\n    code.", True),
+        (help.EL_FREE_TEXT, "    def some_python(code):\n        pass", True),
         (help.EL_PARAM_DESC, "opt1", "also in parameters"),
-        (help.EL_AFTER, "opt1", "This is\ncode.", True),
+        (help.EL_AFTER, "opt1", "    This is\n    code.", True),
     ]
 
     labels = """
@@ -1230,6 +1230,66 @@ class SphinxWholeHelpTests(WholeHelpTests):
           -h, --help   Show the help
 
         Footnotes
+    """
+
+    literal_block = "*, opt1, opt2", """
+        Code can be denoted at the end of paragraphs::
+
+            This is
+            code.
+
+            This is still
+            code.
+
+        You can also begin them without a paragraph
+
+        ::
+
+            This is
+            also code.
+
+        :param opt1: They are also available in field bodies
+
+            ::
+
+                This is
+                code.
+
+        :param opt2:
+
+            ::
+
+                This is
+                also code.
+    """, ['func --opt1=STR --opt2=STR', USAGE_HELP], """
+        Usage: func [OPTIONS]
+
+        Code can be denoted at the end of paragraphs:
+
+            This is
+            code.
+
+            This is still
+            code.
+
+        You can also begin them without a paragraph
+
+            This is
+            also code.
+
+        Options:
+          --opt1=STR   They are also available in field bodies
+
+            This is
+            code.
+
+          --opt2=STR
+
+            This is
+            also code.
+
+        Other actions:
+          -h, --help   Show the help
     """
 
 

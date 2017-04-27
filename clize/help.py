@@ -661,9 +661,12 @@ class _SphinxVisitor(dunodes.SparseNodeVisitor, object):
             )
         raise dunodes.SkipChildren
 
+    def indent_preformatted(self, text):
+        return '\n'.join('    ' + line for line in text.split('\n'))
+
     def visit_literal_block(self, node):
         self.result.append(
-            (EL_FREE_TEXT, self.text(node), True)
+            (EL_FREE_TEXT, self.indent_preformatted(self.text(node)), True)
         )
         raise dunodes.SkipChildren
 
@@ -685,6 +688,8 @@ class _SphinxVisitor(dunodes.SparseNodeVisitor, object):
                 if isinstance(p, dunodes.paragraph):
                     preformatted = False
                     text = _remove_newlines(text)
+                else:
+                    text = self.indent_preformatted(text)
                 self.result.append(
                     (EL_AFTER, param, text, preformatted)
                 )
