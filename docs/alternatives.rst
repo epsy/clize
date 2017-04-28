@@ -291,6 +291,16 @@ With `argh <http://argh.readthedocs.io/>`_ you can amend these
 parameter definitions (or add new parameters) using a decorator that takes the
 same arguments as `argparse.ArgumentParser.add_argument`.
 
+.. _fire comparison:
+
+`fire <https://github.com/google/python-fire>`_ also converts callables to
+CLIs.  It observes slightly different conventions than common CLIs and doesn't
+support keyword-only parameters.  Instead, all parameters can be passed by
+position or by name.  It does not help you generate help, though ``./program --
+--help`` will print the docstring, usage information, and other technical
+information.  It allows chaining commands with each taking the output of the
+previoous command.
+
 .. _other similar argparse:
 
 And then some more:
