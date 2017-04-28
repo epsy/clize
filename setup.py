@@ -15,9 +15,13 @@ setup(
         'sigtools >= 2.0',
         'attrs',
         'od',
+        'docutils',
+    ],
+    tests_require=[
         'repeated_test',
         'unittest2',
-        'docutils',
+        'python-dateutil',
+        'Pygments',
     ],
     extras_require={
         'datetime': ['python-dateutil'],
