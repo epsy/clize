@@ -392,6 +392,14 @@ class SigTests(Fixtures):
         sig = support.s('*, par:conv="default"', locals={'conv': conv})
         self._do_test(sig, '[--par=CONV]', (), [], {})
 
+    def test_vconverter_convert_value(self):
+        @parser.value_converter(convert_default=True)
+        def conv(arg):
+            return 'c{}c'.format(arg)
+        sig = support.s('*, par:conv="default"', locals={'conv': conv})
+        self._do_test(sig, '[--par=CONV]', ('--par=A',), [], {'par': 'cAc'})
+        self._do_test(sig, '[--par=CONV]', ('--par', 'A',), [], {'par': 'cAc'})
+
     def test_vconverter_convert_default(self):
         @parser.value_converter(convert_default=True)
         def conv(arg):
