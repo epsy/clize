@@ -100,6 +100,7 @@ class Parameter(object):
         if self.last_option:
             ba.posarg_only = True
         ba.unsatisfied.discard(self)
+        ba.not_provided.discard(self)
 
     def unsatisfied(self, ba):
         """Called after processing arguments if this parameter required
@@ -373,6 +374,7 @@ class NamedParameter(Parameter):
         finally:
             ba.in_args = orig_args
         ba.unsatisfied.discard(nparam)
+        ba.not_provided.discard(nparam)
 
     def get_value(self, ba, i):
         """Fetches the value after the ``=`` (``--opt=val``) or in the
@@ -584,6 +586,7 @@ class MultiParameter(ParameterWithValue):
         """Doesn't automatically mark the parameter as satisfied."""
         if self.last_option:
             ba.posarg_only = True
+        ba.not_provided.discard(self)
 
     def unsatisfied(self, ba):
         """Lets `errors.MissingRequiredArguments` be raised or raises
@@ -936,12 +939,15 @@ class CliSignature(object):
         alt = self.alternate = []
         aliases = self.aliases = {}
         required = self.required = set()
+        optional = self.optional = set()
         for param in _develop_extras(parameters):
             required_ = getattr(param, 'required', False)
             aliases_ = getattr(param, 'aliases', None)
 
             if required_:
                 required.add(param)
+            else:
+                optional.add(param)
 
             if aliases_ is not None:
                 for alias in aliases_:
@@ -1042,6 +1048,7 @@ class _SeekFallbackCommand(object):
                 except errors.ArgumentError:
                     continue
                 ba.unsatisfied.clear()
+                ba.not_provided.clear()
                 return True
 
 
@@ -1150,6 +1157,7 @@ class CliBoundArguments(object):
     posparam = attr.ib(init=False)
     namedparam = attr.ib(init=False)
     unsatisfied = attr.ib(init=False)
+    not_provided = attr.ib(init=False)
     posarg_only = attr.ib(init=False)
     skip = attr.ib(init=False)
 
@@ -1163,6 +1171,7 @@ class CliBoundArguments(object):
         self.posparam = iter(self.sig.positional)
         self.namedparams = dict(self.sig.aliases)
         self.unsatisfied = set(self.sig.required)
+        self.not_provided = set(self.sig.optional)
         self.sticky = None
         self.posarg_only = False
         self.skip = 0
@@ -1213,7 +1222,7 @@ class CliBoundArguments(object):
             for p in self.sig.parameters.values():
                 p.post_parse(self)
 
-        del self.sticky, self.posarg_only, self.skip, self.unsatisfied
+        del self.sticky, self.posarg_only, self.skip, self.unsatisfied, self.not_provided
 
     def get_best_guess(self, passed_in_arg):
         return util.closest_option(passed_in_arg, list(self.sig.aliases))

@@ -226,14 +226,18 @@ class _SubBoundArguments(object):
     posarg_only = _ComposedProperty('posarg_only')
     skip = _ComposedProperty('skip')
     unsatisfied = _ComposedProperty('unsatisfied')
+    not_provided = _ComposedProperty('not_provided')
 
 
 class _DerivBoundArguments(object):
     def __init__(self, deriv, real):
         self.real = real
         u = self.unsatisfied = set()
+        n = self.not_provided = set()
         if deriv.sub_required:
             u.add(deriv)
+        else:
+            n.add(deriv)
 
     args = _ComposedProperty('args')
     kwargs = _ComposedProperty('kwargs')
@@ -290,6 +294,7 @@ class _DapMeta(object):
         if self.sub is None:
             fba = self.sub = _SubBoundArguments(self.ba)
             self.ba.unsatisfied.update(self.parent.cli.required)
+            self.ba.not_provided.update(self.parent.cli.optional)
             return fba
         else:
             return self.sub
