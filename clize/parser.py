@@ -316,7 +316,8 @@ class ParameterWithValue(Parameter):
             pass
         else:
             if self.default != util.UNSET and info['convert_default']:
-                self.set_value(ba, self.coerce_value(self.default, ba))
+                if self in ba.not_provided:
+                    self.set_value(ba, self.coerce_value(self.default, ba))
 
 
 class NamedParameter(Parameter):
