@@ -1121,6 +1121,11 @@ class CliBoundArguments(object):
 
        Required parameters that haven't yet been satisfied.
 
+    .. attribute:: not_provided
+       :annotation: = set(sig.optional)
+
+       Optional parameters that haven't yet received a value.
+
     .. attribute:: sticky
        :annotation: = None
 
