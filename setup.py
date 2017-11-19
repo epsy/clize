@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='clize',
-    version='4.0.1',
+    version='4.0.2',
     description='Turn functions into command-line interfaces',
     license='MIT',
     url='https://github.com/epsy/clize',
