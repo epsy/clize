@@ -224,6 +224,9 @@ class SigTests(Fixtures):
         self.assertEqual(str(csig), str_rep)
         self.assertEqual(ba.args, posargs)
         self.assertEqual(ba.kwargs, kwargs)
+        repr(ba) # ensure attrs repr does't crash
+
+    no_param = '', '', (), [], {}
 
     pos = (
         'one, two, three', 'one two three',

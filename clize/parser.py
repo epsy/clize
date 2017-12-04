@@ -1161,7 +1161,7 @@ class CliBoundArguments(object):
     meta = attr.ib(default=attr.Factory(dict))
 
     posparam = attr.ib(init=False)
-    namedparam = attr.ib(init=False)
+    namedparams = attr.ib(init=False)
     unsatisfied = attr.ib(init=False)
     not_provided = attr.ib(init=False)
     posarg_only = attr.ib(init=False)
@@ -1228,7 +1228,8 @@ class CliBoundArguments(object):
             for p in self.sig.parameters.values():
                 p.post_parse(self)
 
-        del self.sticky, self.posarg_only, self.skip, self.unsatisfied, self.not_provided
+        # attrs crashes when repr()'ing an instance with missing fields
+        # del self.sticky, self.posarg_only, self.skip, self.unsatisfied, self.not_provided
 
     def get_best_guess(self, passed_in_arg):
         return util.closest_option(passed_in_arg, list(self.sig.aliases))
