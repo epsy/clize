@@ -1228,8 +1228,7 @@ class CliBoundArguments(object):
             for p in self.sig.parameters.values():
                 p.post_parse(self)
 
-        # attrs crashes when repr()'ing an instance with missing fields
-        # del self.sticky, self.posarg_only, self.skip, self.unsatisfied, self.not_provided
+        del self.sticky, self.posarg_only, self.skip, self.unsatisfied, self.not_provided
 
     def get_best_guess(self, passed_in_arg):
         return util.closest_option(passed_in_arg, list(self.sig.aliases))
