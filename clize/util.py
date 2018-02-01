@@ -64,8 +64,8 @@ def to_kebap_case(s):
             yield c
             had_letter = True
 
-def name_py2cli(name, kw=False):
-    name = ''.join(to_kebap_case(name)).rstrip('-')
+def name_py2cli(name, kw=False, fixcase=True):
+    name = ''.join(to_kebap_case(name) if fixcase else name).rstrip('-')
     if kw:
         if len(name) > 1:
             return '--' + name

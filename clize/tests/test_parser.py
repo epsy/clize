@@ -252,6 +252,9 @@ class SigTests(Fixtures):
     kw_short_glued = (
         '*, one: "a", two: "b"', _two_str_a_usage,
         ('-a1', '-b2'), [], {'one': '1', 'two': '2'})
+    kw_short_case = (
+        '*, one: "a", two: "A"', '-a STR -A STR',
+        ('-a', 'one', '-A', 'two'), [], {'one': 'one', 'two': 'two'})
 
     pos_and_kw = (
         'one, *, two, three, four: "a", five: "b"',

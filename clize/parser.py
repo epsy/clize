@@ -781,7 +781,7 @@ def use_mixin(cls, kwargs={}, name=None):
 def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
                param, annotations):
     named = param.kind in (param.KEYWORD_ONLY, param.VAR_KEYWORD)
-    aliases = [param.name]
+    aliases = [util.name_py2cli(param.name, named)]
     default = util.UNSET
     conv = identity
 
@@ -827,9 +827,10 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
                                  "parameter.")
             if len(thing.split()) > 1:
                 raise ValueError("Cannot have whitespace in aliases.")
-            if thing in aliases:
+            alias = util.name_py2cli(thing, named, fixcase=False)
+            if alias in aliases:
                 raise ValueError("Duplicate alias " + repr(thing))
-            aliases.append(thing)
+            aliases.append(alias)
             continue
         if isinstance(thing, ParameterFlag):
             continue
@@ -854,9 +855,7 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
                 .format(default))
 
     if named:
-        kwargs['aliases'] = [
-            util.name_py2cli(alias, named)
-            for alias in aliases]
+        kwargs['aliases'] = aliases
         if param.kind == param.VAR_KEYWORD:
             return varkwargs_cls(**kwargs)
         return named_cls(**kwargs)
