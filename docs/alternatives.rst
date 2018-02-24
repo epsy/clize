@@ -321,7 +321,7 @@ Other similar parsers
 Other parsers
 -------------
 
-* `Clint <ttps://github.com/kennethreitz/clint>`_ -- Multiple CLI tools,
+* `Clint <https://github.com/kennethreitz/clint>`_ -- Multiple CLI tools,
   including a schemaless argument parser
 * `twisted.usage
   <http://twistedmatrix.com/documents/current/core/howto/options.html>`_ --
