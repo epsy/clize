@@ -59,7 +59,7 @@ Clize will treat ``hello_world`` as if it had the same signature as::
 This is the signature you would get by "putting" the parameters of the
 decorated function in place of the wrapper's ``*args, **kwargs``.
 
-When you run this function, the CLI parameters will automaticmlly match the
+When you run this function, the CLI parameters will automatically match the
 combined signature::
 
     $ python3 examples/decorators.py --uppercase
