@@ -2,6 +2,7 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
+import pathlib
 from sigtools import support, modifiers, specifiers
 
 from clize import parser, errors, util
@@ -13,7 +14,8 @@ _ic = parser._implicit_converters
 
 class FromSigTests(Fixtures):
     def _test(self, sig_str, typ, str_rep, attrs):
-        sig = support.s(sig_str, pre='from clize import Parameter')
+        sig = support.s(sig_str, pre='import pathlib;'
+                                     'from clize import Parameter')
         return self._do_test(sig, typ, str_rep, attrs)
 
     def _do_test(self, sig, typ, str_rep, attrs):
@@ -44,6 +46,11 @@ class FromSigTests(Fixtures):
         'conv': _ic[int], 'default': 3, 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
+    pos_default_path = (
+        'file=pathlib.Path(\'/tmp\')', parser.PositionalParameter, '[file]', {
+            'conv': _ic[pathlib.PosixPath], 'default': pathlib.Path('/tmp'),
+            'argument_name': 'file', 'required': False, 'undocumented':
+            False, 'last_option': None, 'display_name': 'file'})
     pos_default_but_required = (
         'one:Parameter.REQUIRED=3', parser.PositionalParameter, 'one', {
             'conv': _ic[int], 'default': util.UNSET, 'required': True,

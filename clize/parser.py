@@ -8,6 +8,7 @@ interpret function signatures and read commandline arguments
 
 import itertools
 from functools import partial, wraps
+import pathlib
 import warnings
 
 import six
@@ -224,12 +225,19 @@ def is_true(arg):
     return arg.lower() not in ('', '0', 'n', 'no', 'f', 'false')
 
 
+@value_converter(name='PATH')
+def path_converter(arg):
+    return pathlib.Path(arg)
+
+
 _implicit_converters = {
     int: int,
     float: float,
     bool: is_true,
     six.text_type: identity,
     six.binary_type: identity,
+    pathlib.PosixPath: path_converter,
+    pathlib.WindowsPath: path_converter,
 }
 
 
