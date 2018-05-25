@@ -2,11 +2,17 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
-import pathlib
 from sigtools import support, modifiers, specifiers
 
 from clize import parser, errors, util
 from clize.tests.util import Fixtures
+
+try:
+    import pathlib
+    pathlib_name = "pathlib"
+except ImportError:
+    import pathlib2 as pathlib
+    pathlib_name = "pathlib2 as pathlib"
 
 
 _ic = parser._implicit_converters
@@ -14,8 +20,9 @@ _ic = parser._implicit_converters
 
 class FromSigTests(Fixtures):
     def _test(self, sig_str, typ, str_rep, attrs):
-        sig = support.s(sig_str, pre='import pathlib;'
-                                     'from clize import Parameter')
+        pre_code = ("import {}; from clize import"
+                    " Parameter".format(pathlib_name))
+        sig = support.s(sig_str, pre=pre_code)
         return self._do_test(sig, typ, str_rep, attrs)
 
     def _do_test(self, sig, typ, str_rep, attrs):

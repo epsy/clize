@@ -8,7 +8,6 @@ interpret function signatures and read commandline arguments
 
 import itertools
 from functools import partial, wraps
-import pathlib
 import warnings
 
 import six
@@ -16,6 +15,14 @@ from sigtools import modifiers
 import attr
 
 from clize import errors, util
+
+try:
+    import pathlib
+except ImportError:
+    try:
+        import pathlib2 as pathlib
+    except ImportError:
+        pathlib = False
 
 
 class ParameterFlag(object):
@@ -225,19 +232,20 @@ def is_true(arg):
     return arg.lower() not in ('', '0', 'n', 'no', 'f', 'false')
 
 
-@value_converter(name='PATH')
-def path_converter(arg):
-    return pathlib.Path(arg)
-
-
 _implicit_converters = {
     int: int,
     float: float,
     bool: is_true,
     six.text_type: identity,
     six.binary_type: identity,
-    pathlib.PurePath: path_converter,
 }
+
+if pathlib:
+    @value_converter(name='PATH')
+    def path_converter(arg):
+        return pathlib.Path(arg)
+
+    _implicit_converters[pathlib.PurePath] = path_converter
 
 
 def get_value_converter(annotation):
