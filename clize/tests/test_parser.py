@@ -48,9 +48,10 @@ class FromSigTests(Fixtures):
         'undocumented': False, 'last_option': None}
     pos_default_path = (
         'file=pathlib.Path(\'/tmp\')', parser.PositionalParameter, '[file]', {
-            'conv': _ic[pathlib.PosixPath], 'default': pathlib.Path('/tmp'),
-            'argument_name': 'file', 'required': False, 'undocumented':
-            False, 'last_option': None, 'display_name': 'file'})
+            'conv': _ic[pathlib.PurePath],
+            'default': pathlib.Path('/tmp'), 'argument_name': 'file',
+            'required': False, 'undocumented': False,
+            'last_option': None, 'display_name': 'file'})
     pos_default_but_required = (
         'one:Parameter.REQUIRED=3', parser.PositionalParameter, 'one', {
             'conv': _ic[int], 'default': util.UNSET, 'required': True,

@@ -236,8 +236,7 @@ _implicit_converters = {
     bool: is_true,
     six.text_type: identity,
     six.binary_type: identity,
-    pathlib.PosixPath: path_converter,
-    pathlib.WindowsPath: path_converter,
+    pathlib.PurePath: path_converter,
 }
 
 
@@ -246,9 +245,14 @@ def get_value_converter(annotation):
         return _implicit_converters[annotation]
     except KeyError:
         pass
-    if not getattr(annotation, '_clize__value_converter', False):
-        raise ValueError('{0!r} is not a value converter'.format(annotation))
-    return annotation
+    if getattr(annotation, '_clize__value_converter', False):
+        return annotation
+    if not isinstance(annotation, type):
+        annotation = type(annotation)
+    for ic in _implicit_converters:
+        if issubclass(annotation, ic):
+            return _implicit_converters[ic]
+    raise ValueError('{0!r} is not a value converter'.format(annotation))
 
 
 class ParameterWithValue(Parameter):
