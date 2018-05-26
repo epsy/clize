@@ -1,18 +1,14 @@
 language: python
 python:
   - 2.7
-  - pypy
-  - 3.3
+  - pypy2.7-5.10
   - 3.4
   - 3.5
+  - pypy3.5
   - 3.6
   - 3.7-dev
   - nightly
-  - pypy3.3-5.2-alpha1
 install:
   - pip install tox-travis
 script:
   - tox
-matrix:
-    allow_failures:
-        - python: pypy3.3-5.2-alpha1

@@ -17,10 +17,16 @@ dire situation by :ref:`contacting me <contact>` with your questions!
 What versions of Python are supported?
 --------------------------------------
 
-Clize is tested to run succesfully on Python 2.7 and Python 3.3 through 3.6.
+Clize is tested to run succesfully on Python 2.7 and Python 3.4 through 3.6.
 
-`Clize 3.1 <http://clize.readthedocs.io/en/3.1/>`_ was the last version to
-support Python 2.6.
+For other Python versions:
+
+==============   ==========================================================
+Python version   Last compatible version of Clize
+==============   ==========================================================
+Python 2.6       `Clize 3.1 <http://clize.readthedocs.io/en/3.1/>`_
+Python 3.3       `Clize 4.0 <http://clize.readthedocs.io/en/4.0/>`_
+==============   ==========================================================
 
 
 .. _dependencies:
