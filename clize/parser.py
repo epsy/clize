@@ -22,7 +22,7 @@ except ImportError:
     try:
         import pathlib2 as pathlib
     except ImportError:
-        pathlib = False
+        pathlib = None
 
 
 class ParameterFlag(object):
@@ -255,11 +255,10 @@ def get_value_converter(annotation):
         pass
     if getattr(annotation, '_clize__value_converter', False):
         return annotation
-    if not isinstance(annotation, type):
-        annotation = type(annotation)
-    for ic in _implicit_converters:
-        if issubclass(annotation, ic):
-            return _implicit_converters[ic]
+    if isinstance(annotation, type):
+        for ic in _implicit_converters:
+            if issubclass(annotation, ic):
+                return _implicit_converters[ic]
     raise ValueError('{0!r} is not a value converter'.format(annotation))
 
 
