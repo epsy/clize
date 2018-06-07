@@ -7,13 +7,22 @@ from sigtools import support, modifiers, specifiers
 from clize import parser, errors, util
 from clize.tests.util import Fixtures
 
+try:
+    import pathlib
+    pathlib_name = "pathlib"
+except ImportError:
+    import pathlib2 as pathlib
+    pathlib_name = "pathlib2 as pathlib"
+
 
 _ic = parser._implicit_converters
 
 
 class FromSigTests(Fixtures):
     def _test(self, sig_str, typ, str_rep, attrs):
-        sig = support.s(sig_str, pre='from clize import Parameter')
+        pre_code = ("import {}; from clize import"
+                    " Parameter".format(pathlib_name))
+        sig = support.s(sig_str, pre=pre_code)
         return self._do_test(sig, typ, str_rep, attrs)
 
     def _do_test(self, sig, typ, str_rep, attrs):
@@ -44,6 +53,12 @@ class FromSigTests(Fixtures):
         'conv': _ic[int], 'default': 3, 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
+    pos_default_path = (
+        'file=pathlib.Path(\'/tmp\')', parser.PositionalParameter, '[file]', {
+            'conv': _ic[pathlib.PurePath],
+            'default': pathlib.Path('/tmp'), 'argument_name': 'file',
+            'required': False, 'undocumented': False,
+            'last_option': None, 'display_name': 'file'})
     pos_default_but_required = (
         'one:Parameter.REQUIRED=3', parser.PositionalParameter, 'one', {
             'conv': _ic[int], 'default': util.UNSET, 'required': True,

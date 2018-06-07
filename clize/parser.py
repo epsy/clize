@@ -16,6 +16,14 @@ import attr
 
 from clize import errors, util
 
+try:
+    import pathlib
+except ImportError:
+    try:
+        import pathlib2 as pathlib
+    except ImportError:
+        pathlib = None
+
 
 class ParameterFlag(object):
     def __init__(self, name, prefix='clize.Parameter'):
@@ -232,15 +240,26 @@ _implicit_converters = {
     six.binary_type: identity,
 }
 
+if pathlib:
+    @value_converter(name='PATH')
+    def path_converter(arg):
+        return pathlib.Path(arg)
+
+    _implicit_converters[pathlib.PurePath] = path_converter
+
 
 def get_value_converter(annotation):
     try:
         return _implicit_converters[annotation]
     except KeyError:
         pass
-    if not getattr(annotation, '_clize__value_converter', False):
-        raise ValueError('{0!r} is not a value converter'.format(annotation))
-    return annotation
+    if getattr(annotation, '_clize__value_converter', False):
+        return annotation
+    if isinstance(annotation, type):
+        for ic in _implicit_converters:
+            if issubclass(annotation, ic):
+                return _implicit_converters[ic]
+    raise ValueError('{0!r} is not a value converter'.format(annotation))
 
 
 class ParameterWithValue(Parameter):
