@@ -300,7 +300,10 @@ def get_executable(path, default):
     else:
         if which(basename) == path:
             return basename
-    rel = os.path.relpath(path)
+    try:
+        rel = os.path.relpath(path)
+    except ValueError:
+        return basename
     if rel.startswith('../'):
         if which is None and os.path.isabs(path):
             return basename
