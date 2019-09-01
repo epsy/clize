@@ -19,7 +19,7 @@ setup(
     install_requires=[
         'six',
         'sigtools >= 2.0',
-        'attrs>=19.1.0,<20',
+        'attrs>=17.4.0,<20',
         'od',
         'docutils',
     ],
