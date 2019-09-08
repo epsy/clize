@@ -2,10 +2,16 @@
 
 from setuptools import setup
 
+
+with open("README.rst") as fh:
+    long_description = fh.read()
+
 setup(
     name='clize',
     version='4.0.3',
     description='Turn functions into command-line interfaces',
+    long_description=long_description,
+    long_description_content_type='text/x-rst',
     license='MIT',
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
