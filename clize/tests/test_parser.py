@@ -547,13 +547,13 @@ class SigErrorTests(Fixtures):
         'Unknown option \'-a\'')
     unknown_kv_guess = (
         '*, bar', ['--baa'], errors.UnknownOption,
-        'Unknown option \'--baa\'\\. Did you mean \'--bar\'?')
+        'Unknown option \'--baa\'\\. Did you mean \'--bar\'\\?')
     unknown_kw_no_guess = (
         '*, bar', ['--foo'], errors.UnknownOption,
         'Unknown option \'--foo\'')
     original_name_guess = (
         '*, thisOption', ['--thisOption'], errors.UnknownOption,
-        'Unknown option \'--thisOption\'\\. Did you mean \'--this-option\'\?')
+        'Unknown option \'--thisOption\'\\. Did you mean \'--this-option\'\\?')
     missing_value = (
         '*, one', ['--one'], errors.MissingValue,
         'No value found after --one')
