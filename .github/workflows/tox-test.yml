@@ -65,18 +65,18 @@ jobs:
           pip install tox tox-gh-actions
 
       - name: Test with tox
-        if: ${{ task == "test" }}
+        if: ${{ matrix.task == "test" }}
         run: tox
 
       - name: 'Run coverage'
-        if: ${{ task == "coverage" }}
+        if: ${{ matrix.task == "coverage" }}
         run: tox -e cover-all
       - name: 'Report coverage'
-        if: ${{ task == "coverage" }}
+        if: ${{ matrix.task == "coverage" }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: coveralls
 
       - name: 'Run linter'
-        if: ${{ task == "lint" }}
+        if: ${{ matrix.task == "lint" }}
         run: tox -e pyflakes
