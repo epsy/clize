@@ -31,7 +31,7 @@ jobs:
         experimental:
           - false
         task:
-          - test
+          - 'test'
         python-version:
           - '2.7'
           - 'pypy2'
@@ -41,7 +41,6 @@ jobs:
           - '3.7'
           - '3.8'
           - '3.9'
-          - '3.10-dev'
         include:
           - python-version: '3.9'
             task: 'coverage'
@@ -50,6 +49,7 @@ jobs:
             task: 'lint'
             experimental: false
           - python-version: '3.10-dev'
+            task: 'test'
             experimental: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
