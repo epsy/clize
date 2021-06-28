@@ -8,7 +8,6 @@ with open("README.rst") as fh:
 
 test_requirements = [
     'repeated_test',
-    'unittest2',
     'python-dateutil',
     'Pygments',
 ]
@@ -23,6 +22,7 @@ setup(
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
+    python_requires='>=3.6',
     install_requires=[
         'six',
         'sigtools >= 2.0',
@@ -48,14 +48,12 @@ setup(
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Environment :: Console",

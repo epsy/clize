@@ -5,7 +5,7 @@
 import os
 import sys
 import inspect
-import unittest2
+import unittest
 from contextlib import contextmanager
 
 from six.moves import cStringIO
@@ -14,7 +14,7 @@ import repeated_test
 from clize import runner
 
 
-class Tests(unittest2.TestCase):
+class Tests(unittest.TestCase):
     maxDiff = 5000
 
     def read_arguments(self, sig, args):
