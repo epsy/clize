@@ -45,8 +45,10 @@ jobs:
         include:
           - python-version: '3.9'
             task: 'coverage'
+            experimental: false
           - python-version: '3.9'
             task: 'lint'
+            experimental: false
           - python-version: '3.10-dev'
             experimental: true
 
