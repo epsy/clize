@@ -7,9 +7,9 @@ on:
   # Triggers the workflow on pull request events, or push events to master branch
   push:
     branches:
-      - master
+      - 'master'
     tags:
-      - *
+      - '*'
   pull_request:
     types:
       - 'opened'
@@ -24,7 +24,7 @@ jobs:
   # This workflow contains a single job called "tox-test"
   tox-test:
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: 'ubuntu-latest'
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       matrix:
