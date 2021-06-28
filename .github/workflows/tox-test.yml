@@ -77,7 +77,7 @@ jobs:
         if: ${{ matrix.task == 'coverage' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: coveralls
+        run: tox -e coveralls-gh-actions
 
       - name: 'Run linter'
         if: ${{ matrix.task == 'lint' }}
