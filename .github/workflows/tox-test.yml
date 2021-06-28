@@ -30,6 +30,8 @@ jobs:
       matrix:
         experimental:
           - false
+        task:
+          - test
         python-version:
           - '2.7'
           - 'pypy2'
@@ -41,6 +43,10 @@ jobs:
           - '3.9'
           - '3.10-dev'
         include:
+          - python-version: '3.9'
+            task: 'coverage'
+          - python-version: '3.9'
+            task: 'lint'
           - python-version: '3.10-dev'
             experimental: true
 
@@ -57,5 +63,20 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install tox tox-gh-actions
+
       - name: Test with tox
+        if: ${{ task == "test" }}
         run: tox
+
+      - name: 'Run coverage'
+        if: ${{ task == "coverage" }}
+        run: tox -e cover-all
+      - name: 'Report coverage'
+        if: ${{ task == "coverage" }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: coveralls
+
+      - name: 'Run linter'
+        if: ${{ task == "lint" }}
+        run: tox -e pyflakes
