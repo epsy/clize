@@ -177,7 +177,7 @@ does not handle strings, unless you specify a converter::
 Ignoring the source parameter's default value
 .............................................
 
-.. moreattribute:: Parameter.REQUIRED
+.. attribute:: clize.Parameter.REQUIRED
 
     Annotate a parameter with this to force it to be required, even if there
     is a default value in the source.
@@ -249,7 +249,7 @@ on the CLI:
         args ('two', 'three')
 
 
-.. moreattribute:: Parameter.REQUIRED
+.. attribute:: clize.Parameter.REQUIRED
 
     When used on an ``*args`` parameter, requires at least one value to be
     provided.
@@ -573,7 +573,7 @@ Callables decorated with `clize.parser.parameter_converter` are used
 instead of the :ref:`default converter <default-converter>` to construct a
 CLI parameter for the annotated Python parameter.
 
-The callable can return a `Parameter` instance or `Parameter.IGNORE` to
+The callable can return a `Parameter` instance or `Parameter.IGNORE <clize.Parameter.IGNORE>` to
 instruct clize to drop the parameter.
 
 ::
@@ -616,7 +616,7 @@ converter<parameter converters>` is recommended over this.
 Skipping parameters
 ...................
 
-.. automoreattribute:: Parameter.IGNORE
+.. autoattribute:: clize.Parameter.IGNORE
 
     Note that it is dangerous to use this on anything except:
 
@@ -655,7 +655,7 @@ Skipping parameters
 Hiding parameters from the help
 ...............................
 
-.. automoreattribute:: Parameter.UNDOCUMENTED
+.. autoattribute:: clize.Parameter.UNDOCUMENTED
 
     ::
 
@@ -680,7 +680,7 @@ Hiding parameters from the help
 Forcing arguments to be treated as positional
 .............................................
 
-.. automoreattribute:: Parameter.LAST_OPTION
+.. autoattribute:: clize.Parameter.LAST_OPTION
 
     ::
 
