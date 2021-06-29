@@ -67,7 +67,7 @@ The above example can be performed using Clize as follows::
 
 .. |ra| replace:: `~argparse.ArgumentParser.add_argument`
 .. |pna| replace:: `~argparse.ArgumentParser.parse_known_args`
-.. |lo| replace:: `~.parser.Parameter.LAST_OPTION`
+.. |lo| replace:: `~clize.Parameter.LAST_OPTION`
 
 +--------------------------------------+--------------------------------------+
 | `argparse`                           | Clize                                |
