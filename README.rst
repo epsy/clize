@@ -11,10 +11,10 @@ Clize
 .. image:: https://badges.gitter.im/Join%20Chat.svg
    :alt: Join the chat at https://gitter.im/epsy/clize
    :target: https://gitter.im/epsy/clize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-.. image:: https://travis-ci.org/epsy/clize.svg?branch=master
-    :target: https://travis-ci.org/epsy/clize
+.. image:: https://github.com/epsy/clize/actions/workflows/tox-test.yml/badge.svg?branch=master
+   :target: https://github.com/epsy/clize/actions/workflows/tox-test.yml
 .. image:: https://coveralls.io/repos/epsy/clize/badge.svg?branch=master
-    :target: https://coveralls.io/r/epsy/clize?branch=master
+   :target: https://coveralls.io/r/epsy/clize?branch=master
 
 Clize is an argument parser for `Python <https://www.python.org/>`_.  You can
 use Clize as an alternative to ``argparse`` if you want an even easier way to
