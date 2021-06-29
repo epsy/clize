@@ -3,10 +3,10 @@ Clize
 *****
 
 .. image:: https://readthedocs.org/projects/clize/badge/?version=stable
-   :target: http://clize.readthedocs.io/en/stable/?badge=stable
+   :target: https://clize.readthedocs.io/en/stable/?badge=stable
    :alt: Documentation Status
 .. image:: https://readthedocs.org/projects/clize/badge/?version=latest
-   :target: http://clize.readthedocs.io/en/latest/?badge=latest
+   :target: https://clize.readthedocs.io/en/latest/?badge=latest
    :alt: Documentation Status
 .. image:: https://badges.gitter.im/Join%20Chat.svg
    :alt: Join the chat at https://gitter.im/epsy/clize
@@ -51,7 +51,7 @@ create command-line interfaces.
         run(hello_world)
 
 Python 2.7 is supported through `decorators
-<http://clize.readthedocs.io/en/stable/reference.html#named-param-py2>`_.
+<https://clize.readthedocs.io/en/stable/reference.html#named-param-py2>`_.
 
 The python code above can now be used on the command-line as follows:
 
@@ -78,4 +78,4 @@ The python code above can now be used on the command-line as follows:
     $ python3 hello.py dave --no-capitalize
     Hello dave!
 
-You can find the documentation and tutorials at http://clize.readthedocs.io/
+You can find the documentation and tutorials at https://clize.readthedocs.io/
