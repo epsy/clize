@@ -35,7 +35,14 @@ on_rtd = os.environ.get('READTHEDOCS', False) == 'True'
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.coverage', 'sphinx.ext.viewcode', 'sigtools.sphinxext', 'clize._sphinx']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.coverage',
+    'sphinx.ext.viewcode',
+    'sigtools.sphinxext',
+    # 'clize._sphinx',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -51,7 +58,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'clize'
-copyright = '2013-2016, Yann Kaiser'
+copyright = '2013-2021, Yann Kaiser'
 
 
 
@@ -92,6 +99,14 @@ exclude_patterns = ['_build']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 default_role = 'py:obj'
+nitpicky = True
+nitpick_ignore_regex = [
+    (r'py:.*', r'^sequence.*'),
+    (r'py:.*', r'^iterable.*'),
+    (r'py:.*', r'^file$'),
+    (r'py:.*', r'^function$'),
+    (r'py:.*', r'^callable$'),
+]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
@@ -268,9 +283,9 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    'python': ('http://docs.python.org/3/', None),
-    'sigtools': ('http://sigtools.readthedocs.io/en/latest/', None),
-    'sphinx': ('http://www.sphinx-doc.org/en/stable/', None),
+    'python': ('https://docs.python.org/3/', None),
+    'sigtools': ('https://sigtools.readthedocs.io/en/latest/', None),
+    'sphinx': ('https://www.sphinx-doc.org/en/stable/', None),
     }
 
 autoclass_content = 'both'
