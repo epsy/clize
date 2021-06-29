@@ -17,7 +17,7 @@ dire situation by :ref:`contacting me <contact>` with your questions!
 What versions of Python are supported?
 --------------------------------------
 
-Clize is tested to run succesfully on Python 2.7 and Python 3.4 through 3.6.
+Clize is tested to run succesfully on Python 2.7 and Python 3.5 through 3.9.
 
 For other Python versions:
 
@@ -26,6 +26,7 @@ Python version   Last compatible version of Clize
 ==============   ==========================================================
 Python 2.6       `Clize 3.1 <http://clize.readthedocs.io/en/3.1/>`_
 Python 3.3       `Clize 4.0 <http://clize.readthedocs.io/en/4.0/>`_
+Python 3.4       `Clize 4.1 <http://clize.readthedocs.io/en/4.1/>`_
 ==============   ==========================================================
 
 
@@ -39,10 +40,13 @@ automatically install the right dependencies for you.
 
 If you still need the list, Clize always requires:
 
-* `six <https://pypi.python.org/pypi/six/>`_: For helping run Clize on both
-  Python 2 and 3.
-* `sigtools <https://pypi.python.org/pypi/sigtools/>`_: Utilities to help
-  manipulate function sigatures.
+* `six <https://pypi.org/pypi/six/>`_:
+  For helping run Clize on both Python 2 and 3.
+* `sigtools <https://pypi.org/pypi/sigtools/>`_:
+  Utilities to help manipulate function sigatures.
+* `od <https://pypi.org/project/od/>`_: Shorthand for OrderedDict.
+* `attrs <https://pypi.org/project/attrs>`_: Classes without boilerplate.
+* `docutils <https://pypi.org/project/docutils>`_: To parse docstrings.
 
 If you wish to use `clize.converters.datetime`, you need:
 
