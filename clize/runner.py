@@ -34,20 +34,21 @@ class _CliWrapper(object):
 
 def cli_commands(obj, namef, clizer):
     cmds = util.OrderedDict()
-    cmd_by_name = {}
     try:
         names = util.dict_from_names(obj).items()
     except AttributeError:
         raise ValueError("Cannot guess name for anonymous objects "
                          "(lists, dicts, etc)")
+    func_to_names = util.OrderedDict()
     for key, val in names:
         if not key:
             continue
         names = tuple(namef(name) for name in util.maybe_iter(key))
         cli = clizer.get_cli(val)
-        cmds[names] = cli
         for name in names:
-            cmd_by_name[name] = cli
+            func_to_names.setdefault(cli, []).append(name)
+    cmds = util.OrderedDict((tuple(names), cli) for cli, names in func_to_names.items())
+    cmd_by_name = {name: cli for names, cli in cmds.items() for name in names}
     return cmds, cmd_by_name
 
 class Clize(object):
@@ -93,6 +94,24 @@ class Clize(object):
             'helper_class': self.helper_class,
             'hide_help': self.hide_help,
             }
+
+    def _key(self):
+        return (
+            self.func,
+            self.owner,
+            tuple(self.alt),
+            tuple(self.extra),
+            tuple(self.help_names),
+            tuple(self.help_aliases),
+            self.helper_class,
+            self.hide_help,
+        )
+
+    def __eq__(self, other):
+        return type(self) is type(other) and self._key() == other._key()
+
+    def __hash__(self):
+        return hash(self._key())
 
     @classmethod
     def keep(cls, fn=None, **kwargs):
