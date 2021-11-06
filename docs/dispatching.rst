@@ -129,6 +129,10 @@ pass in an :term:`python:iterable` of functions, a `dict` or an
 `~collections.OrderedDict`.  If you pass an iterable of functions, :ref:`name
 conversion <name conversion>` will apply.
 
+.. code-block:: python
+
+    run({ 'add': add, 'list': list_, 'show': list_ })
+
 Because it isn't passed a regular function with a docstring, Clize can't
 determine an appropriate description from a docstring. You can explicitly give
 it a description with the ``description=`` parameter. Likewise, you an add

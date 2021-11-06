@@ -195,6 +195,33 @@ class GetCliTests(unittest.TestCase):
         self.assertEqual(sd.cmds_by_name['abc'].func, func1)
         self.assertEqual(sd.cmds_by_name['def'].func, func2)
 
+    def test_sub_dict_extra_names(self):
+        def func1(): raise NotImplementedError
+        def func2(): raise NotImplementedError
+        ru = runner.Clize.get_cli({('abc', 'ghi'): func1, 'def': func2})
+        repr(ru)
+        sd = ru.func.__self__
+        self.assertTrue(isinstance(sd,
+                                   runner.SubcommandDispatcher))
+        self.assertEqual(len(sd.cmds_by_name), 3)
+        self.assertEqual(len(sd.cmds), 2)
+        self.assertEqual(sd.cmds_by_name['abc'].func, func1)
+        self.assertEqual(sd.cmds_by_name['def'].func, func2)
+        self.assertEqual(sd.cmds_by_name['ghi'].func, func1)
+
+    def test_sub_dict_repeat_values(self):
+        def func1(): raise NotImplementedError
+        def func2(): raise NotImplementedError
+        ru = runner.Clize.get_cli({'abc': func1, 'def': func2, 'ghi': func1})
+        repr(ru)
+        sd = ru.func.__self__
+        self.assertTrue(isinstance(sd,
+                                   runner.SubcommandDispatcher))
+        self.assertEqual(len(sd.cmds_by_name), 3)
+        self.assertEqual(len(sd.cmds), 2)
+        self.assertEqual(sd.cmds_by_name['abc'].func, func1)
+        self.assertEqual(sd.cmds_by_name['def'].func, func2)
+
     def test_sub_alt(self):
         def func1(): raise NotImplementedError
         def func2(): raise NotImplementedError
