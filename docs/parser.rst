@@ -127,7 +127,7 @@ next positional parameter from `CliSignature.positional`. The parameter's
 `~.Parameter.read_argument` and `~.Parameter.apply_generic_flags` methods are
 called.
 
-.. automoremethod:: .Parameter.read_argument
+.. automethod:: .Parameter.read_argument
 
 This method is expected to mutate ``ba``, an instance of `~.CliBoundArguments`.
 In particular, it should add any relevant arguments to ``ba``'s
@@ -139,7 +139,7 @@ can also set the `~.CliBoundArguments.func` attribute which overrides the
 Part of the parameter's behavior is split from `~.Parameter.read_argument` into
 `~.Parameter.apply_generic_flags` in order to facilitate subclassing:
 
-.. automoremethod:: .Parameter.apply_generic_flags
+.. automethod:: .Parameter.apply_generic_flags
 
 The both of these methods are expected to discard the parameter from
 `~.CliBoundArguments.unsatisfied`, the list of still-unsatisfied required
