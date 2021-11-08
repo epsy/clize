@@ -32,6 +32,10 @@ setup(
     ],
     extras_require={
         'datetime': ['python-dateutil'],
+        'clize-own-docs': [
+            'sphinx~=4.2.0',
+            'sphinx_rtd_theme',
+        ],
     },
     packages=('clize', 'clize.tests'),
     test_suite='clize.tests',
