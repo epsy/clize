@@ -22,7 +22,7 @@ setup(
         'sigtools >= 2.0',
         'attrs>=19.1.0,<22',
         'od',
-        'docutils',
+        'docutils ~= 0.17.0',
     ],
     tests_require=[
         'repeated_test',
