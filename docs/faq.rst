@@ -37,6 +37,10 @@ If you still need the list, Clize always requires:
   Python 2 and 3.
 * `sigtools <https://pypi.python.org/pypi/sigtools/>`_: Utilities to help
   manipulate function sigatures.
+* `attrs <https://www.attrs.org/en/stable/>_`: Fully fledged data classes.
+* `od <https://pypi.org/project/od/>_`: OrderedDict shorthand syntax.
+* `docutils <https://docutils.sourceforge.io/>_`: Used to parse Sphinx-like
+  docstrings out of RST.
 
 If you wish to use `clize.converters.datetime`, you need:
 
