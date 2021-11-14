@@ -5,13 +5,14 @@
 Release notes
 =============
 
-.. _v4.2.0:
+.. _v4.1:
 
-4.2.0 (2021-06-29)
+.. _v4.1.2:
+
+4.1.2 (2021-11-13)
 ------------------
 
-* Dropped support for Python 3.4.
-* Upgrade to attrs 21
+* Fixed build dependencies for documentation generation
 
 .. _v4.1.1:
 
@@ -19,8 +20,6 @@ Release notes
 ------------------
 
 * Fix project description not appearing on PyPI.
-
-.. _v4.1:
 
 .. _v4.1.0:
 
@@ -31,6 +30,15 @@ Release notes
 * Allow custom capitalization for named parameter aliases.
 * `pathlib.Path` is now automatically discovered as a value converter.
 * Fixed crash when using a Clize program across Windows drives.
+
+.. _v4.0:
+
+.. _v4.0.4:
+
+4.0.4 (2021-11-13)
+------------------
+
+* Fixed build dependencies for documentation generation
 
 .. _v4.0.3:
 
@@ -53,7 +61,7 @@ Release notes
 
 * Fixed code blocks not displaying correctly in Sphinx docstrings.
 
-.. _v4.0:
+.. _v4.0.0:
 
 4.0 (2017-04-19)
 ----------------
