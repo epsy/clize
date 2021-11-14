@@ -46,9 +46,6 @@ interface for it:
     $ python hello.py dave --no-capitalize
     Hello dave!
 
-While we use Python 3 syntax in this example, Clize is fully compatible with
-:ref:`Python 2.7 <named param py2>`.
-
 .. rubric:: Interested?
 
 * Follow the :ref:`tutorial <basics>`

@@ -58,12 +58,6 @@ If you wish to use `clize.converters.datetime`, you need:
 ``pip`` will install ``dateutil`` if you specify to install Clize with the
 ``datetime`` option, i.e. ``pip install "clize[datetime]"``.
 
-On Python 2.7, `sigtools` requires:
-
-* `funcsigs <https://pypi.python.org/pypi/funcsigs/>`_: A backport of
-  `inspect.signature` to Python 2.
-
-
 .. _ancient pip:
 
 I just installed Clize using ``pip`` and I still get ``ImportErrors``
@@ -93,7 +87,8 @@ Clize's purpose is twofold:
 It turns out that just asking for the function signature from
 `inspect.signature` is not good enough:
 
-* Python 2 users cannot write keyword-only parameters.
+* Python 2 syntax, which was supported at the time,
+  cannot be used to express keyword-only parameters.
 * `inspect.signature` cannot process decorators that return a function with
   slightly altered parameters.
 

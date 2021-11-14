@@ -12,8 +12,7 @@ Clize 3 now only treats keyword-only parameters on the function as named
 parameters and does not convert any parameter from keyword to positional or
 vice-versa, much like when the ``use_kwoargs`` parameter is used in Clize 2.
 Aliases, and other parameter-related information are now expressed exclusively
-through parameter annotations. Decorators from `sigtools.modifiers` are the
-recommended way to set these up on Python 2.
+through parameter annotations.
 
 However, `clize.clize` is provided: it imitates the old behaviour but adds a
 deprecation warning when used.
@@ -45,8 +44,6 @@ Here, you can drop the ``@clize`` line completely, but you have to convert
 
     if __name__ == '__main__':
         run(func)
-
-.. note:: On Python 2. You can use `sigtools.modifiers.autokwoargs` to do so.
 
 
 .. _porting force_positional:
@@ -112,9 +109,6 @@ You now pass these as annotations on the corresponding parameter::
 
     if __name__ == '__main__':
         run(func)
-
-.. note:: To keep compatibility with Python 2, you can use
-   `sigtools.modifiers.annotate`
 
 
 .. _porting require_excess:

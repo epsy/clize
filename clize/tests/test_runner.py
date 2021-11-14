@@ -97,19 +97,16 @@ def get_executable(path, default):
 
 
 class FixArgvTests(Fixtures):
-    def _test(self, argv, path, main, expect, py27=True):
+    def _test(self, argv, path, main, expect):
         def get_executable(path, default):
             return default
         _get_executable = runner.get_executable
-        _py27 = runner._py27
         runner.get_executable = get_executable
-        runner._py27 = py27
         try:
             module = MockModule(*main)
             self.assertEqual(expect, runner.fix_argv(argv, path, module))
         finally:
             runner.get_executable = _get_executable
-            runner._py27 = _py27
 
     plainfile = (
         ['afile.py', '...'], ['/path/to/cwd', '/usr/lib/pythonX.Y'],
@@ -125,11 +122,6 @@ class FixArgvTests(Fixtures):
         ['/path/to/cwd/apkg/afile.py', '...'], ['', '/usr/lib/pythonX.Y'],
         ['/path/to/cwd/apkg/afile.py', '__main__', 'apkg'],
         ['python -m apkg.afile', '...']
-        )
-    packedmain26 = (
-        ['/path/to/cwd/apkg/__main__.py', '...'], ['', '/usr/lib/pythonX.Y'],
-        ['/path/to/cwd/apkg/__main__.py', 'apkg.__main__', 'apkg'],
-        ['python -m apkg.__main__', '...'], False
         )
     packedmain2 = (
         ['/path/to/cwd/apkg/__main__.py', '...'], ['', '/usr/lib/pythonX.Y'],

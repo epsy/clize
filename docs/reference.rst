@@ -29,36 +29,6 @@ You can use annotations defined throughout this document to refine parameter
 conversion (or change it completely). Here's a primer on how to use these
 annotations.
 
-
-.. _py2 annotations:
-
-.. note:: Python 2 compatibility
-
-    In this document we will be showing examples that use Python 3 syntax such
-    as annotations and keyword-only parameters for conciseness. To translate
-    those into Python 2, you can use `sigtools.modifiers.kwoargs` and
-    `sigtools.modifiers.annotate`.
-
-    For instance, given this Python 3 function:
-
-    .. code-block:: python
-
-        def func(ab:int, *, cd:'c'=2):
-            pass
-
-    You would write in Python 2:
-
-    .. code-block:: python
-
-        from sigtools import modifiers
-
-        @modifiers.kwoargs('cd')
-        @modifiers.annotate(ab=int, cd='c')
-        def func(ab, cd=2):
-            pass
-
-.. x*  Fix syntax highlighting.
-
 You can pass annotations as a sequence:
 
 .. code-block:: python
@@ -290,31 +260,6 @@ pass them as strings in the parameter's annotation:
     par value
     $ python named.py --param value
     par value
-
-.. _named param py2:
-
-Python 2 support for named parameters
-.....................................
-
-Python 2 has no keyword-only parameters. To fill that gap, you can use the
-decorators from `sigtools.modifiers` to emulate them.
-
-.. code-block:: python
-
-    from sigtools.modifiers import DECORATOR
-
-    @DECORATOR
-    def func(ab, cd, de=None, fg=None, hi=None):
-        ...
-
-=================================== ===================================
-``@DECORATOR``                      Parameters that become keyword-only
-=================================== ===================================
-``@kwoargs('cd', 'fg')``            ``cd`` and ``fg``
-``@kwoargs(start='fg')``            ``fg`` and all following parameters
-``@autokwoargs``                    All parameters with defaut values
-``@autokwoargs(exceptions=['fg'])`` Same, except for ``fg``
-=================================== ===================================
 
 .. _name conversion:
 

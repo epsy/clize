@@ -158,8 +158,6 @@ by name, i.e.::
 Clize then treats keyword-only parameters as options rather than as positional
 parameters.
 
-.. note:: Python 2 does not support this syntax. See :ref:`named param py2`
-
 The change reflects on the command and its help when run::
 
     $ python3 ./echo.py --prefix x: --suffix :y 'spam
@@ -217,9 +215,6 @@ that it should receive at least one argument, you will have to tell Clize that
 
     if __name__ == '__main__':
         run(echo)
-
-.. note:: Python 2 does not support this syntax.
-   See :ref:`here <py2 annotations>`.
 
 
 Accepting flags
