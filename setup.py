@@ -8,7 +8,7 @@ with open("README.rst") as fh:
 
 setup(
     name='clize',
-    version='4.2.0',
+    version='4.2.1',
     description='Turn functions into command-line interfaces',
     long_description=long_description,
     long_description_content_type='text/x-rst',
