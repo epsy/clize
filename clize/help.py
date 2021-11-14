@@ -31,7 +31,6 @@ import re
 
 import od
 import attr
-import six
 from docutils.frontend import OptionParser
 from docutils.parsers.rst import Parser
 from docutils.utils import new_document
@@ -889,7 +888,7 @@ class HelpCli(object):
             f.extend(help.show_full_usage(name))
         else:
             f.extend(help.show_help(name))
-        return six.text_type(f)
+        return str(f)
 
     def get_help(self):
         """Get the object """

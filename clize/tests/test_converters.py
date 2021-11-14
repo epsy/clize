@@ -8,8 +8,8 @@ import shutil
 import os
 import stat
 import sys
+from io import StringIO
 
-from six.moves import cStringIO
 from sigtools import support, modifiers
 
 from clize import parser, errors, converters
@@ -197,7 +197,7 @@ class FileConverterTests(Tests):
             'test: Permission denied: '))
 
     def test_stdin(self):
-        stdin = cStringIO()
+        stdin = StringIO()
         @modifiers.annotate(afile=converters.file())
         def func(afile):
             with afile as f:
@@ -242,7 +242,7 @@ class FileConverterTests(Tests):
             'test: Bad value for afile: File does not exist: '))
 
     def test_stdin_no_close(self):
-        stdin = cStringIO()
+        stdin = StringIO()
         @modifiers.annotate(afile=converters.file(keep_stdio_open=True))
         def func(afile):
             with afile as f:

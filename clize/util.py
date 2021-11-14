@@ -15,8 +15,6 @@ try:
 except ImportError:
     from ordereddict import OrderedDict
 
-import six
-
 
 class Sentinel(object):
     __slots__ = ('name')
@@ -91,7 +89,7 @@ def maybe_iter(x):
     except TypeError:
         return x,
     else:
-        if isinstance(x, six.string_types):
+        if isinstance(x, str):
             return x,
     return x
 
@@ -332,10 +330,10 @@ class Formatter(object):
         try:
             lines_getter = line.formatter_lines
         except AttributeError:
-            yield six.text_type(line)
+            yield str(line)
         else:
             for line in lines_getter():
-                yield six.text_type(line)
+                yield str(line)
 
     def __iter__(self):
         return iter(self.lines)

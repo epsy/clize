@@ -42,8 +42,6 @@ automatically install the right dependencies for you.
 
 If you still need the list, Clize always requires:
 
-* `six <https://pypi.org/pypi/six/>`_:
-  For helping run Clize on both Python 2 and 3.
 * `sigtools <https://pypi.org/pypi/sigtools/>`_:
   Utilities to help manipulate function sigatures.
 * `od <https://pypi.org/project/od/>`_: Shorthand for OrderedDict.

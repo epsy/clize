@@ -6,8 +6,7 @@ import os
 import sys
 import shutil
 import unittest
-
-from six.moves import cStringIO
+from io import StringIO
 
 from clize.tests.util import Fixtures, Tests
 from clize import runner, errors
@@ -449,8 +448,8 @@ class RunnerTests(Tests):
     def test_run_fail_exit(self):
         def func():
             raise errors.ArgumentError("test_run_fail_exit")
-        stdout = cStringIO()
-        stderr = cStringIO()
+        stdout = StringIO()
+        stderr = StringIO()
         self.assert_systemexit(
             2, runner.run, func, args=['test'], out=stdout, err=stderr)
         self.assertFalse(stdout.getvalue())
@@ -460,8 +459,8 @@ class RunnerTests(Tests):
     def test_run_success_exit(self):
         def func():
             return "test_run_success_exit"
-        stdout = cStringIO()
-        stderr = cStringIO()
+        stdout = StringIO()
+        stderr = StringIO()
         self.assert_systemexit(
             None, runner.run, func, args=['test'], out=stdout, err=stderr)
         self.assertFalse(stderr.getvalue())
@@ -484,8 +483,8 @@ class RunnerTests(Tests):
         stdout, stderr = self.crun([func1, func2], args=['test', 'func2'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '2\n')
-        stdout = cStringIO()
-        stderr = cStringIO()
+        stdout = StringIO()
+        stderr = StringIO()
         runner.run(func1, func2, args=['test', 'func1'],
                    out=stdout, err=stderr, exit=False)
         self.assertFalse(stderr.getvalue())
@@ -521,8 +520,8 @@ class RunnerTests(Tests):
             runner.get_executable = get_executable
             def func(arg=1):
                 raise NotImplementedError
-            out = cStringIO()
-            err = cStringIO()
+            out = StringIO()
+            err = StringIO()
             runner.run(func, exit=False, out=out, err=err)
             self.assertFalse(out.getvalue())
             self.assertEqual(err.getvalue(),
@@ -537,7 +536,7 @@ class RunnerTests(Tests):
     def test_run_out(self):
         bout = sys.stdout
         try:
-            sys.stdout = out = cStringIO()
+            sys.stdout = out = StringIO()
             def func():
                 return 'hello'
             runner.run(func, args=['test'], exit=False)
@@ -548,7 +547,7 @@ class RunnerTests(Tests):
     def test_run_err(self):
         berr = sys.stderr
         try:
-            sys.stderr = err = cStringIO()
+            sys.stderr = err = StringIO()
             def func(arg=1):
                 raise NotImplementedError
             runner.run(func, args=['test', '...'], exit=False)
