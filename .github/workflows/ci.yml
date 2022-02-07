@@ -20,3 +20,14 @@ jobs:
     uses: epsy/python-workflows/.github/workflows/python-ci.yaml@main
     with:
       package-folder: clize
+      python-versions: |
+        [
+          '2.7',
+          'pypy2',
+          '3.5',
+          '3.6',
+          '3.7',
+          '3.8',
+          '3.9',
+          'pypy3'
+        ]
