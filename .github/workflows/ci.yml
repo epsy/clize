@@ -1,0 +1,22 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - 'master'
+    tags:
+      - '*'
+  pull_request:
+    types:
+      - 'opened'
+      - 'synchronize'
+  workflow_dispatch:
+  schedule:
+    # Schedule every Saturday at 00:30 UTC
+    - cron: '30 0 * * 6'
+
+jobs:
+  python-ci:
+    uses: epsy/python-workflows/.github/workflows/python-ci.yaml@main
+    with:
+      package-folder: clize
