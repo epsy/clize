@@ -8,20 +8,13 @@ interpret function signatures and read commandline arguments
 
 import itertools
 from functools import partial, wraps
+import pathlib
 import warnings
 
 from sigtools import modifiers
 import attr
 
 from clize import errors, util
-
-try:
-    import pathlib
-except ImportError:
-    try:
-        import pathlib2 as pathlib
-    except ImportError:
-        pathlib = None
 
 
 class ParameterFlag(object):

@@ -20,9 +20,6 @@ process the docstring so it can be fed to
 
 """
 
-
-from __future__ import unicode_literals
-
 import sys
 import io
 import itertools

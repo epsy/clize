@@ -2,8 +2,6 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
-from __future__ import print_function
-
 import sys
 import os
 from functools import partial, update_wrapper
