@@ -25,9 +25,9 @@ setup(
     python_requires='>=3.6',
     install_requires=[
         'sigtools >= 2.0',
-        'attrs>=19.1.0,<22',
+        'attrs>=19.1.0',
         'od',
-        'docutils ~= 0.17.0',
+        'docutils >= 0.17.0',
     ],
     tests_require=test_requirements,
     extras_require={
