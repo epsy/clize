@@ -8,6 +8,7 @@ from functools import partial, update_wrapper
 import itertools
 import shutil
 
+from sigtools.signatures import Signature
 from sigtools.modifiers import annotate, autokwoargs, kwoargs
 from sigtools.specifiers import forwards_to_method, signature
 
@@ -29,6 +30,7 @@ class _CliWrapper(object):
         if description is not None or usages is not None:
             obj.helper = _BasicHelper(description, usages)
         self.cli = obj
+
 
 def cli_commands(obj, namef, clizer):
     cmds = util.OrderedDict()

@@ -11,10 +11,32 @@ from functools import partial, wraps
 import pathlib
 import warnings
 
-from sigtools import modifiers
+from sigtools import modifiers, signatures
 import attr
 
 from clize import errors, util
+
+
+@attr.define
+class ParameterConversionError(Exception):
+    parameter_name: str
+    converter_name: str
+
+    def __str__(self) -> str:
+        return f'While converting {self.parameter_name} using {self.converter_name}: {self.__cause__}'
+
+@attr.define
+class SignatureConversionError(Exception):
+    signature: signatures.Signature
+
+    def __str__(self) -> str:
+        return (
+            f'While converting function signature to CLI: {self.__cause__}\n\n'
+            'The signature that was being converted to a CLI was:\n'
+            f'  {self.signature}\n'
+            'It was determined through this process:\n'
+            f'{self.signature.debug_call_tree()}'
+        )
 
 
 class ParameterFlag(object):
@@ -987,15 +1009,18 @@ class CliSignature(object):
         :param inspect.Signature sig: The signature object to use.
         :param iterable extra: Extra parameter instances to include.
         """
-        return cls(
-            parameters=itertools.chain(
-                filter(lambda x: x is not Parameter.IGNORE,
-                    (cls.convert_parameter(param)
-                    for param in sig.parameters.values())
-                ), extra), **kwargs)
+        try:
+            return cls(
+                parameters=itertools.chain(
+                    filter(lambda x: x is not Parameter.IGNORE,
+                        (cls.convert_parameter(param, sig)
+                        for param in sig.parameters.values())
+                    ), extra), **kwargs)
+        except Exception as e:
+            raise SignatureConversionError(sig) from e
 
     @classmethod
-    def convert_parameter(cls, param):
+    def convert_parameter(cls, param, sig):
         """Convert a Python parameter to a CLI parameter."""
         if param.annotation != param.empty:
             annotations = util.maybe_iter(param.annotation)
@@ -1013,8 +1038,10 @@ class CliSignature(object):
         else:
             conv = cls.converter
 
-        return conv(param, annotations)
-
+        try:
+            return conv(param, annotations)
+        except Exception as e:
+            raise ParameterConversionError(param.name, conv.__name__) from e
 
 
     def read_arguments(self, args, name):

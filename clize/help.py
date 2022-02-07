@@ -464,7 +464,7 @@ class HelpForAutodetectedDocstring(HelpForParameters):
 
     def _pop_real_subject(self, funcs, subject):
         for i, (func, pnames) in enumerate(reversed(funcs), 1):
-            if func.__name__ == subject.__name__:
+            if getattr(func, '__name__', None) == subject.__name__:
                 break
         else:
             return None
