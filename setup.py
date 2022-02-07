@@ -6,6 +6,13 @@ from setuptools import setup
 with open("README.rst") as fh:
     long_description = fh.read()
 
+test_requirements = [
+    'repeated_test',
+    'unittest2',
+    'python-dateutil',
+    'Pygments',
+]
+
 setup(
     name='clize',
     version='4.1.1',
@@ -23,14 +30,10 @@ setup(
         'od',
         'docutils ~= 0.17.0',
     ],
-    tests_require=[
-        'repeated_test',
-        'unittest2',
-        'python-dateutil',
-        'Pygments',
-    ],
+    tests_require=test_requirements,
     extras_require={
         'datetime': ['python-dateutil'],
+        'test': test_requirements,
         'clize-own-docs': [
             'sphinx~=4.2.0',
             'sphinx_rtd_theme',
