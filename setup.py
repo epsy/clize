@@ -22,7 +22,7 @@ setup(
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
-    python_requires='>=3.6',
+    python_requires='>=3.5',
     install_requires=[
         'sigtools >= 2.0',
         'attrs>=19.1.0',
