@@ -9,11 +9,7 @@ from functools import partial, update_wrapper
 import itertools
 import textwrap
 from difflib import SequenceMatcher
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 
 class Sentinel(object):
