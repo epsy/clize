@@ -16,6 +16,8 @@ pathlib_name = "pathlib"
 _ic = parser._implicit_converters
 
 
+// have to add tests with actual annotations to test 3.11
+
 class FromSigTests(Fixtures):
     def _test(self, sig_str, typ, str_rep, attrs):
         pre_code = ("import pathlib; from clize import"
