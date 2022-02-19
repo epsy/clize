@@ -24,7 +24,7 @@ setup(
     author_email='kaiser.yann@gmail.com',
     python_requires='>=3.5',
     install_requires=[
-        'sigtools >= 2.0',
+        'sigtools >= 3.0.0rc2',
         'attrs>=19.1.0',
         'od',
         'docutils >= 0.17.0',
