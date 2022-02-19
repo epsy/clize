@@ -14,7 +14,7 @@ test_requirements = [
 
 setup(
     name='clize',
-    version='5.0.0a1',
+    version='4.1.1',
     description='Turn functions into command-line interfaces',
     long_description=long_description,
     long_description_content_type='text/x-rst',
