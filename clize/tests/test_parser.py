@@ -2,7 +2,10 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
+import __future__
+import sys
 import pathlib
+import unittest
 
 from sigtools import support, modifiers, specifiers
 
@@ -17,10 +20,10 @@ _ic = parser._implicit_converters
 
 
 class FromSigTests(Fixtures):
-    def _test(self, sig_str, typ, str_rep, attrs):
+    def _test(self, sig_str, typ, str_rep, attrs, *, future_features=()):
         pre_code = ("import pathlib; from clize import"
                     " Parameter")
-        sig = support.s(sig_str, pre=pre_code)
+        sig = support.s(sig_str, pre=pre_code, future_features=future_features)
         return self._do_test(sig, typ, str_rep, attrs)
 
     def _do_test(self, sig, typ, str_rep, attrs):
@@ -568,6 +571,18 @@ class SigErrorTests(Fixtures):
         with self.assertRaises(errors.MissingRequiredArguments):
             self.read_arguments(csig, ())
 
+
+has_future_annotations = (
+    hasattr(__future__, "annotations")
+    and sys.version_info < (3, 11, 0, "final")
+)
+
+
+@unittest.skip("mix of failing tests for now")
+@unittest.skipUnless(has_future_annotations, "__future__.annotations only available certain python versions")
+class FromSigTestsStringAnnotations(FromSigTests):
+    def _test(self, *args, **kwargs):
+        super()._test(*args, future_features=("annotations",), **kwargs)
 
 
 class UnknownAnnotation(object):
