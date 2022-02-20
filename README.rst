@@ -5,9 +5,6 @@ Clize
 .. image:: https://readthedocs.org/projects/clize/badge/?version=stable
    :target: http://clize.readthedocs.io/en/stable/?badge=stable
    :alt: Documentation Status
-.. image:: https://readthedocs.org/projects/clize/badge/?version=latest
-   :target: http://clize.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
 .. image:: https://badges.gitter.im/Join%20Chat.svg
    :alt: Join the chat at https://gitter.im/epsy/clize
    :target: https://gitter.im/epsy/clize?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
@@ -49,9 +46,6 @@ create command-line interfaces.
 
     if __name__ == '__main__':
         run(hello_world)
-
-Python 2.7 is supported through `decorators
-<http://clize.readthedocs.io/en/stable/reference.html#named-param-py2>`_.
 
 The python code above can now be used on the command-line as follows:
 
