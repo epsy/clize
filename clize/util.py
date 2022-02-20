@@ -9,13 +9,7 @@ from functools import partial, update_wrapper
 import itertools
 import textwrap
 from difflib import SequenceMatcher
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
-
-import six
+from collections import OrderedDict
 
 
 class Sentinel(object):
@@ -91,7 +85,7 @@ def maybe_iter(x):
     except TypeError:
         return x,
     else:
-        if isinstance(x, six.string_types):
+        if isinstance(x, str):
             return x,
     return x
 
@@ -332,10 +326,10 @@ class Formatter(object):
         try:
             lines_getter = line.formatter_lines
         except AttributeError:
-            yield six.text_type(line)
+            yield str(line)
         else:
             for line in lines_getter():
-                yield six.text_type(line)
+                yield str(line)
 
     def __iter__(self):
         return iter(self.lines)

@@ -17,7 +17,7 @@ dire situation by :ref:`contacting me <contact>` with your questions!
 What versions of Python are supported?
 --------------------------------------
 
-Clize is tested to run succesfully on Python 2.7 and Python 3.4 through 3.6.
+Clize is tested to run succesfully on Python 3.6 through 3.10.
 
 For other Python versions:
 
@@ -25,7 +25,10 @@ For other Python versions:
 Python version   Last compatible version of Clize
 ==============   ==========================================================
 Python 2.6       `Clize 3.1 <http://clize.readthedocs.io/en/3.1/>`_
+Python 2.7       `Clize 4.2 <http://clize.readthedocs.io/en/4.2/>`_
 Python 3.3       `Clize 4.0 <http://clize.readthedocs.io/en/4.0/>`_
+Python 3.4       `Clize 4.1 <http://clize.readthedocs.io/en/4.1/>`_
+Python 3.5       `Clize 4.2 <http://clize.readthedocs.io/en/4.2/>`_
 ==============   ==========================================================
 
 
@@ -39,10 +42,11 @@ automatically install the right dependencies for you.
 
 If you still need the list, Clize always requires:
 
-* `six <https://pypi.python.org/pypi/six/>`_: For helping run Clize on both
-  Python 2 and 3.
-* `sigtools <https://pypi.python.org/pypi/sigtools/>`_: Utilities to help
-  manipulate function sigatures.
+* `sigtools <https://pypi.org/pypi/sigtools/>`_:
+  Utilities to help manipulate function sigatures.
+* `od <https://pypi.org/project/od/>`_: Shorthand for OrderedDict.
+* `attrs <https://pypi.org/project/attrs>`_: Classes without boilerplate.
+* `docutils <https://pypi.org/project/docutils>`_: To parse docstrings.
 
 If you wish to use `clize.converters.datetime`, you need:
 
@@ -51,12 +55,6 @@ If you wish to use `clize.converters.datetime`, you need:
 
 ``pip`` will install ``dateutil`` if you specify to install Clize with the
 ``datetime`` option, i.e. ``pip install "clize[datetime]"``.
-
-On Python 2.7, `sigtools` requires:
-
-* `funcsigs <https://pypi.python.org/pypi/funcsigs/>`_: A backport of
-  `inspect.signature` to Python 2.
-
 
 .. _ancient pip:
 
@@ -87,7 +85,8 @@ Clize's purpose is twofold:
 It turns out that just asking for the function signature from
 `inspect.signature` is not good enough:
 
-* Python 2 users cannot write keyword-only parameters.
+* Python 2 syntax, which was supported at the time,
+  cannot be used to express keyword-only parameters.
 * `inspect.signature` cannot process decorators that return a function with
   slightly altered parameters.
 

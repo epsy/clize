@@ -5,16 +5,16 @@
 import os
 import sys
 import inspect
-import unittest2
+import unittest
 from contextlib import contextmanager
+from io import StringIO
 
-from six.moves import cStringIO
 import repeated_test
 
 from clize import runner
 
 
-class Tests(unittest2.TestCase):
+class Tests(unittest.TestCase):
     maxDiff = 5000
 
     def read_arguments(self, sig, args):
@@ -23,10 +23,10 @@ class Tests(unittest2.TestCase):
     def crun(self, func, args, stdin=None, **kwargs):
         orig = sys.stdin, sys.stdout, sys.stderr
         if stdin is None:
-            stdin = cStringIO()
+            stdin = StringIO()
         sys.stdin = stdin
-        sys.stdout = stdout = cStringIO()
-        sys.stderr = stderr = cStringIO()
+        sys.stdout = stdout = StringIO()
+        sys.stderr = stderr = StringIO()
         try:
             runner.run(func, args=args, exit=False, out=stdout, err=stderr, **kwargs)
             return stdout, stderr

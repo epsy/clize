@@ -5,7 +5,6 @@
 import inspect
 from functools import update_wrapper
 
-import six
 from sigtools import modifiers, specifiers, signatures
 
 from clize import parser, errors, util
@@ -139,7 +138,7 @@ def mapped(values, list_name='list', case_sensitive=None):
 
 def _conv_oneof(values):
     for value in values:
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             yield value, [value], ''
         else:
             yield value[0], [value[0]], value[1]

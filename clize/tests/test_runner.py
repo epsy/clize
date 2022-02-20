@@ -6,8 +6,7 @@ import os
 import sys
 import shutil
 import unittest
-
-from six.moves import cStringIO
+from io import StringIO
 
 from clize.tests.util import Fixtures, Tests
 from clize import runner, errors
@@ -97,19 +96,16 @@ def get_executable(path, default):
 
 
 class FixArgvTests(Fixtures):
-    def _test(self, argv, path, main, expect, py27=True):
+    def _test(self, argv, path, main, expect):
         def get_executable(path, default):
             return default
         _get_executable = runner.get_executable
-        _py27 = runner._py27
         runner.get_executable = get_executable
-        runner._py27 = py27
         try:
             module = MockModule(*main)
             self.assertEqual(expect, runner.fix_argv(argv, path, module))
         finally:
             runner.get_executable = _get_executable
-            runner._py27 = _py27
 
     plainfile = (
         ['afile.py', '...'], ['/path/to/cwd', '/usr/lib/pythonX.Y'],
@@ -125,11 +121,6 @@ class FixArgvTests(Fixtures):
         ['/path/to/cwd/apkg/afile.py', '...'], ['', '/usr/lib/pythonX.Y'],
         ['/path/to/cwd/apkg/afile.py', '__main__', 'apkg'],
         ['python -m apkg.afile', '...']
-        )
-    packedmain26 = (
-        ['/path/to/cwd/apkg/__main__.py', '...'], ['', '/usr/lib/pythonX.Y'],
-        ['/path/to/cwd/apkg/__main__.py', 'apkg.__main__', 'apkg'],
-        ['python -m apkg.__main__', '...'], False
         )
     packedmain2 = (
         ['/path/to/cwd/apkg/__main__.py', '...'], ['', '/usr/lib/pythonX.Y'],
@@ -457,8 +448,8 @@ class RunnerTests(Tests):
     def test_run_fail_exit(self):
         def func():
             raise errors.ArgumentError("test_run_fail_exit")
-        stdout = cStringIO()
-        stderr = cStringIO()
+        stdout = StringIO()
+        stderr = StringIO()
         self.assert_systemexit(
             2, runner.run, func, args=['test'], out=stdout, err=stderr)
         self.assertFalse(stdout.getvalue())
@@ -468,8 +459,8 @@ class RunnerTests(Tests):
     def test_run_success_exit(self):
         def func():
             return "test_run_success_exit"
-        stdout = cStringIO()
-        stderr = cStringIO()
+        stdout = StringIO()
+        stderr = StringIO()
         self.assert_systemexit(
             None, runner.run, func, args=['test'], out=stdout, err=stderr)
         self.assertFalse(stderr.getvalue())
@@ -492,8 +483,8 @@ class RunnerTests(Tests):
         stdout, stderr = self.crun([func1, func2], args=['test', 'func2'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '2\n')
-        stdout = cStringIO()
-        stderr = cStringIO()
+        stdout = StringIO()
+        stderr = StringIO()
         runner.run(func1, func2, args=['test', 'func1'],
                    out=stdout, err=stderr, exit=False)
         self.assertFalse(stderr.getvalue())
@@ -529,8 +520,8 @@ class RunnerTests(Tests):
             runner.get_executable = get_executable
             def func(arg=1):
                 raise NotImplementedError
-            out = cStringIO()
-            err = cStringIO()
+            out = StringIO()
+            err = StringIO()
             runner.run(func, exit=False, out=out, err=err)
             self.assertFalse(out.getvalue())
             self.assertEqual(err.getvalue(),
@@ -545,7 +536,7 @@ class RunnerTests(Tests):
     def test_run_out(self):
         bout = sys.stdout
         try:
-            sys.stdout = out = cStringIO()
+            sys.stdout = out = StringIO()
             def func():
                 return 'hello'
             runner.run(func, args=['test'], exit=False)
@@ -556,7 +547,7 @@ class RunnerTests(Tests):
     def test_run_err(self):
         berr = sys.stderr
         try:
-            sys.stderr = err = cStringIO()
+            sys.stderr = err = StringIO()
             def func(arg=1):
                 raise NotImplementedError
             runner.run(func, args=['test', '...'], exit=False)

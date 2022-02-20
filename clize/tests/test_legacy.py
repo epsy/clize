@@ -5,8 +5,7 @@
 import sys
 import unittest
 import warnings
-
-from six.moves import cStringIO
+from io import StringIO
 
 from clize import clize, errors, runner, make_flag
 
@@ -228,8 +227,8 @@ class MakeFlagTests(OldInterfaceTests):
         orig_out = sys.stdout
         orig_err = sys.stderr
         try:
-            sys.stdout = out = cStringIO()
-            sys.stderr = err = cStringIO()
+            sys.stdout = out = StringIO()
+            sys.stderr = err = StringIO()
             ret = func(*args)
         finally:
             sys.stdout = orig_out

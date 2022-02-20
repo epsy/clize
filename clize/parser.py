@@ -8,21 +8,13 @@ interpret function signatures and read commandline arguments
 
 import itertools
 from functools import partial, wraps
+import pathlib
 import warnings
 
-import six
 from sigtools import modifiers
 import attr
 
 from clize import errors, util
-
-try:
-    import pathlib
-except ImportError:
-    try:
-        import pathlib2 as pathlib
-    except ImportError:
-        pathlib = None
 
 
 class ParameterFlag(object):
@@ -236,8 +228,8 @@ _implicit_converters = {
     int: int,
     float: float,
     bool: is_true,
-    six.text_type: identity,
-    six.binary_type: identity,
+    str: identity,
+    bytes: identity,
 }
 
 if pathlib:
@@ -840,7 +832,7 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
                         "{0.__name__} {1.__name__}".format(prev_conv, thing))
                 prev_conv = thing
                 continue
-        if isinstance(thing, six.string_types):
+        if isinstance(thing, str):
             if not named:
                 raise ValueError("Cannot give aliases for a positional "
                                  "parameter.")
