@@ -14,7 +14,6 @@ test_requirements = [
 
 setup(
     name='clize',
-    version='4.1.1',
     description='Turn functions into command-line interfaces',
     long_description=long_description,
     long_description_content_type='text/x-rst',
@@ -22,7 +21,7 @@ setup(
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=[
         'sigtools ~= 3.0.0rc4',
         'attrs>=19.1.0',

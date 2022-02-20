@@ -1,0 +1,16 @@
+name: Publish Python package to PyPI
+
+on:
+  push:
+    tags:
+      - v[0-9]*
+  release:
+    types:
+      - published
+
+jobs:
+  python-ci:
+    uses: epsy/python-workflows/.github/workflows/python-cd.yaml@main
+    secrets:
+      TEST_PYPI_API_TOKEN: ${{ secrets.TEST_PYPI_API_TOKEN }}
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
