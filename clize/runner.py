@@ -118,7 +118,7 @@ class Clize(object):
     def keep(cls, fn=None, **kwargs):
         """Instead of wrapping the decorated callable, sets its ``cli``
         attribute to a `.Clize` instance. Useful if you need to use the
-        decorator but must still be able to call the function regularily.
+        decorator but must still be able to call the function regularly.
         """
         if fn is None:
             return partial(cls.keep, **kwargs)

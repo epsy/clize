@@ -119,7 +119,7 @@ your CLI.
 Clize comes with less batteries included than the above. It focuses on
 providing just the behavior that corresponds with Python parameters, along with
 just a few extras. Clize can afford to do this because unlike these, Clize can
-be extended to accomodate custom needs. Every parameter kind can be implemented
+be extended to accommodate custom needs. Every parameter kind can be implemented
 by external code and made usable the same way as `clize.parameters.multi` or
 `clize.parameters.argument_decorator`.
 

@@ -234,7 +234,7 @@ Named parameters
 
 
 Clize treats keyword-only parameters as named parameters, which, instead of
-their position, get designated by they name preceeded by ``--``, or by ``-`` if
+their position, get designated by they name preceded by ``--``, or by ``-`` if
 the name is only one character long.
 
 There are a couple kinds of named parameters detailed along with examples in
@@ -371,7 +371,7 @@ Flag parameters
 
 Flag parameters are named parameters that unlike :ref:`options<option param>`
 do not take an argument. Instead, they set their corresponding parameter in
-Python to `True` if mentionned.
+Python to `True` if mentioned.
 
 You can create them by having a keyword-only parameter take `False` as default
 value:

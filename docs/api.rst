@@ -145,7 +145,7 @@ Help generation
    :no-undoc-members:
 
 
-Compability with older clize releases
+Compatibility with older clize releases
 -------------------------------------
 
 .. module:: clize.legacy

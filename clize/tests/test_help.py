@@ -1956,7 +1956,7 @@ class AutoforwardedFuncTests(Fixtures):
 
         Options:
           --main=STR           main param
-          --override=STR       overriden in main
+          --override=STR       overridden in main
           --one=STR            one param
           --two=STR            two param
           --delegated-to=STR   delegated_to param
@@ -1970,7 +1970,7 @@ class AutoforwardedFuncTests(Fixtures):
     def sources_order(main, *args, **kwargs):
         """
         :param main: main param
-        :param override: overriden in main
+        :param override: overridden in main
         """
         return _order_del(*args, **kwargs)
 

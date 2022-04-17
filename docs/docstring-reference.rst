@@ -8,7 +8,7 @@ Customizing the help using the docstring
 ========================================
 
 Clize draws the text of the ``--help`` output from your function's docstring.
-In addition, it will draw documenation for parameters added by decorators from
+In addition, it will draw documentation for parameters added by decorators from
 the function that defined it.
 
 The recommended way of formatting parameters is just like you would when using
@@ -58,7 +58,7 @@ Parameters are documented using the :ref:`field list syntax
 
     run(func)
 
-Begin a line with ``:param NAME:`` and contiue with a description for the
+Begin a line with ``:param NAME:`` and continue with a description for the
 parameter.  You can continue over more lines by indenting the additional
 lines.
 
@@ -461,7 +461,7 @@ The main function can override the description for parameters in any of its deco
     def func(arg):
         """
         :param arg: arg is documented in the main function
-        :param option: option is overriden in the main function
+        :param option: option is overridden in the main function
         """
         return arg
 
@@ -477,7 +477,7 @@ The main function can override the description for parameters in any of its deco
       arg               arg is documented in the main function
 
     Options:
-      --option=STR      option is overriden in the main function
+      --option=STR      option is overridden in the main function
       --other-opt=STR   option is documented in my_decorator
 
     Other actions:
@@ -491,7 +491,7 @@ Order of parameters in composed functions
 
 Clize displays parameter descriptions in the following order:
 
-1. Parameters documented (or overriden) in the main function, i.e.  the deepest
+1. Parameters documented (or overridden) in the main function, i.e.  the deepest
    function that has the name of the outermost object.
 2. Parameters from the other functions, from outermost decorator to innermost
    decorator.
@@ -513,7 +513,7 @@ parameter, with the default section first.
     def decorator_1(function, *args, opt_1, opt_override, **kwargs):
         """
         :param opt_1: option 1
-        :param opt_override: will be overriden in func
+        :param opt_override: will be overridden in func
         """
         return function(*args, **kwargs)
 
@@ -549,7 +549,7 @@ parameter, with the default section first.
         main function
 
         :param main: parameter in main function
-        :param opt_override: parameter overriden in main function
+        :param opt_override: parameter overridden in main function
         """
         return called_by_main(*args, **kwargs)
 
@@ -566,7 +566,7 @@ parameter, with the default section first.
 
     Options:
       --main=STR           parameter in main function
-      --opt-override=STR   parameter overriden in main function
+      --opt-override=STR   parameter overridden in main function
       --opt-1=STR          option 1
       --opt-2=STR          option 2
       --opt-3=STR          option 3

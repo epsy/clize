@@ -45,7 +45,7 @@ positional arguments, I could just use tuple unpacking on `sys.argv`:
     script, first, last = sys.argv
     print('Hello', first, last)
 
-If you used argument packing in a functon call instead, you gain the ability to
+If you used argument packing in a function call instead, you gain the ability to
 make use of default values:
 
 .. code-block:: python
@@ -201,7 +201,7 @@ old interface was deprecated in favor of the one described just above.
 Since the ``@clize`` decorator is gone, ``echo`` is now just a regular function
 that could theoretically be used in non-cli code or tests.
 
-Users looking to keep Python 2 compatibility would have to use a compability
+Users looking to keep Python 2 compatibility would have to use a compatibility
 layer for keyword-only parameters and annotations: `sigtools.modifiers`.
 
 .. code-block:: python

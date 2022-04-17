@@ -131,7 +131,7 @@ Release notes
 * Improve hackability of argument parsing: named parameters are now sourced
   from the bound arguments instance, so a parameter could modify it duing
   parsing without changing the original signature.
-* Various documenation improvements.
+* Various documentation improvements.
 
 
 .. _v3.0:
@@ -148,7 +148,7 @@ old interface is deprecated. See :ref:`porting-2`.
 * The CLI inference is now based on `sigtools.specifiers.signature` rather than
   `inspect.getfullargspec`. This enables a common interface for the function
   signature to be manipulated prior to being passed to Clize. Namely, the
-  ``__signature__`` attribute can be overriden or `sigtools`'s lazy
+  ``__signature__`` attribute can be overridden or `sigtools`'s lazy
   `~sigtools.specifiers.forger_function` method can be employed.
 * The ``@clize`` decorator is deprecated in favor of directly passing functions
   to `~clize.run`, thus leaving the original function intact.
