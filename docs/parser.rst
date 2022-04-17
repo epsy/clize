@@ -8,7 +8,7 @@ Extending the parser
 
 Clize allows the parser to be extended through, most notably, new parameters.
 They allow you to introduce new argument parsing behaviour within the parser's
-contraints:
+constraints:
 
 * The finality of argument parsing in Clize is to determine ``func``, ``args``
   and ``kwargs`` in order to do ``func(*args, **kwargs)``.

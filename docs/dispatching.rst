@@ -8,9 +8,9 @@ Dispatching to multiple functions
 
 So far the previous part of the tutorial showed you how to use clize to
 :ref:`run a single function <basics>`. Sometimes your program will need to
-perform diffferent related actions that involve different parameters. For
+perform different related actions that involve different parameters. For
 instance, `git <http://git-scm.com/>`_ offers all kinds of commands related to
-managing a versionned code repository under the ``git`` command. Alternatively,
+managing a versioned code repository under the ``git`` command. Alternatively,
 your program could have one main function and a few auxiliary ones, for
 instance for verifying the format of a config file, or simply for displaying
 the program's version.

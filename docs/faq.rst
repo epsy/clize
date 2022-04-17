@@ -4,7 +4,7 @@
 Frequently asked questions
 ==========================
 
-Drats! These docs are all new and the FAQ is almost empty! Help me improve this
+Drafts! These docs are all new and the FAQ is almost empty! Help me improve this
 dire situation by :ref:`contacting me <contact>` with your questions!
 
 .. contents:: Table of contents
@@ -17,7 +17,7 @@ dire situation by :ref:`contacting me <contact>` with your questions!
 What versions of Python are supported?
 --------------------------------------
 
-Clize is tested to run succesfully on Python 3.6 through 3.10.
+Clize is tested to run successfully on Python 3.6 through 3.10.
 
 For other Python versions:
 

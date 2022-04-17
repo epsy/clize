@@ -655,7 +655,7 @@ class MultiParameter(ParameterWithValue):
         raise errors.NotEnoughValues
 
     def get_full_name(self):
-        """Adds an elipsis to the parameter name."""
+        """Adds an ellipsis to the parameter name."""
         return super(MultiParameter, self).get_full_name() + '...'
 
 
@@ -714,7 +714,7 @@ class FallbackCommandParameter(NamedParameter):
     def __init__(self, func, **kwargs):
         super(FallbackCommandParameter, self).__init__(**kwargs)
         self.func = func
-        """The function that will be called if this parameter is mentionned."""
+        """The function that will be called if this parameter is mentioned."""
 
     @util.property_once
     def description(self):

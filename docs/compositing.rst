@@ -104,7 +104,7 @@ automatically be skipped during argument parsing and will be omitted from
 the help.
 
 You can apply the decorator like before, with each decorated function receiving
-the ``branch`` argument as suplied by the decorator.
+the ``branch`` argument as supplied by the decorator.
 
 .. literalinclude:: /../examples/deco_provide_arg.py
     :lines: 2,17-42
@@ -171,7 +171,7 @@ A few notes:
 * Besides ``arg`` which receives the original value, you can only use
   keyword-only parameters
 * The decorator's docstring is used to document its parameters. It can be
-  preferrable to use a :ref:`section <sections doc>` in order to distinguish
+  preferable to use a :ref:`section <sections doc>` in order to distinguish
   them from other parameters.
 * Appearances of ``{param}`` in the docstring are replaced with the parameter's
   name.
