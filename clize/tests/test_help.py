@@ -2254,6 +2254,6 @@ class HelpUnitTests(unittest.TestCase):
 
     def test_docutils_version_repr(self):
         self.assertEqual(
-            DocutilsVersion("a name", object()),
+            repr(DocutilsVersion("a name", object())),
             "<a name>",
         )
