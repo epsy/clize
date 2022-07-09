@@ -28,10 +28,9 @@ import re
 
 import od
 import attr
-from docutils.frontend import OptionParser
 from docutils.parsers.rst import Parser
 from docutils.utils import new_document
-from docutils import nodes as dunodes, transforms
+from docutils import nodes as dunodes, transforms, frontend
 from docutils.transforms import references
 from sigtools.modifiers import annotate, kwoargs
 
@@ -398,10 +397,10 @@ Designates a paragraph after a parameter description.
 """
 
 
-def elements_from_autodetected_docstring(docstring, name):
+def elements_from_autodetected_docstring(docstring, name, _docutils_frontend_module=frontend):
     if not docstring:
         return ()
-    document, errout = document_from_sphinx_docstring(docstring, name)
+    document, errout = _document_from_sphinx_docstring(docstring, name, _docutils_frontend_module)
     if document.next_node(dunodes.field_list, include_self=True) is None:
         return elements_from_clize_docstring(docstring)
     else:
@@ -596,10 +595,20 @@ class _NodeSeeker(dunodes.GenericNodeVisitor, object):
             self.result.append(node)
 
 
+def _findall_iter(node):
+    """Backwards compatibility pre Docutils 0.19"""
+    try:
+        findall = node.findall
+    except AttributeError:
+        return node.traverse()
+    else:
+        return findall()
+
+
 def _du_field_name_and_body(node):
     name = None
     body = None
-    for n in node.traverse():
+    for n in _findall_iter(node):
         if isinstance(n, dunodes.field_name):
             name = n
         elif isinstance(n, dunodes.field_body):
@@ -698,12 +707,21 @@ class _SphinxVisitor(dunodes.SparseNodeVisitor, object):
         return iter(self.result)
 
 
-def document_from_sphinx_docstring(source, name):
+def _get_default_docutils_settings(_docutils_frontend_module):
+    try:
+        get = _docutils_frontend_module.get_default_settings
+    except AttributeError:
+        return _docutils_frontend_module.OptionParser(components=(Parser,)).get_default_values()
+    else:
+        return get(Parser)
+
+
+def _document_from_sphinx_docstring(source, name, _docutils_frontend_module):
     """Reads a Sphinx.autodoc-compatible docstring into something
     `helpstream_from_elements` can process.
     """
     parser = Parser()
-    settings = OptionParser(components=(Parser,)).get_default_values()
+    settings = _get_default_docutils_settings(_docutils_frontend_module)
     errout = settings.warning_stream = io.StringIO()
     document = new_document(name, settings)
     parser.parse(source, document)
@@ -718,7 +736,7 @@ def elements_from_sphinx_document(document):
     return visitor
 
 def elements_from_sphinx_docstring(docstring, name):
-    document, errout = document_from_sphinx_docstring(docstring, name)
+    document, errout = _document_from_sphinx_docstring(docstring, name, frontend)
     sys.stderr.write(errout)
     return elements_from_sphinx_document(document)
 
