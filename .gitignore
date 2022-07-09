@@ -4,6 +4,7 @@ __pycache__
 /MANIFEST
 /*.egg*
 /.coverage
+/coverage.*
 /htmlcov
 /.tox
 /venv*

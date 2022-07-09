@@ -5,11 +5,16 @@
 import sys
 import io
 import inspect
+import typing
+import unittest
+import warnings
 from itertools import count
 import contextlib
 
 import attr
+from docutils import frontend
 import od
+import repeated_test
 from sigtools.support import f, s
 from sigtools.modifiers import autokwoargs, kwoargs
 from sigtools.wrappers import wrapper_decorator, decorator
@@ -1372,11 +1377,52 @@ def capture_stderr():
         sys.stderr = orig_stderr
 
 
+@attr.define
+class DocutilsVersion:
+    name: str
+    docutils_frontend: typing.Any
+    warn_filters: typing.Sequence[typing.Any] = ()
+
+    def __repr__(self):
+        return f'<{self.name}>'
+
+
+class OmitAttributes:
+    def __init__(self, instance, omit):
+        self.__instance = instance
+        self.__omit = omit
+
+    def __getattr__(self, item):
+        if item in self.__omit:
+            raise AttributeError(item)
+        return getattr(self.__instance, item)
+
+
+real_docutils = DocutilsVersion("real_docutils", frontend)
+pre_19_docutils = DocutilsVersion(
+    "pre_19_docutils",
+    OmitAttributes(frontend, {"get_default_settings"}),
+    [
+        {"action": "ignore", "message": r".*Option.*\b0\.21\b.*", "category": DeprecationWarning},
+    ],
+)
+
+
+@repeated_test.with_options_matrix(
+    docutils_frontend_module=[
+        real_docutils,
+        pre_19_docutils,
+    ]
+)
 class ElementsFromAutodetectedDocstringTests(Fixtures):
-    def _test(self, docstring, exp_helpstream, exp_stderr=u''):
-        with capture_stderr() as stderr:
+    def _test(self, docstring, exp_helpstream, *, exp_stderr='', docutils_frontend_module: DocutilsVersion):
+        with capture_stderr() as stderr, warnings.catch_warnings():
+            for warn_filter in docutils_frontend_module.warn_filters:
+                warnings.filterwarnings(**warn_filter)
             helpstream = list(help.elements_from_autodetected_docstring(
-                docstring, 'func'))
+                docstring, 'func',
+                _docutils_frontend_module=docutils_frontend_module.docutils_frontend
+            ))
         self.assertEqual(exp_helpstream, helpstream)
         self.assertLinesEqual(exp_stderr, stderr.getvalue())
 
@@ -1408,9 +1454,10 @@ class ElementsFromAutodetectedDocstringTests(Fixtures):
         (help.EL_FREE_TEXT, 'Description', False),
         (help.EL_PARAM_DESC, 'param', 'param desc'),
         (help.EL_FREE_TEXT, 'backquotes `like that one don\'t generate text in the help', False),
-    ], (
-        "func:6: (WARNING/2) Inline interpreted text or phrase reference "
-        "start-string without end-string."
+    ], repeated_test.options(
+        exp_stderr=
+            "func:6: (WARNING/2) Inline interpreted text or phrase reference "
+            "start-string without end-string."
     )
 
     sphinx_has_sphinx_error_in_param_desc = """
@@ -1420,9 +1467,10 @@ class ElementsFromAutodetectedDocstringTests(Fixtures):
     """, [
         (help.EL_FREE_TEXT, 'Description', False),
         (help.EL_PARAM_DESC, 'param', 'deals with backquotes `like that one'),
-    ], (
-        "func:4: (WARNING/2) Inline interpreted text or phrase reference "
-        "start-string without end-string."
+    ], repeated_test.options(
+        exp_stderr=
+            "func:4: (WARNING/2) Inline interpreted text or phrase reference "
+            "start-string without end-string."
     )
 
 
@@ -2194,3 +2242,18 @@ class DispatcherHelper(Fixtures):
           ext
           func
         """)
+
+
+class HelpUnitTests(unittest.TestCase):
+    def test_compat_findall(self):
+        document, _ = help._document_from_sphinx_docstring("some text", "a name", frontend)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            wo_findall = list(help._findall_iter(OmitAttributes(document, {"findall"})))
+        self.assertEqual(wo_findall, list(help._findall_iter(document)))
+
+    def test_docutils_version_repr(self):
+        self.assertEqual(
+            repr(DocutilsVersion("a name", object())),
+            "<a name>",
+        )

@@ -1,4 +1,5 @@
 [run]
+data_file = coverage.coverage
 branch = True
 
 [report]
