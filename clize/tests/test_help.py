@@ -2251,3 +2251,9 @@ class HelpUnitTests(unittest.TestCase):
             warnings.simplefilter("ignore")
             wo_findall = list(help._findall_iter(OmitAttributes(document, {"findall"})))
         self.assertEqual(wo_findall, list(help._findall_iter(document)))
+
+    def test_docutils_version_repr(self):
+        self.assertEqual(
+            DocutilsVersion("a name", object()),
+            "<a name>",
+        )
