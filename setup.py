@@ -22,6 +22,7 @@ setup(
         'sigtools >= 2.0',
         'attrs>=19.1.0,<22',
         'od',
+        "od<2 ; python_version<'3'",
         'docutils ~= 0.17.0',
     ],
     tests_require=[
