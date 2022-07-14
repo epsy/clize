@@ -8,7 +8,7 @@ with open("README.rst") as fh:
 
 setup(
     name='clize',
-    version='4.2.1',
+    version='4.2.2',
     description='Turn functions into command-line interfaces',
     long_description=long_description,
     long_description_content_type='text/x-rst',
@@ -16,12 +16,13 @@ setup(
     url='https://github.com/epsy/clize',
     author='Yann Kaiser',
     author_email='kaiser.yann@gmail.com',
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
+    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <3.10',
     install_requires=[
         'six',
         'sigtools >= 2.0',
         'attrs>=19.1.0,<22',
-        'od',
+        "od ; python_version >= '3'",
+        "od<2 ; python_version < '3'",
         'docutils ~= 0.17.0',
     ],
     tests_require=[
