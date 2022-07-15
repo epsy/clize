@@ -13,17 +13,13 @@ from clize import parser, errors, util
 from clize.tests.util import Fixtures
 
 
-pathlib_name = "pathlib"
-
-
 _ic = parser._implicit_converters
 
 
 class FromSigTests(Fixtures):
-    def _test(self, sig_str, typ, str_rep, attrs, *, future_features=()):
-        pre_code = ("import pathlib; from clize import"
-                    " Parameter")
-        sig = support.s(sig_str, pre=pre_code, future_features=future_features)
+    def _test(self, sig_str, typ, str_rep, attrs):
+        pre_code = "import pathlib; from clize import Parameter"
+        sig = self._support_s(sig_str, pre=pre_code)
         return self._do_test(sig, typ, str_rep, attrs)
 
     def _do_test(self, sig, typ, str_rep, attrs):
@@ -37,6 +33,8 @@ class FromSigTests(Fixtures):
             )
         self.assertEqual(p_attrs, attrs)
 
+    def _support_s(self, *args, **kwargs):
+        return support.s(*args, **kwargs)
 
     pos = 'one', parser.PositionalParameter, 'one', {
         'conv': parser.identity, 'default': util.UNSET, 'required': True,
@@ -104,7 +102,7 @@ class FromSigTests(Fixtures):
         @parser.value_converter
         def converter(value):
             raise NotImplementedError
-        sig = support.s('*, par: conv', locals={'conv': converter})
+        sig = self._support_s('*, par: conv', globals={'conv': converter})
         self._do_test(sig, parser.OptionParameter, '--par=CONVERTER', {
             'conv': converter,
             })
@@ -115,7 +113,7 @@ class FromSigTests(Fixtures):
             def __init__(self, arg):
                 self.arg = arg
         deft = FancyDefault('ham')
-        sig = support.s('*, par=default', locals={'default': deft})
+        sig = self._support_s('*, par=default', globals={'default': deft})
         self._do_test(sig, parser.OptionParameter, '[--par=FANCYDEFAULT]', {
             'conv': FancyDefault,
             'default': deft,
@@ -125,7 +123,7 @@ class FromSigTests(Fixtures):
         class UnknownDefault(object):
             pass
         deft = UnknownDefault()
-        sig = support.s('*, par:str=default', locals={'default': deft})
+        sig = self._support_s('*, par:str=default', globals={'default': deft})
         self._do_test(sig, parser.OptionParameter, '[--par=STR]', {
             'conv': parser.identity,
             'default': deft,
@@ -137,7 +135,7 @@ class FromSigTests(Fixtures):
                 return self
         s = Spam()
         conv = parser.value_converter(s.method, name='TCONV')
-        sig = support.s('*, par: conv', locals={'conv': conv})
+        sig = self._support_s('*, par: conv', globals={'conv': conv})
         self._do_test(sig, parser.OptionParameter, '--par=TCONV', {
             'conv': conv
         })
@@ -156,7 +154,7 @@ class FromSigTests(Fixtures):
             aliases=['--par']
             )
         self.assertEqual(param.get_all_names(), '--par[=CONV]')
-        sig = support.s('*, par: p, o=False', locals={'p': param})
+        sig = self._support_s('*, par: p, o=False', globals={'p': param})
         self._do_test(sig, parser.FlagParameter, '[--par[=CONV]]', {
             'conv': conv,
         })
@@ -177,7 +175,7 @@ class FromSigTests(Fixtures):
             aliases=['--par', '-p']
             )
         self.assertEqual(param.get_all_names(), '-p, --par[=CONV]')
-        sig = support.s('*, par: p, o=False', locals={'p': param})
+        sig = self._support_s('*, par: p, o=False', globals={'p': param})
         self._do_test(sig, parser.FlagParameter, '[-p]', {
             'conv': conv,
         })
@@ -189,7 +187,7 @@ class FromSigTests(Fixtures):
                          {'par': 'eggs', 'o': True})
 
     def test_alias_multi(self):
-        sig = support.s('*, one: a', locals={'a': ('a', 'b', 'abc')})
+        sig = self._support_s('*, one: a', globals={'a': ('a', 'b', 'abc')})
         param = list(sig.parameters.values())[0]
         cparam = parser.CliSignature.convert_parameter(param)
         self.assertEqual(type(cparam), parser.OptionParameter)
@@ -199,7 +197,7 @@ class FromSigTests(Fixtures):
 
     def test_param_inst(self):
         param = parser.Parameter('abc')
-        sig = support.s('xyz: p', locals={'p': param})
+        sig = self._support_s('xyz: p', globals={'p': param})
         sparam = list(sig.parameters.values())[0]
         cparam = parser.CliSignature.convert_parameter(sparam)
         self.assertTrue(cparam is param)
@@ -215,8 +213,8 @@ class FromSigTests(Fixtures):
             raise NotImplementedError
 
         sigs = [
-            support.s('o: c', locals={'c': converter}),
-            support.s('*, o: a', locals={'a': ("abc", converter)})
+            self._support_s('o: c', globals={'c': converter}),
+            self._support_s('*, o: a', globals={'a': ("abc", converter)})
             ]
         for sig in sigs:
             sparam = list(sig.parameters.values())[0]
@@ -231,7 +229,7 @@ class FromSigTests(Fixtures):
 
 class SigTests(Fixtures):
     def _test(self, sig_str, *args, **kwargs):
-        sig = support.s(sig_str, locals={'P': parser.Parameter})
+        sig = support.s(sig_str, globals={'P': parser.Parameter})
         self._do_test(sig, *args, **kwargs)
 
     def _do_test(self, sig, str_rep, args, posargs, kwargs):
@@ -339,7 +337,7 @@ class SigTests(Fixtures):
         @parser.parameter_converter
         def conv(param, annotations):
             return parser.Parameter.IGNORE
-        sig = support.s('one:conv', locals={'conv': conv})
+        sig = support.s('one:conv', globals={'conv': conv})
         csig = parser.CliSignature.from_signature(sig)
         self.assertEqual(str(csig), '')
 
@@ -369,7 +367,7 @@ class SigTests(Fixtures):
 
     def test_posparam_set_value_only(self):
         param = parser.PositionalParameter(argument_name='one', display_name='one')
-        sig = support.s('one:par', locals={'par': param})
+        sig = support.s('one:par', globals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
         ba = parser.CliBoundArguments(csig, [], 'func', args=[])
         param.set_value(ba, 'inserted')
@@ -377,7 +375,7 @@ class SigTests(Fixtures):
 
     def test_posparam_set_value_already_set(self):
         param = parser.PositionalParameter(argument_name='two', display_name='two')
-        sig = support.s('one, two:par', locals={'par': param})
+        sig = support.s('one, two:par', globals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
         ba = parser.CliBoundArguments(csig, [], 'func', args=['one', 'two'])
         param.set_value(ba, 'inserted')
@@ -385,7 +383,7 @@ class SigTests(Fixtures):
 
     def test_posparam_set_value_after_set(self):
         param = parser.PositionalParameter(argument_name='two', display_name='two')
-        sig = support.s('one, two:par', locals={'par': param})
+        sig = support.s('one, two:par', globals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
         ba = parser.CliBoundArguments(csig, [], 'func', args=['one'])
         param.set_value(ba, 'inserted')
@@ -393,7 +391,7 @@ class SigTests(Fixtures):
 
     def test_posparam_set_value_after_default(self):
         param = parser.PositionalParameter(argument_name='two', display_name='two', default="two")
-        sig = support.s('one="one", two:par="two"', locals={'par': param})
+        sig = support.s('one="one", two:par="two"', globals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
         ba = parser.CliBoundArguments(csig, [], 'func', args=[])
         param.set_value(ba, 'inserted')
@@ -401,7 +399,7 @@ class SigTests(Fixtures):
 
     def test_posparam_set_value_after_missing(self):
         param = parser.PositionalParameter(argument_name='two', display_name='two')
-        sig = support.s('one, two:par', locals={'par': param})
+        sig = support.s('one, two:par', globals={'par': param})
         csig = parser.CliSignature.from_signature(sig)
         ba = parser.CliBoundArguments(csig, [], 'func', args=[])
         with self.assertRaises(ValueError):
@@ -411,14 +409,14 @@ class SigTests(Fixtures):
         @parser.value_converter
         def conv(arg):
             return 'converted'
-        sig = support.s('*, par:conv="default"', locals={'conv': conv})
+        sig = support.s('*, par:conv="default"', globals={'conv': conv})
         self._do_test(sig, '[--par=CONV]', (), [], {})
 
     def test_vconverter_convert_value(self):
         @parser.value_converter(convert_default=True)
         def conv(arg):
             return 'c{}c'.format(arg)
-        sig = support.s('*, par:conv="default"', locals={'conv': conv})
+        sig = support.s('*, par:conv="default"', globals={'conv': conv})
         self._do_test(sig, '[--par=CONV]', ('--par=A',), [], {'par': 'cAc'})
         self._do_test(sig, '[--par=CONV]', ('--par', 'A',), [], {'par': 'cAc'})
 
@@ -426,14 +424,14 @@ class SigTests(Fixtures):
         @parser.value_converter(convert_default=True)
         def conv(arg):
             return 'converted'
-        sig = support.s('*, par:conv="default"', locals={'conv': conv})
+        sig = support.s('*, par:conv="default"', globals={'conv': conv})
         self._do_test(sig, '[--par=CONV]', (), [], {'par': 'converted'})
 
     def test_vconverter_convert_default_after_pos(self):
         @parser.value_converter(convert_default=True)
         def conv(arg):
             return 'converted'
-        sig = support.s('first="otherdefault", par:conv="default"', locals={'conv': conv})
+        sig = support.s('first="otherdefault", par:conv="default"', globals={'conv': conv})
         self._do_test(sig, '[first] [par]', (), ['otherdefault', 'converted'], {})
 
 
@@ -578,11 +576,13 @@ has_future_annotations = (
 )
 
 
-@unittest.skip("mix of failing tests for now")
 @unittest.skipUnless(has_future_annotations, "__future__.annotations only available certain python versions")
 class FromSigTestsStringAnnotations(FromSigTests):
     def _test(self, *args, **kwargs):
-        super()._test(*args, future_features=("annotations",), **kwargs)
+        return super()._test(*args, **kwargs)
+
+    def _support_s(self, *args, **kwargs):
+        return super()._support_s(*args, future_features=("annotations",), **kwargs)
 
 
 class UnknownAnnotation(object):
@@ -595,8 +595,8 @@ class UnknownDefault(object):
 
 
 class BadParamTests(Fixtures):
-    def _test(self, sig_str, locals, exp_msg):
-        sig = support.s(sig_str, pre='from clize import Parameter', locals=locals)
+    def _test(self, sig_str, globals, exp_msg):
+        sig = support.s(sig_str, pre='from clize import Parameter', globals=globals)
         params = list(sig.parameters.values())
         with self.assertRaises(ValueError) as ar:
             parser.CliSignature.convert_parameter(params[0])

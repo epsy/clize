@@ -997,8 +997,9 @@ class CliSignature(object):
     @classmethod
     def convert_parameter(cls, param):
         """Convert a Python parameter to a CLI parameter."""
+        param_annotation = param.upgraded_annotation.source_value()
         if param.annotation != param.empty:
-            annotations = util.maybe_iter(param.annotation)
+            annotations = util.maybe_iter(param_annotation)
         else:
             annotations = []
 
