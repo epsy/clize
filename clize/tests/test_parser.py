@@ -2,27 +2,28 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
-import __future__
-import sys
 import pathlib
-import unittest
 
+from repeated_test import evaluated
 from sigtools import support, modifiers, specifiers
 
 from clize import parser, errors, util
-from clize.tests.util import Fixtures
+from clize.tests.util import Fixtures, SignatureFixtures
 
 
 _ic = parser._implicit_converters
 
 
-class FromSigTests(Fixtures):
-    def _test(self, sig_str, typ, str_rep, attrs):
-        pre_code = "import pathlib; from clize import Parameter"
-        sig = self._support_s(sig_str, pre=pre_code)
-        return self._do_test(sig, typ, str_rep, attrs)
+def s(sig_str):
+    @evaluated
+    def evaluate_sig(self, *, make_signature):
+        pre_code = "import pathlib; from clize import Parameter; P = Parameter"
+        return make_signature(sig_str, pre=pre_code),
+    return evaluate_sig
 
-    def _do_test(self, sig, typ, str_rep, attrs):
+
+class FromSigTests(SignatureFixtures):
+    def _test(self, sig, typ, str_rep, attrs, *, make_signature):
         param = list(sig.parameters.values())[0]
         cparam = parser.CliSignature.convert_parameter(param)
         self.assertEqual(type(cparam), typ)
@@ -33,118 +34,122 @@ class FromSigTests(Fixtures):
             )
         self.assertEqual(p_attrs, attrs)
 
-    def _support_s(self, *args, **kwargs):
-        return support.s(*args, **kwargs)
-
-    pos = 'one', parser.PositionalParameter, 'one', {
+    pos = s('one'), parser.PositionalParameter, 'one', {
         'conv': parser.identity, 'default': util.UNSET, 'required': True,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
-    pos_default_str = 'one="abc"', parser.PositionalParameter, '[one]', {
+    pos_default_str = s('one="abc"'), parser.PositionalParameter, '[one]', {
         'conv': parser.identity, 'default': "abc", 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
-    pos_default_none = 'one=None', parser.PositionalParameter, '[one]', {
+    pos_default_none = s('one=None'), parser.PositionalParameter, '[one]', {
         'conv': parser.identity, 'default': None, 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
-    pos_default_int = 'one=3', parser.PositionalParameter, '[one]', {
+    pos_default_int = s('one=3'), parser.PositionalParameter, '[one]', {
         'conv': _ic[int], 'default': 3, 'required': False,
         'argument_name': 'one', 'display_name': 'one',
         'undocumented': False, 'last_option': None}
     pos_default_path = (
-        'file=pathlib.Path(\'/tmp\')', parser.PositionalParameter, '[file]', {
+        s('file=pathlib.Path(\'/tmp\')'), parser.PositionalParameter, '[file]', {
             'conv': _ic[pathlib.PurePath],
             'default': pathlib.Path('/tmp'), 'argument_name': 'file',
             'required': False, 'undocumented': False,
             'last_option': None, 'display_name': 'file'})
     pos_default_but_required = (
-        'one:Parameter.REQUIRED=3', parser.PositionalParameter, 'one', {
+        s('one:Parameter.REQUIRED=3'), parser.PositionalParameter, 'one', {
             'conv': _ic[int], 'default': util.UNSET, 'required': True,
             'argument_name': 'one', 'display_name': 'one',
             'undocumented': False, 'last_option': None})
     pos_last_option = (
-        'one:Parameter.LAST_OPTION', parser.PositionalParameter, 'one', {
+        s('one:Parameter.LAST_OPTION'), parser.PositionalParameter, 'one', {
             'conv': parser.identity, 'default': util.UNSET, 'required': True,
             'argument_name': 'one', 'display_name': 'one',
             'undocumented': False, 'last_option': True})
 
-    collect = '*args', parser.ExtraPosArgsParameter, '[args...]', {
+    collect = s('*args'), parser.ExtraPosArgsParameter, '[args...]', {
         'conv': parser.identity, 'default': util.UNSET, 'required': False,
         'argument_name': 'args', 'display_name': 'args',
         'undocumented': False, 'last_option': None}
-    collect_int = '*args:int', parser.ExtraPosArgsParameter, '[args...]', {
+    collect_int = s('*args:int'), parser.ExtraPosArgsParameter, '[args...]', {
         'conv': _ic[int], 'default': util.UNSET, 'required': False,
         }
     collect_required = (
-        '*args:Parameter.REQUIRED', parser.ExtraPosArgsParameter, 'args...', {
+        s('*args:Parameter.REQUIRED'), parser.ExtraPosArgsParameter, 'args...', {
             'conv': parser.identity, 'default': util.UNSET, 'required': True,
             'argument_name': 'args', 'display_name': 'args',
             'undocumented': False, 'last_option': None})
 
-    named = '*, one', parser.OptionParameter, '--one=STR', {
+    named = s('*, one'), parser.OptionParameter, '--one=STR', {
         'conv': parser.identity, 'default': util.UNSET, 'required': True,
         'argument_name': 'one', 'display_name': '--one', 'aliases': ['--one'],
         'undocumented': False, 'last_option': None}
-    named_bool = '*, one=False', parser.FlagParameter, '[--one]', {
+    named_bool = s('*, one=False'), parser.FlagParameter, '[--one]', {
         }
-    named_int = '*, one: int', parser.IntOptionParameter, '--one=INT', {
+    named_int = s('*, one: int'), parser.IntOptionParameter, '--one=INT', {
         'conv': _ic[int], 'default': util.UNSET, 'required': True,
         'argument_name': 'one', 'display_name': '--one', 'aliases': ['--one'],
         'undocumented': False, 'last_option': None}
 
-    alias = ('*, one: "a"', parser.OptionParameter, '-a STR',
+    alias = (s('*, one: "a"'), parser.OptionParameter, '-a STR',
         {'display_name': '--one', 'aliases': ['--one', '-a']})
-    alias_shortest = ('*, one: "al"', parser.OptionParameter, '--al=STR',
+    alias_shortest = (s('*, one: "al"'), parser.OptionParameter, '--al=STR',
         {'display_name': '--one', 'aliases': ['--one', '--al']})
 
-    def test_vconverter(self):
+    @evaluated
+    def vconverter(self, *, make_signature):
         @parser.value_converter
         def converter(value):
             raise NotImplementedError
-        sig = self._support_s('*, par: conv', globals={'conv': converter})
-        self._do_test(sig, parser.OptionParameter, '--par=CONVERTER', {
+        sig = make_signature('*, par: conv', globals={'conv': converter})
+        return (sig, parser.OptionParameter, '--par=CONVERTER', {
             'conv': converter,
             })
 
-    def test_default_type(self):
+    @evaluated
+    def default_type(self, *, make_signature):
         @parser.value_converter
         class FancyDefault(object):
             def __init__(self, arg):
                 self.arg = arg
         deft = FancyDefault('ham')
-        sig = self._support_s('*, par=default', globals={'default': deft})
-        self._do_test(sig, parser.OptionParameter, '[--par=FANCYDEFAULT]', {
+        sig = make_signature('*, par=default', globals={'default': deft})
+        return (sig, parser.OptionParameter, '[--par=FANCYDEFAULT]', {
             'conv': FancyDefault,
             'default': deft,
         })
 
-    def test_bad_default_good_conv(self):
+    @evaluated
+    def bad_default_good_conv(self, *, make_signature):
         class UnknownDefault(object):
             pass
         deft = UnknownDefault()
-        sig = self._support_s('*, par:str=default', globals={'default': deft})
-        self._do_test(sig, parser.OptionParameter, '[--par=STR]', {
+        sig = make_signature('*, par:str=default', globals={'default': deft})
+        return (sig, parser.OptionParameter, '[--par=STR]', {
             'conv': parser.identity,
             'default': deft,
         })
 
-    def test_method_conv(self):
+    @evaluated
+    def method_conv(self, *, make_signature):
         class Spam(object):
             def method(self, arg):
                 return self
         s = Spam()
         conv = parser.value_converter(s.method, name='TCONV')
-        sig = self._support_s('*, par: conv', globals={'conv': conv})
-        self._do_test(sig, parser.OptionParameter, '--par=TCONV', {
-            'conv': conv
-        })
+        sig = make_signature('*, par: conv', globals={'conv': conv})
+
         csig = parser.CliSignature.from_signature(sig)
         ba = self.read_arguments(csig, ['--par=arg'])
         arg = ba.kwargs['par']
-        self.assertTrue(arg is s)
+        self.assertIs(arg, s)
 
-    def test_flagp_conv_long(self):
+        return (sig, parser.OptionParameter, '--par=TCONV', {
+            'conv': conv
+        })
+
+    @evaluated
+    def flagp_conv_long(self, *, make_signature):
         @parser.value_converter
         def conv(arg):
             return arg
@@ -154,10 +159,8 @@ class FromSigTests(Fixtures):
             aliases=['--par']
             )
         self.assertEqual(param.get_all_names(), '--par[=CONV]')
-        sig = self._support_s('*, par: p, o=False', globals={'p': param})
-        self._do_test(sig, parser.FlagParameter, '[--par[=CONV]]', {
-            'conv': conv,
-        })
+        sig = make_signature('*, par: p, o=False', globals={'p': param})
+
         csig = parser.CliSignature.from_signature(sig)
         self.assertEqual(self.read_arguments(csig, []).kwargs, {})
         self.assertEqual(self.read_arguments(csig, ['--par']).kwargs,
@@ -165,7 +168,12 @@ class FromSigTests(Fixtures):
         self.assertEqual(self.read_arguments(csig, ['--par=ham']).kwargs,
                          {'par': 'ham'})
 
-    def test_flagp_conv_short(self):
+        return (sig, parser.FlagParameter, '[--par[=CONV]]', {
+            'conv': conv,
+        })
+
+    @evaluated
+    def flagp_conv_short(self, *, make_signature):
         @parser.value_converter
         def conv(arg):
             raise NotImplementedError
@@ -175,10 +183,8 @@ class FromSigTests(Fixtures):
             aliases=['--par', '-p']
             )
         self.assertEqual(param.get_all_names(), '-p, --par[=CONV]')
-        sig = self._support_s('*, par: p, o=False', globals={'p': param})
-        self._do_test(sig, parser.FlagParameter, '[-p]', {
-            'conv': conv,
-        })
+        sig = make_signature('*, par: p, o=False', globals={'p': param})
+
         csig = parser.CliSignature.from_signature(sig)
         self.assertEqual(self.read_arguments(csig, []).kwargs, {})
         self.assertEqual(self.read_arguments(csig, ['-p']).kwargs,
@@ -186,8 +192,12 @@ class FromSigTests(Fixtures):
         self.assertEqual(self.read_arguments(csig, ['-po']).kwargs,
                          {'par': 'eggs', 'o': True})
 
-    def test_alias_multi(self):
-        sig = self._support_s('*, one: a', globals={'a': ('a', 'b', 'abc')})
+        return (sig, parser.FlagParameter, '[-p]', {
+            'conv': conv,
+        })
+
+    def test__alias_multi(self):
+        sig = support.s('*, one: a', globals={'a': ('a', 'b', 'abc')})
         param = list(sig.parameters.values())[0]
         cparam = parser.CliSignature.convert_parameter(param)
         self.assertEqual(type(cparam), parser.OptionParameter)
@@ -197,7 +207,7 @@ class FromSigTests(Fixtures):
 
     def test_param_inst(self):
         param = parser.Parameter('abc')
-        sig = self._support_s('xyz: p', globals={'p': param})
+        sig = support.s('xyz: p', globals={'p': param})
         sparam = list(sig.parameters.values())[0]
         cparam = parser.CliSignature.convert_parameter(sparam)
         self.assertTrue(cparam is param)
@@ -213,8 +223,8 @@ class FromSigTests(Fixtures):
             raise NotImplementedError
 
         sigs = [
-            self._support_s('o: c', globals={'c': converter}),
-            self._support_s('*, o: a', globals={'a': ("abc", converter)})
+            support.s('o: c', globals={'c': converter}),
+            support.s('*, o: a', globals={'a': ("abc", converter)})
             ]
         for sig in sigs:
             sparam = list(sig.parameters.values())[0]
@@ -227,12 +237,8 @@ class FromSigTests(Fixtures):
         self.assertEqual(repr(f2), 'someobject.someflag')
 
 
-class SigTests(Fixtures):
-    def _test(self, sig_str, *args, **kwargs):
-        sig = support.s(sig_str, globals={'P': parser.Parameter})
-        self._do_test(sig, *args, **kwargs)
-
-    def _do_test(self, sig, str_rep, args, posargs, kwargs):
+class SigTests(SignatureFixtures):
+    def _test(self, sig, str_rep, args, posargs, kwargs, *, make_signature):
         csig = parser.CliSignature.from_signature(sig)
         ba = self.read_arguments(csig, args)
         self.assertEqual(str(csig), str_rep)
@@ -240,98 +246,98 @@ class SigTests(Fixtures):
         self.assertEqual(ba.kwargs, kwargs)
         repr(ba) # ensure attrs repr does't crash
 
-    no_param = '', '', (), [], {}
+    no_param = s(''), '', (), [], {}
 
     pos = (
-        'one, two, three', 'one two three',
+        s('one, two, three'), 'one two three',
         ('1', '2', '3'), ['1', '2', '3'], {})
 
     pos_empty = (
-        'one', 'one',
+        s('one'), 'one',
         ('',), [''], {}
         )
 
     _two_str_usage = '--one=STR --two=STR'
     kw_glued = (
-        '*, one, two', _two_str_usage,
+        s('*, one, two'), _two_str_usage,
         ('--one=1', '--two=2'), [], {'one': '1', 'two': '2'})
     kw_nonglued = (
-        '*, one, two', _two_str_usage,
+        s('*, one, two'), _two_str_usage,
         ('--one', '1', '--two', '2'), [], {'one': '1', 'two': '2'})
 
     _two_str_a_usage = '-a STR -b STR'
     kw_short_nonglued = (
-        '*, one: "a", two: "b"', _two_str_a_usage,
+        s('*, one: "a", two: "b"'), _two_str_a_usage,
         ('-a', '1', '-b', '2'), [], {'one': '1', 'two': '2'})
     kw_short_glued = (
-        '*, one: "a", two: "b"', _two_str_a_usage,
+        s('*, one: "a", two: "b"'), _two_str_a_usage,
         ('-a1', '-b2'), [], {'one': '1', 'two': '2'})
     kw_short_case = (
-        '*, one: "a", two: "A"', '-a STR -A STR',
+        s('*, one: "a", two: "A"'), '-a STR -A STR',
         ('-a', 'one', '-A', 'two'), [], {'one': 'one', 'two': 'two'})
 
     pos_and_kw = (
-        'one, *, two, three, four: "a", five: "b"',
+        s('one, *, two, three, four: "a", five: "b"'),
         '--two=STR --three=STR -a STR -b STR one',
         ('1', '--two', '2', '--three=3', '-a', '4', '-b5'),
         ['1'], {'two': '2', 'three': '3', 'four': '4', 'five': '5'})
     pos_and_kw_mixed = (
-        'one, two, *, three', '--three=STR one two',
+        s('one, two, *, three'), '--three=STR one two',
         ('1', '--three', '3', '2'), ['1', '2'], {'three': '3'}
         )
 
-    flag = '*, one=False', '[--one]', ('--one',), [], {'one': True}
-    flag_absent = '*, one=False', '[--one]', (), [], {}
+    flag = s('*, one=False'), '[--one]', ('--one',), [], {'one': True}
+    flag_absent = s('*, one=False'), '[--one]', (), [], {}
     flag_glued = (
-        '*, a=False, b=False, c=False', '[-a] [-b] [-c]',
+        s('*, a=False, b=False, c=False'), '[-a] [-b] [-c]',
         ('-ac',), [], {'a': True, 'c': True}
         )
 
-    _one_flag = '*, one:"a"=False'
+    _one_flag = s('*, one:"a"=False')
     _one_flag_u = '[-a]'
     flag_false = _one_flag, _one_flag_u, ('--one=',), [], {'one': False}
     flag_false_0 = _one_flag, _one_flag_u, ('--one=0',), [], {'one': False}
     flag_false_n = _one_flag, _one_flag_u, ('--one=no',), [], {'one': False}
     flag_false_f = _one_flag, _one_flag_u, ('--one=false',), [], {'one': False}
 
-    collect_pos = '*args', '[args...]', ('1', '2', '3'), ['1', '2', '3'], {}
+    collect_pos = s('*args'), '[args...]', ('1', '2', '3'), ['1', '2', '3'], {}
     pos_and_collect = (
-        'a, *args', 'a [args...]',
+        s('a, *args'), 'a [args...]',
         ('1', '2', '3'), ['1', '2', '3'], {})
     collect_and_kw = (
-        '*args, one', '--one=STR [args...]',
+        s('*args, one'), '--one=STR [args...]',
         ('2', '--one', '1', '3'), ['2', '3'], {'one': '1'})
 
-    conv = 'a=1', '[a]', ('1',), [1], {}
+    conv = s('a=1'), '[a]', ('1',), [1], {}
 
     named_int_glued = (
-        '*, one:"a"=1, two:"b"="s"', '[-a INT] [-b STR]',
+        s('*, one:"a"=1, two:"b"="s"'), '[-a INT] [-b STR]',
         ('-a15bham',), [], {'one': 15, 'two': 'ham'})
     named_int_glued_negative = (
-        '*, one:"a"=1, two:"b"="s"', '[-a INT] [-b STR]',
+        s('*, one:"a"=1, two:"b"="s"'), '[-a INT] [-b STR]',
         ('-a-23bham',), [], {'one': -23, 'two': 'ham'})
     named_int_last = (
-        '*, one:"a"=1', '[-a INT]',
+        s('*, one:"a"=1'), '[-a INT]',
         ('-a23',), [], {'one': 23})
 
     double_dash = (
-        'one, two, three', 'one two three',
+        s('one, two, three'), 'one two three',
         ('first', '--', '--second', 'third'),
         ['first', '--second', 'third'], {}
         )
 
     pos_last_option = (
-        'one, two:P.L, *r, three', '--three=STR one two [r...]',
+        s('one, two:P.L, *r, three'), '--three=STR one two [r...]',
         ('1', '--three=3', '2', '--four', '4'),
         ['1', '2', '--four', '4'], {'three': '3'}
         )
     kw_last_option = (
-        'one, two, *r, three:P.L', '--three=STR one two [r...]',
+        s('one, two, *r, three:P.L'), '--three=STR one two [r...]',
         ('1', '--three=3', '2', '--four', '4'),
         ['1', '2', '--four', '4'], {'three': '3'}
         )
 
-    ignored = 'one:P.I', '', (), [], {}
+    ignored = s('one:P.I'), '', (), [], {}
 
     def test_converter_ignore(self):
         @parser.parameter_converter
@@ -405,34 +411,45 @@ class SigTests(Fixtures):
         with self.assertRaises(ValueError):
             param.set_value(ba, 'inserted')
 
-    def test_vconverter_keep_default(self):
+    @evaluated
+    def vconverter_keep_default(self, *, make_signature):
         @parser.value_converter
         def conv(arg):
             return 'converted'
-        sig = support.s('*, par:conv="default"', globals={'conv': conv})
-        self._do_test(sig, '[--par=CONV]', (), [], {})
+        sig = make_signature('*, par:conv="default"', globals={'conv': conv})
+        return (sig, '[--par=CONV]', (), [], {})
 
-    def test_vconverter_convert_value(self):
+    @evaluated
+    def vconverter_convert_value_equals(self, *, make_signature):
         @parser.value_converter(convert_default=True)
         def conv(arg):
             return 'c{}c'.format(arg)
-        sig = support.s('*, par:conv="default"', globals={'conv': conv})
-        self._do_test(sig, '[--par=CONV]', ('--par=A',), [], {'par': 'cAc'})
-        self._do_test(sig, '[--par=CONV]', ('--par', 'A',), [], {'par': 'cAc'})
+        sig = make_signature('*, par:conv="default"', globals={'conv': conv})
+        return (sig, '[--par=CONV]', ('--par=A',), [], {'par': 'cAc'})
 
-    def test_vconverter_convert_default(self):
+    @evaluated
+    def vconverter_convert_value_spaced(self, *, make_signature):
+        @parser.value_converter(convert_default=True)
+        def conv(arg):
+            return 'c{}c'.format(arg)
+        sig = make_signature('*, par:conv="default"', globals={'conv': conv})
+        return (sig, '[--par=CONV]', ('--par', 'A',), [], {'par': 'cAc'})
+
+    @evaluated
+    def vconverter_convert_default(self, *, make_signature):
         @parser.value_converter(convert_default=True)
         def conv(arg):
             return 'converted'
-        sig = support.s('*, par:conv="default"', globals={'conv': conv})
-        self._do_test(sig, '[--par=CONV]', (), [], {'par': 'converted'})
+        sig = make_signature('*, par:conv="default"', globals={'conv': conv})
+        return (sig, '[--par=CONV]', (), [], {'par': 'converted'})
 
-    def test_vconverter_convert_default_after_pos(self):
+    @evaluated
+    def vconverter_convert_default_after_pos(self, *, make_signature):
         @parser.value_converter(convert_default=True)
         def conv(arg):
             return 'converted'
-        sig = support.s('first="otherdefault", par:conv="default"', globals={'conv': conv})
-        self._do_test(sig, '[first] [par]', (), ['otherdefault', 'converted'], {})
+        sig = make_signature('first="otherdefault", par:conv="default"', globals={'conv': conv})
+        return (sig, '[first] [par]', (), ['otherdefault', 'converted'], {})
 
 
 class ExtraParamsTests(Fixtures):
@@ -568,21 +585,6 @@ class SigErrorTests(Fixtures):
             specifiers.signature(func))
         with self.assertRaises(errors.MissingRequiredArguments):
             self.read_arguments(csig, ())
-
-
-has_future_annotations = (
-    hasattr(__future__, "annotations")
-    and sys.version_info < (3, 11, 0, "final")
-)
-
-
-@unittest.skipUnless(has_future_annotations, "__future__.annotations only available certain python versions")
-class FromSigTestsStringAnnotations(FromSigTests):
-    def _test(self, *args, **kwargs):
-        return super()._test(*args, **kwargs)
-
-    def _support_s(self, *args, **kwargs):
-        return super()._support_s(*args, future_features=("annotations",), **kwargs)
 
 
 class UnknownAnnotation(object):

@@ -7,7 +7,7 @@ with open("README.rst") as fh:
     long_description = fh.read()
 
 test_requirements = [
-    'repeated_test>=2.2',
+    'repeated_test>=2.3.0a2',
     'python-dateutil',
     'Pygments',
 ]

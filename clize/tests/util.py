@@ -2,6 +2,7 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
+import __future__
 import os
 import sys
 import inspect
@@ -10,6 +11,7 @@ from contextlib import contextmanager
 from io import StringIO
 
 import repeated_test
+from sigtools import support
 
 from clize import runner
 
@@ -50,8 +52,44 @@ class Tests(unittest.TestCase):
         self.assertEqual(exp_split, act_split)
 
 
+support_s_without_annotations_feature = repeated_test.NamedAlternative("no __future__ features", support.s)
+@repeated_test.NamedAlternative("with __future__.annotations")
+def support_s_with_annotations_feature(*args, future_features=(), **kwargs):
+    return support.s(*args, future_features=future_features + ("annotations",), **kwargs)
+
+
+support_f_without_annotations_feature = repeated_test.NamedAlternative("no __future__ features", support.f)
+@repeated_test.NamedAlternative("with __future__.annotations")
+def support_f_with_annotations_feature(*args, future_features=(), **kwargs):
+    return support.f(*args, future_features=future_features + ("annotations",), **kwargs)
+
+
+has_future_annotations = (
+    hasattr(__future__, "annotations")
+)
+
+
 Fixtures = repeated_test.WithTestClass(Tests)
 tup = repeated_test.tup
+
+@repeated_test.with_options_matrix(
+    make_signature =
+        [support_s_without_annotations_feature, support_s_with_annotations_feature]
+        if has_future_annotations else
+        [support_s_without_annotations_feature]
+)
+class SignatureFixtures(Fixtures):
+    _test = None
+
+
+@repeated_test.with_options_matrix(
+    make_function =
+        [support_f_without_annotations_feature, support_f_with_annotations_feature]
+        if has_future_annotations else
+        [support_f_without_annotations_feature]
+)
+class FunctionFixtures(Fixtures):
+    _test = None
 
 
 class Matching(object):
