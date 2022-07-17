@@ -13,12 +13,12 @@ from io import StringIO
 from sigtools import support, modifiers
 
 from clize import parser, errors, converters
-from clize.tests.util import Fixtures, Tests
+from clize.tests.util import Fixtures, SignatureFixtures, Tests
 
 
-class ConverterRepTests(Fixtures):
-    def _test(self, conv, rep):
-        sig = support.s('*, par: c', locals={'c': conv})
+class ConverterRepTests(SignatureFixtures):
+    def _test(self, conv, rep, *, make_signature):
+        sig = make_signature('*, par: c', globals={'c': conv})
         csig = parser.CliSignature.from_signature(sig)
         self.assertEqual(str(csig), rep)
 
@@ -26,9 +26,9 @@ class ConverterRepTests(Fixtures):
     file = converters.file(), '--par=FILE'
 
 
-class ConverterTests(Fixtures):
-    def _test(self, conv, inp, out):
-        sig = support.s('*, par: c', locals={'c': conv})
+class ConverterTests(SignatureFixtures):
+    def _test(self, conv, inp, out, *, make_signature):
+        sig = make_signature('*, par: c', globals={'c': conv})
         csig = parser.CliSignature.from_signature(sig)
         ba = self.read_arguments(csig, ['--par', inp])
         self.assertEqual(out, ba.kwargs['par'])
@@ -46,7 +46,7 @@ class FileConverterTests(Tests):
         shutil.rmtree(self.temp)
 
     def run_conv(self, conv, path):
-        sig = support.s('*, par: c', locals={'c': conv})
+        sig = support.s('*, par: c', globals={'c': conv})
         csig = parser.CliSignature.from_signature(sig)
         ba = self.read_arguments(csig, ['--par', path])
         return ba.kwargs['par']
@@ -265,7 +265,7 @@ class FileConverterTests(Tests):
 
 class ConverterErrorTests(Fixtures):
     def _test(self, conv, inp):
-        sig = support.s('*, par: c', locals={'c': conv})
+        sig = support.s('*, par: c', globals={'c': conv})
         csig = parser.CliSignature.from_signature(sig)
         self.assertRaises(errors.BadArgumentFormat,
                           self.read_arguments, csig, ['--par', inp])
