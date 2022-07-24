@@ -7,14 +7,59 @@ interpret function signatures and read commandline arguments
 """
 
 import itertools
+import inspect
+import typing
 from functools import partial, wraps
 import pathlib
 import warnings
 
-from sigtools import modifiers
+from sigtools import modifiers, signature
 import attr
 
 from clize import errors, util
+
+
+class ClizeAnnotations:
+    def __init__(self, annotations):
+        self.clize_annotations = util.maybe_iter(annotations)
+
+    def __repr__(self):
+        arg = ', '.join(repr(item) for item in self.clize_annotations)
+        return f"clize.Clize[{arg}]"
+
+    @classmethod
+    def get_clize_annotations(cls, top_level_annotation):
+        if top_level_annotation is inspect.Parameter.empty:
+            return _ParsedAnnotation()
+
+        if _is_annotated_instance(top_level_annotation):
+            return _ParsedAnnotation(top_level_annotation.__origin__, tuple(_extract_annotated_metadata(top_level_annotation.__metadata__)))
+
+        return _ParsedAnnotation(clize_annotations=util.maybe_iter(top_level_annotation))
+
+
+@attr.define
+class _ParsedAnnotation:
+    type_annotation: typing.Any = inspect.Parameter.empty
+    clize_annotations: typing.Tuple[typing.Any] = ()
+
+
+def _is_annotated_instance(annotation):
+    try:
+        annotation.__origin__
+        annotation.__metadata__
+    except AttributeError:
+        return False
+    else:
+        return True
+
+
+def _extract_annotated_metadata(metadata):
+    for item in metadata:
+        if _is_annotated_instance(item):
+            yield from _extract_annotated_metadata(item.__metadata__)
+        elif isinstance(item, ClizeAnnotations):
+            yield from item.clize_annotations
 
 
 class ParameterFlag(object):
@@ -790,7 +835,7 @@ def use_mixin(cls, kwargs={}, name=None):
 
 
 def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
-               param, annotations):
+               param, annotations, *, type_annotation):
     named = param.kind in (param.KEYWORD_ONLY, param.VAR_KEYWORD)
     aliases = [util.name_py2cli(param.name, named)]
     default = util.UNSET
@@ -811,7 +856,19 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
     if Parameter.LAST_OPTION in annotations:
         kwargs['last_option'] = True
 
-    prev_conv = None
+    exclusive_converter = None
+    set_converter = False
+
+    if type_annotation != param.empty:
+        try:
+            # we specifically don't set prev_conv
+            # so that clize annotations can override this
+            conv = get_value_converter(type_annotation)
+        except ValueError:
+            pass
+        else:
+            set_converter = True
+
     for thing in annotations:
         if isinstance(thing, Parameter):
             return thing
@@ -826,11 +883,12 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
             except ValueError:
                 pass
             else:
-                if prev_conv is not None:
+                if exclusive_converter is not None:
                     raise ValueError(
                         "Value converter specified twice in annotation: "
-                        "{0.__name__} {1.__name__}".format(prev_conv, thing))
-                prev_conv = thing
+                        "{0.__name__} {1.__name__}".format(exclusive_converter, thing))
+                exclusive_converter = thing
+                set_converter = True
                 continue
         if isinstance(thing, str):
             if not named:
@@ -853,9 +911,10 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
 
     kwargs['default'] = default if not kwargs.get('required') else util.UNSET
     kwargs['conv'] = conv
-    if prev_conv is None and default is not util.UNSET and default is not None:
+    if not set_converter and default is not util.UNSET and default is not None:
         try:
             kwargs['conv'] = get_value_converter(type(default))
+            set_converter = True
         except ValueError:
             raise ValueError(
                 "Cannot find value converter for default value {!r}. "
@@ -864,6 +923,14 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
                 "convert the value, make sure it is decorated "
                 "with clize.parser.value_converter()"
                 .format(default))
+    if not set_converter and type_annotation is not inspect.Parameter.empty:
+        raise ValueError(
+            f"Cannot find a value converter for type {type_annotation}. "
+            "Please specify one as an annotation.\n"
+            "If the type should be used to "
+            "convert the value, make sure it is decorated "
+            "with clize.parser.value_converter()"
+        )
 
     if named:
         kwargs['aliases'] = aliases
@@ -998,10 +1065,9 @@ class CliSignature(object):
     def convert_parameter(cls, param):
         """Convert a Python parameter to a CLI parameter."""
         param_annotation = param.upgraded_annotation.source_value()
-        if param.annotation != param.empty:
-            annotations = util.maybe_iter(param_annotation)
-        else:
-            annotations = []
+        ca = ClizeAnnotations.get_clize_annotations(param_annotation)
+        annotations = ca.clize_annotations
+        type_annotation = ca.type_annotation
 
         if Parameter.IGNORE in annotations:
             return Parameter.IGNORE
@@ -1014,9 +1080,29 @@ class CliSignature(object):
         else:
             conv = cls.converter
 
-        return conv(param, annotations)
-
-
+        try:
+            return conv(param, annotations, type_annotation=type_annotation)
+        except TypeError as e:
+            if "type_annotation" in signature(conv).parameters:
+                raise e
+            else:
+                result = conv(param, annotations)
+                name = getattr(conv, "__name__", repr(conv))
+                while isinstance(conv, partial):
+                    conv = conv.func
+                impl_name = getattr(conv, "__qualname__", name)
+                module = getattr(conv, "__module__")
+                if module:
+                    impl_name = f"{module}.{impl_name}"
+                warnings.warn(
+                    (
+                        "Clize 6.0 will require parameter converters "
+                        "to support the 'type_annotation' keyword argument: "
+                        f"converter '{name}' ({impl_name}) should be updated to accept it"
+                    ),
+                    DeprecationWarning,
+                )
+                return result
 
     def read_arguments(self, args, name):
         """Returns a `.CliBoundArguments` instance for this CLI signature

@@ -23,10 +23,9 @@ class Sentinel(object):
 
 UNSET = Sentinel('<unset>')
 
-try:
-    zip_longest = itertools.zip_longest
-except AttributeError:
-    zip_longest = itertools.izip_longest
+
+zip_longest = itertools.zip_longest
+
 
 def compute_similarity(word1, word2):
     seq_matcher = SequenceMatcher(None, word1, word2)
@@ -81,13 +80,13 @@ def name_type2cli(typ):
 
 def maybe_iter(x):
     try:
-        iter(x)
+        tup = tuple(x)
     except TypeError:
         return x,
     else:
         if isinstance(x, str):
             return x,
-    return x
+        return tup
 
 def dict_from_names(obj, receiver=None):
     try:
