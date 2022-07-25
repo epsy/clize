@@ -30,16 +30,16 @@ class ClizeAnnotations:
     @classmethod
     def get_clize_annotations(cls, top_level_annotation):
         if top_level_annotation is inspect.Parameter.empty:
-            return _ParsedAnnotation()
+            return ParsedAnnotation()
 
         if _is_annotated_instance(top_level_annotation):
-            return _ParsedAnnotation(top_level_annotation.__origin__, tuple(_extract_annotated_metadata(top_level_annotation.__metadata__)))
+            return ParsedAnnotation(top_level_annotation.__origin__, tuple(_extract_annotated_metadata(top_level_annotation.__metadata__)))
 
-        return _ParsedAnnotation(clize_annotations=util.maybe_iter(top_level_annotation))
+        return ParsedAnnotation(clize_annotations=util.maybe_iter(top_level_annotation))
 
 
 @attr.define
-class _ParsedAnnotation:
+class ParsedAnnotation:
     type_annotation: typing.Any = inspect.Parameter.empty
     clize_annotations: typing.Tuple[typing.Any] = ()
 
