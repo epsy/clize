@@ -18,6 +18,29 @@ from clize.tests.util import Fixtures, SignatureFixtures
 _ic = parser._implicit_converters
 
 
+def skip_unless(condition, message):
+    @evaluated
+    def _skip_unless(self, **_):
+        if not condition:
+            self.skipTest(message)
+        else:
+            return ()
+    return _skip_unless
+
+
+skip_unless_typings_has_annotations = skip_unless(
+    hasattr(typing, "Annotated"),
+    "This test needs typing.Annotated"
+)
+
+
+def defer(func):
+    @evaluated
+    def _deferred(*_, **__):
+        return func()
+    return _deferred
+
+
 def s(sig_str, **inject):
     @evaluated
     def evaluate_sig(self, *, make_signature, **_):
@@ -105,41 +128,41 @@ class FromSigTests(SignatureFixtures):
     alias_shortest = (s('*, one: "al"'), parser.OptionParameter, '--al=STR',
         {'display_name': '--one', 'aliases': ['--one', '--al']})
 
-    typed_alias_named = (
+    typed_alias_named = skip_unless_typings_has_annotations, defer(lambda: (
         s("*, one: ann", ann=typing.Annotated[int, Clize['a']]),
         parser.IntOptionParameter, '-a INT', {
             "display_name": "--one",
             "aliases": ["--one", "-a"],
             "conv": _ic[int],
-        })
+        }))
 
-    typed_known_but_overridden = (
+    typed_known_but_overridden = skip_unless_typings_has_annotations, defer(lambda: (
         s("*, one: ann", ann=typing.Annotated[str, Clize[int]]),
         parser.IntOptionParameter, '--one=INT', {
             "conv": _ic[int],
         }
-    )
+    ))
 
-    typed_unknown_but_overridden = (
+    typed_unknown_but_overridden = skip_unless_typings_has_annotations, defer(lambda: (
         s("*, one: ann", ann=typing.Annotated[typing.Union[int, str], Clize[int]]),
         parser.IntOptionParameter, '--one=INT', {
             "conv": _ic[int],
         }
-    )
+    ))
 
-    typed_has_unknown_metadata = (
+    typed_has_unknown_metadata = skip_unless_typings_has_annotations, defer(lambda: (
         s("*, one: ann", ann=typing.Annotated[str, 'a', Clize['b']]),
         parser.OptionParameter, '-b STR', {
             "conv": _ic[str],
         }
-    )
+    ))
 
-    typed_doubly_annotated = (
+    typed_doubly_annotated = skip_unless_typings_has_annotations, defer(lambda: (
         s("*, one: ann", ann=typing.Annotated[str, typing.Annotated[int, Clize['a']]]),
         parser.OptionParameter, '-a STR', {
             "conv": _ic[str],
         }
-    )
+    ))
 
     @evaluated
     def vconverter(self, *, make_signature):
@@ -282,6 +305,7 @@ class FromSigTests(SignatureFixtures):
         self.assertEqual(repr(f2), 'someobject.someflag')
 
     def test_clize_annotation_repr(self):
+        skip_unless_typings_has_annotations(self)
         ann = Clize[int, 'a']
         self.assertEqual(repr(ann), f"clize.Clize[{int!r}, {'a'!r}]")
 
@@ -694,13 +718,13 @@ class BadParamTests(SignatureFixtures):
         s('one: uc', uc=_uc), f"Unknown annotation {_uc!r}\n"
         "If you intended for it to be a value or parameter converter, "
         "make sure the appropriate decorator was applied.")
-    unknown_typing = (
+    unknown_typing = skip_unless_typings_has_annotations, defer(lambda: (
         s("*, one: ann", ann=typing.Annotated[UnknownDefault, Clize['a']]),
         f"Cannot find a value converter for type {UnknownDefault!r}. "
         "Please specify one as an annotation.\n"
         "If the type should be used to convert the value, "
         "make sure it is decorated with clize.parser.value_converter()"
-    )
+    ))
     _ud = UnknownDefault('stuff')
     bad_custom_default = (
         s('one=bd', bd=_ud),

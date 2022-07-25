@@ -861,8 +861,8 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
 
     if type_annotation != param.empty:
         try:
-            # we specifically don't set prev_conv
-            # so that clize annotations can override this
+            # we specifically don't set exclusive_converter
+            # so that clize annotations can set a different converter
             conv = get_value_converter(type_annotation)
         except ValueError:
             pass
@@ -886,7 +886,8 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
                 if exclusive_converter is not None:
                     raise ValueError(
                         "Value converter specified twice in annotation: "
-                        "{0.__name__} {1.__name__}".format(exclusive_converter, thing))
+                        f"{exclusive_converter.__name__} {thing.__name__}"
+                    )
                 exclusive_converter = thing
                 set_converter = True
                 continue
