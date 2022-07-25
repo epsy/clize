@@ -1,24 +1,56 @@
 # clize -- A command-line argument parser for Python
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
-
+import functools
+import inspect
 import pathlib
+import typing
+import warnings
 
+import repeated_test
 from repeated_test import evaluated
 from sigtools import support, modifiers, specifiers
 
-from clize import parser, errors, util
+from clize import parser, errors, util, Clize
 from clize.tests.util import Fixtures, SignatureFixtures
 
 
 _ic = parser._implicit_converters
 
 
-def s(sig_str):
+def skip_unless(condition, message):
     @evaluated
-    def evaluate_sig(self, *, make_signature):
-        pre_code = "import pathlib; from clize import Parameter; P = Parameter"
-        return make_signature(sig_str, pre=pre_code),
+    def _skip_unless(self, **_):
+        if not condition:
+            self.skipTest(message)
+        else:
+            return ()
+    return _skip_unless
+
+
+skip_unless_typings_has_annotations = skip_unless(
+    hasattr(typing, "Annotated"),
+    "This test needs typing.Annotated"
+)
+
+
+def defer(func):
+    @evaluated
+    def _deferred(*_, **__):
+        return func()
+    return _deferred
+
+
+def s(sig_str, **inject):
+    @evaluated
+    def evaluate_sig(self, *, make_signature, **_):
+        pre_code = (
+            "import pathlib;"
+            "from clize import Clize, Parameter;"
+            "import typing;"
+            "P = Parameter;"
+        )
+        return make_signature(sig_str, pre=pre_code, globals=dict(inject)),
     return evaluate_sig
 
 
@@ -95,6 +127,42 @@ class FromSigTests(SignatureFixtures):
         {'display_name': '--one', 'aliases': ['--one', '-a']})
     alias_shortest = (s('*, one: "al"'), parser.OptionParameter, '--al=STR',
         {'display_name': '--one', 'aliases': ['--one', '--al']})
+
+    typed_alias_named = skip_unless_typings_has_annotations, defer(lambda: (
+        s("*, one: ann", ann=typing.Annotated[int, Clize['a']]),
+        parser.IntOptionParameter, '-a INT', {
+            "display_name": "--one",
+            "aliases": ["--one", "-a"],
+            "conv": _ic[int],
+        }))
+
+    typed_known_but_overridden = skip_unless_typings_has_annotations, defer(lambda: (
+        s("*, one: ann", ann=typing.Annotated[str, Clize[int]]),
+        parser.IntOptionParameter, '--one=INT', {
+            "conv": _ic[int],
+        }
+    ))
+
+    typed_unknown_but_overridden = skip_unless_typings_has_annotations, defer(lambda: (
+        s("*, one: ann", ann=typing.Annotated[typing.Union[int, str], Clize[int]]),
+        parser.IntOptionParameter, '--one=INT', {
+            "conv": _ic[int],
+        }
+    ))
+
+    typed_has_unknown_metadata = skip_unless_typings_has_annotations, defer(lambda: (
+        s("*, one: ann", ann=typing.Annotated[str, 'a', Clize['b']]),
+        parser.OptionParameter, '-b STR', {
+            "conv": _ic[str],
+        }
+    ))
+
+    typed_doubly_annotated = skip_unless_typings_has_annotations, defer(lambda: (
+        s("*, one: ann", ann=typing.Annotated[str, typing.Annotated[int, Clize['a']]]),
+        parser.OptionParameter, '-a STR', {
+            "conv": _ic[str],
+        }
+    ))
 
     @evaluated
     def vconverter(self, *, make_signature):
@@ -236,6 +304,38 @@ class FromSigTests(SignatureFixtures):
         f2 = parser.ParameterFlag('someflag', 'someobject')
         self.assertEqual(repr(f2), 'someobject.someflag')
 
+    def test_clize_annotation_repr(self):
+        skip_unless_typings_has_annotations(self)
+        ann = Clize[int, 'a']
+        self.assertEqual(repr(ann), f"clize.Clize[{int!r}, {'a'!r}]")
+
+    def test_missing_type_annotation_param_warning(self):
+        @parser.parameter_converter
+        def converter_for_test(param, annotations, arg=0):
+            return parser.default_converter(param, annotations, type_annotation=inspect.Parameter.empty)
+
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            par = parser.parameter_converter(functools.partial(converter_for_test, arg=0))
+
+        class MyConverterClass:
+            __module__ = None
+            def __call__(self, param, annotations):
+                return parser.Parameter.IGNORE
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore")
+            inst = parser.parameter_converter(MyConverterClass())
+
+        sigs = [
+            support.s("one: ann", globals={"ann": converter_for_test}),
+            support.s("one: ann", globals={"ann": par}),
+            support.s("one: ann", globals={"ann": inst}),
+        ]
+        for sig in sigs:
+            param = list(sig.parameters.values())[0]
+            with self.assertWarns(DeprecationWarning):
+                parser.CliSignature.convert_parameter(param)
+
 
 class SigTests(SignatureFixtures):
     def _test(self, sig, str_rep, args, posargs, kwargs, *, make_signature):
@@ -341,7 +441,7 @@ class SigTests(SignatureFixtures):
 
     def test_converter_ignore(self):
         @parser.parameter_converter
-        def conv(param, annotations):
+        def conv(param, annotations, *, type_annotation):
             return parser.Parameter.IGNORE
         sig = support.s('one:conv', globals={'conv': conv})
         csig = parser.CliSignature.from_signature(sig)
@@ -596,46 +696,61 @@ class UnknownDefault(object):
         self.arg = arg
 
 
-class BadParamTests(Fixtures):
-    def _test(self, sig_str, globals, exp_msg):
-        sig = support.s(sig_str, pre='from clize import Parameter', globals=globals)
+class BadParamTests(SignatureFixtures):
+    def _test(self, sig, exp_msg, *, raises=ValueError, make_signature):
         params = list(sig.parameters.values())
-        with self.assertRaises(ValueError) as ar:
+        with self.assertRaises(raises) as ar:
             parser.CliSignature.convert_parameter(params[0])
         if exp_msg is not None:
             self.assertEqual(exp_msg, str(ar.exception))
 
-    alias_superfluous = 'one: "a"', {}, "Cannot give aliases for a positional parameter."
-    alias_spaces = '*, one: "a b"', {}, "Cannot have whitespace in aliases."
-    alias_duplicate = '*, one: dup', {'dup': ('a', 'a')}, "Duplicate alias 'a'"
+    alias_superfluous = s('one: "a"'), "Cannot give aliases for a positional parameter."
+    alias_spaces = s('*, one: "a b"'), "Cannot have whitespace in aliases."
+    alias_duplicate = s('*, one: dup', dup=('a', 'a')), "Duplicate alias 'a'"
     _ua = UnknownAnnotation()
     unknown_annotation = (
-        'one: ua', {'ua': _ua}, "Unknown annotation " + repr(_ua) + "\n"
+        s('one: ua', ua=_ua), f"Unknown annotation {_ua!r}\n"
         "If you intended for it to be a value or parameter converter, "
         "make sure the appropriate decorator was applied.")
     def _uc(arg):
         raise NotImplementedError
     unknown_callable = (
-        'one: uc', {'uc': _uc}, "Unknown annotation " + repr(_uc) + "\n"
+        s('one: uc', uc=_uc), f"Unknown annotation {_uc!r}\n"
         "If you intended for it to be a value or parameter converter, "
         "make sure the appropriate decorator was applied.")
+    unknown_typing = skip_unless_typings_has_annotations, defer(lambda: (
+        s("*, one: ann", ann=typing.Annotated[UnknownDefault, Clize['a']]),
+        f"Cannot find a value converter for type {UnknownDefault!r}. "
+        "Please specify one as an annotation.\n"
+        "If the type should be used to convert the value, "
+        "make sure it is decorated with clize.parser.value_converter()"
+    ))
     _ud = UnknownDefault('stuff')
     bad_custom_default = (
-        'one=bd', {'bd': _ud},
-        "Cannot find value converter for default value " + repr(_ud) + ". "
+        s('one=bd', bd=_ud),
+        f"Cannot find value converter for default value {_ud!r}. "
         "Please specify one as an annotation.\n"
         "If the default value's type should be used to convert the value, "
         "make sure it is decorated with clize.parser.value_converter()")
-    coerce_twice = 'one: co', {'co': (str, int)}, "Value converter specified twice in annotation: str int"
+    coerce_twice = s('one: co', co=(str, int)), "Value converter specified twice in annotation: str int"
     dup_pconverter = (
-        'one: a',
-        {'a': (parser.default_converter, parser.default_converter)},
+        s('one: a', a=(parser.default_converter, parser.default_converter)),
         "Parameter converter 'default_converter' must be the first "
         "element of a parameter's annotation")
     unimplemented_parameter = (
-        '**kwargs', {},
+        s('**kwargs'),
         "This converter cannot convert parameter 'kwargs' to a CLI parameter")
 
+    @parser.use_mixin
+    class _type_error_converter(parser.ParameterWithValue):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            raise TypeError("error for tests")
+    type_error_not_due_to_missing_type_annotation_param = (
+        s('one: ann', ann=_type_error_converter),
+        repeated_test.options(raises=TypeError),
+        "error for tests",
+    )
 
 
 class BadSigTests(Fixtures):

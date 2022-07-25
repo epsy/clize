@@ -82,6 +82,9 @@ class Clize(object):
         self.helper_class = helper_class
         self.hide_help = hide_help
 
+    def __class_getitem__(cls, item):
+        return parser.ClizeAnnotations(item)
+
     def parameters(self):
         """Returns the parameters used to instantiate this class, minus the
         wrapped callable."""
