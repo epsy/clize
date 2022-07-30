@@ -31,5 +31,5 @@ jobs:
         uses: epsy/python-workflows/tox-ci@ykaiser/mypy-action
         with:
           tox-args: -e typecheck
-          python-test-args: -m examples/typed_cli.py
+          python-test-args: examples/typed_cli.py
           problem-matcher: mypy
