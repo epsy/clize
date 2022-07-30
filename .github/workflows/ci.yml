@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: epsy/python-workflows/install-tox@ykaiser/mypy-action
         with:
-          python-version: 3.10
+          python-version: "3.10"
       - name: Run mypy with tox
         uses: epsy/python-workflows/tox-ci@ykaiser/mypy-action
         with:
