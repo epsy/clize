@@ -26,10 +26,10 @@ jobs:
     steps:
       - uses: epsy/python-workflows/install-tox@ykaiser/mypy-action
         with:
-          python-version: ${{ inputs.util-python-version }}
+          python-version: 3.10
       - name: Run mypy with tox
         uses: epsy/python-workflows/tox-ci@ykaiser/mypy-action
         with:
           tox-args: -e typecheck
-          python-test-args: -m examples.typed_cli
+          python-test-args: -m examples/typed_cli.py
           problem-matcher: mypy
