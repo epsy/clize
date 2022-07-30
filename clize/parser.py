@@ -13,8 +13,9 @@ from functools import partial, wraps
 import pathlib
 import warnings
 
-from sigtools import modifiers, signature
 import attr
+import attrs
+from sigtools import modifiers, signature
 
 from clize import errors, util
 
@@ -38,10 +39,10 @@ class ClizeAnnotations:
         return ParsedAnnotation(clize_annotations=util.maybe_iter(top_level_annotation))
 
 
-@attr.define
+@attrs.define
 class ParsedAnnotation:
     type_annotation: typing.Any = inspect.Parameter.empty
-    clize_annotations: typing.Tuple[typing.Any] = ()
+    clize_annotations: typing.Tuple = ()
 
 
 def _is_annotated_instance(annotation):
