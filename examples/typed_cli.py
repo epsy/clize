@@ -1,7 +1,7 @@
 import pathlib
 import typing
 
-from clize import Clize, run, converters  # type: ignore
+from clize import Clize, run, converters
 
 
 def main(
