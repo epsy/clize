@@ -20,3 +20,16 @@ jobs:
     uses: epsy/python-workflows/.github/workflows/python-ci.yaml@main
     with:
       package-folder: clize
+  mypy:
+    name: "Run mypy on typed example"
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: epsy/python-workflows/install-tox@main
+        with:
+          python-version: "3.10"
+      - name: Run mypy with tox
+        uses: epsy/python-workflows/tox-ci@main
+        with:
+          tox-args: -e typecheck
+          python-test-args: examples/typed_cli.py
+          problem-matcher: mypy
