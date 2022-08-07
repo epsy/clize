@@ -14,7 +14,7 @@ def main(
     optional_value: typing.Annotated[typing.Optional[int], Clize[int]] = None,
     # Perhaps confusingly, typing.Optional does not refer to whether a parameter is required,
     # only whether None is an acceptable value.
-    optional_parameter: typing.Annotated[str, Clize[int]] = 1,
+    optional_parameter: typing.Annotated[int, Clize[int]] = 1,
     # If you're using other clize annotations, like parameter aliases,
     # you'll have to use typing.Annotated
     aliased: typing.Annotated[int, Clize["n"]],
