@@ -1250,7 +1250,7 @@ class CliBoundArguments(object):
     argument instead."""
 
     sig = attr.ib()
-    in_args = attr.ib(converter=tuple)
+    in_args: typing.Tuple = attr.ib(converter=tuple)
     name = attr.ib()
 
     func = attr.ib(default=None)
