@@ -11,10 +11,10 @@ def main(
     *,
     # Unfortunately, Clize doesn't understand typing.Optional yet, and just uses int.
     # You'll have to separate the typing and Clize annotation using typing.Annotated
-    optional_value: typing.Annotated[int, Clize[int]] = None,
+    optional_value: typing.Annotated[typing.Optional[int], Clize[int]] = None,
     # Perhaps confusingly, typing.Optional does not refer to whether a parameter is required,
     # only whether None is an acceptable value.
-    optional_parameter: typing.Annotated[int, Clize[int]] = 1,
+    optional_parameter: typing.Annotated[str, Clize[int]] = 1,
     # If you're using other clize annotations, like parameter aliases,
     # you'll have to use typing.Annotated
     aliased: typing.Annotated[int, Clize["n"]],
