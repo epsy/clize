@@ -17,7 +17,7 @@ on:
 
 jobs:
   python-ci:
-    uses: epsy/python-workflows/.github/workflows/python-ci.yaml@main
+    uses: epsy/python-workflows/.github/workflows/python-ci.yaml@ykaiser/py311rc
     with:
       package-folder: clize
   mypy:
