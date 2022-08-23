@@ -47,9 +47,6 @@ create command-line interfaces.
     if __name__ == '__main__':
         run(hello_world)
 
-Python 2.7 is supported through `decorators
-<http://clize.readthedocs.io/en/stable/reference.html#named-param-py2>`_.
-
 The python code above can now be used on the command-line as follows:
 
 .. code-block:: console

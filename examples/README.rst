@@ -11,17 +11,11 @@ Examples
     Greets a person or the world. Demonstrates the specification of positional
     and named optional parameters.
 
-``hello.py2.py``
-    Python 2-compatible version of the above example.
-
 ``echo.py``
     Prints back some text. Demonstrates the use of ``*args``-like parameters to
     collect all arguments, flags, short aliases for named parameters, using
     ``ArgumentError`` for arbitrary requirements, as well as supplying an
     alternate action to ``run``.
-
-``echo.py2.py``
-    Python 2-compatible version of the above example.
 
 ``altcommands.py``
     Demonstrates the specification of alternate actions.
@@ -56,3 +50,16 @@ Examples
 ``logparam.py``
     Extends ``FlagParameter`` with an alternate value converter, fixing the
     default value display.
+
+``typed_cli.py``
+    Demonstrates concurrent usage of Clize and mypy.
+
+``naval.py``
+    Clize version of `docopt`_'s "naval fate" example.
+
+``interop.py``
+    Demonstrates using a different argument parser (here, `argparse`_)
+    among other commands that use Clize.
+
+.. _argparse: https://docs.python.org/3/library/argparse.html
+.. _docopt: http://docopt.org/
