@@ -8,6 +8,7 @@ interpret function signatures and read commandline arguments
 
 import itertools
 import inspect
+import os
 import typing
 from functools import partial, wraps
 import pathlib
@@ -265,9 +266,19 @@ def identity(x=None):
     return x
 
 
+@value_converter(name='BYTES')
+def convert_back_to_bytes(arg):
+    return os.fsencode(arg)
+
+
 @value_converter(name='BOOL')
 def is_true(arg):
     return arg.lower() not in ('', '0', 'n', 'no', 'f', 'false')
+
+
+@value_converter(name='PATH')
+def concrete_path_converter(arg):
+    return pathlib.Path(arg)
 
 
 _implicit_converters = {
@@ -275,15 +286,9 @@ _implicit_converters = {
     float: float,
     bool: is_true,
     str: identity,
-    bytes: identity,
+    bytes: convert_back_to_bytes,
+    pathlib.PurePath: concrete_path_converter
 }
-
-if pathlib:
-    @value_converter(name='PATH')
-    def path_converter(arg):
-        return pathlib.Path(arg)
-
-    _implicit_converters[pathlib.PurePath] = path_converter
 
 
 def get_value_converter(annotation):
