@@ -443,6 +443,12 @@ class SigTests(SignatureFixtures):
     bytes = s("a: bytes"), 'a', ('\u1234',), [os.fsencode('\u1234')], {}
     bytes_named = s("*, a: bytes"), '-a BYTES', ('-a\u1234',), [], {'a': os.fsencode('\u1234')}
 
+    path = s("*, a: ann", ann=pathlib.Path), '-a PATH', ('-a./abc/def',), [], {'a': pathlib.Path('./abc/def')}
+    path_default = (
+        s("*, a = default", default=pathlib.Path('./abc',)),
+        '[-a PATH]', ('-a./def',), [], {'a': pathlib.Path('./def')},
+    )
+
     def test_converter_ignore(self):
         @parser.parameter_converter
         def conv(param, annotations, *, type_annotation):
