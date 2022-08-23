@@ -51,7 +51,7 @@ Examples
     Extends ``FlagParameter`` with an alternate value converter, fixing the
     default value display.
 
-``deco_future_annotations.py``
+``typed_cli.py``
     Demonstrates concurrent usage of Clize and mypy.
 
 ``naval.py``
