@@ -8,6 +8,7 @@ interpret function signatures and read commandline arguments
 
 import itertools
 import inspect
+import os
 import typing
 from functools import partial, wraps
 import pathlib
@@ -270,13 +271,19 @@ def is_true(arg):
     return arg.lower() not in ('', '0', 'n', 'no', 'f', 'false')
 
 
+@value_converter(name='BYTES')
+def convert_back_to_bytes(arg):
+    return os.fsencode(arg)
+
+
 _implicit_converters = {
     int: int,
     float: float,
     bool: is_true,
     str: identity,
-    bytes: identity,
+    bytes: convert_back_to_bytes,
 }
+
 
 if pathlib:
     @value_converter(name='PATH')

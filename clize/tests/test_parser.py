@@ -3,6 +3,7 @@
 # COPYING for details.
 import functools
 import inspect
+import os
 import pathlib
 import typing
 import warnings
@@ -438,6 +439,9 @@ class SigTests(SignatureFixtures):
         )
 
     ignored = s('one:P.I'), '', (), [], {}
+
+    bytes = s("a: bytes"), 'a', ('\u1234',), [os.fsencode('\u1234')], {}
+    bytes_named = s("*, a: bytes"), '-a BYTES', ('-a\u1234',), [], {'a': os.fsencode('\u1234')}
 
     def test_converter_ignore(self):
         @parser.parameter_converter
