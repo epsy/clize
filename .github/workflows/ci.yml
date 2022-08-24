@@ -35,6 +35,7 @@ jobs:
           python-test-args: "-m unittest clize.tests.test_parser"
       - name: Verify that tox 'test' env ran
         run: cat ./tox-proof-test
+        shell: bash
   mypy:
     name: "Run mypy on typed example"
     runs-on: 'ubuntu-latest'
