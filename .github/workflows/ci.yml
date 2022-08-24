@@ -32,7 +32,7 @@ jobs:
         uses: epsy/python-workflows/tox-ci@ykaiser/fix-escapes-for-windows
         with:
           tox-args: ""
-          python-test-args: "-m unittest"
+          python-test-args: "-m unittest clize.tests.test_parser"
       - name: Verify that tox 'test' env ran
         run: cat ./tox-proof-test
   mypy:
