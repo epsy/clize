@@ -2,14 +2,16 @@
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
 
-import os
+import pathlib
 import sys
-import shutil
 import unittest
 from io import StringIO
 
-from clize.tests.util import Fixtures, Tests
+import repeated_test
+from repeated_test import options
+
 from clize import runner, errors
+from clize.tests.util import Fixtures, Tests
 
 
 class MockModule(object):
@@ -43,107 +45,103 @@ class ModuleNameTests(Fixtures):
 
     def test_pudb_script(self):
         module = BadModule(sp+'pack/cli.py', '__main__')
-        self.assertRaises(AttributeError, runner.main_module_name, module)
+        self.assertEqual(None, runner.main_module_name(module))
 
 
-class GetExcecutableTests(Fixtures):
-    def _test(self, path, default, result, which='/usr/bin'):
-        which_backup = getattr(shutil, 'which', None)
-        def which_(name, *args, **kwargs):
+@repeated_test.with_options_matrix(
+    to_path=[pathlib.PurePosixPath, pathlib.PureWindowsPath]
+)
+class GetExecutableTests(Fixtures):
+    def _test(self, path, expected, *, which=None, to_path):
+        def which_(name):
             if which:
-                return os.path.join('/usr/bin', name)
+                return str(to_path(which, name))
             else:
                 return None
-        shutil.which = which_
-        if which is None:
-            del shutil.which
-        try:
-            ret = runner.get_executable(path, default)
-            self.assertEqual(ret, result)
-        finally:
-            if which_backup:
-                shutil.which = which_backup
-            elif which is not None:
-                del shutil.which
+        ret = runner.get_executable(path, which=which_, to_path=to_path)
+        self.assertEqual(ret, expected)
 
-    none = None, 'python', 'python'
-    empty = '', 'myapp', 'myapp'
-    dotpy = '/a/path/leading/to/myapp.py', None, '/a/path/leading/to/myapp.py'
-    in_path = '/usr/bin/myapp', None, 'myapp'
-    in_path_2 = '/usr/bin/myapp', None, 'myapp', None
-    not_in_path = '/opt/myapp/bin/myapp', None, '/opt/myapp/bin/myapp'
-    relpath = 'myapp/bin/myapp', None, 'myapp/bin/myapp', ''
-    parentpath = '../myapp/bin/myapp', None, '../myapp/bin/myapp', ''
-    parentpath_2 = '../myapp/bin/myapp', None, '../myapp/bin/myapp', None
+    none = None, None
+    empty = '', None
 
-    def test_run_with_no_which(self):
-        try:
-            which_backup = shutil.which
-        except AttributeError: # pragma: no cover
-            return
-        del shutil.which
-        try:
-            self._test(*GetExcecutableTests.empty)
-            self.assertFalse(hasattr(shutil, 'which'))
-            self._test(*GetExcecutableTests.in_path_2)
-            self.assertFalse(hasattr(shutil, 'which'))
-        finally:
-            shutil.which = which_backup
+    with options(to_path=pathlib.PurePosixPath):
+        posix_dotpy = '/a/path/leading/to/myapp.py', '/a/path/leading/to/myapp.py'
+        posix_in_path = '/usr/bin/myapp', 'myapp', options(which='/usr/bin')
+        posix_not_in_path = '/opt/myapp/bin/myapp', '/opt/myapp/bin/myapp'
+        posix_not_from_path = '/opt/myapp/bin/myapp', '/opt/myapp/bin/myapp', options(which='/usr/bin')
+        posix_relpath = 'myapp/bin/myapp', 'myapp/bin/myapp', options(which='')
+        posix_parentpath_also_in_path = '../myapp/bin/myapp', '../myapp/bin/myapp', options(which='')
+        posix_parentpath = '../myapp/bin/myapp', '../myapp/bin/myapp', options(which=None)
+
+    with options(to_path=pathlib.PureWindowsPath):
+        win_dotpy = "C:/a/path/leading/to/myapp.py", r"C:\a\path\leading\to\myapp.py"
+        win_in_path = 'C:/Program Files/myapp/bin/myapp.py', 'myapp.py', options(which='C:/Program Files/myapp/bin/')
+        win_not_in_path = 'C:/Users/Myself/Documents/myapp', r'C:\Users\Myself\Documents\myapp'
+        win_not_from_path = 'C:/Users/Myself/Documents/myapp', r'C:\Users\Myself\Documents\myapp', options(which='C:/system32')
+        win_relpath = './my/folder/myapp.py', r'my\folder\myapp.py', options(which=None)
+        win_parentpath_also_in_path = '../myapp/bin/myapp', r'..\myapp\bin\myapp', options(which='')
+        win_parentpath = '../myapp/bin/myapp', r'..\myapp\bin\myapp', options(which=None)
+        win_diff_drives = 'D:/myapp/bin/myapp', r"D:\myapp\bin\myapp", options(which="C:/myapp/bin/myapp")
 
 
-def get_executable(path, default):
-    return default
+def get_executable_verbatim(path):
+    return path
 
 
+@repeated_test.with_options_matrix(platform=["anythingreally", "win32"], executable=["interpreter"], get_executable=[get_executable_verbatim])
 class FixArgvTests(Fixtures):
-    def _test(self, argv, path, main, expect):
+    def _test(self, argv, path, main, expect, *, platform, executable, get_executable):
         def get_executable(path, default):
             return default
         _get_executable = runner.get_executable
         runner.get_executable = get_executable
         try:
             module = MockModule(*main)
-            self.assertEqual(expect, runner.fix_argv(argv, path, module))
+            self.assertEqual(expect, runner.fix_argv(argv, path, module, executable=executable, platform=platform))
         finally:
             runner.get_executable = _get_executable
 
     plainfile = (
         ['afile.py', '...'], ['/path/to/cwd', '/usr/lib/pythonX.Y'],
         ['afile.py', '__main__', None],
-        ['afile.py', '...']
-        )
+        ['afile.py', '...'],
+        options(platform="anythingreally"),
+    )
+
+    plainfile_win = (
+        ['afile.py', '...'], ['/path/to/cwd', '/usr/lib/pythonX.Y'],
+        ['afile.py', '__main__', None],
+        ['interpreter afile.py', '...'],
+        options(platform="win32"),
+    )
+
     asmodule = (
         ['/path/to/cwd/afile.py', '...'], ['', '/usr/lib/pythonX.Y'],
         ['/path/to/cwd/afile.py', '__main__', ''],
-        ['python -m afile', '...']
+        ['interpreter -m afile', '...']
         )
     packedmodule = (
         ['/path/to/cwd/apkg/afile.py', '...'], ['', '/usr/lib/pythonX.Y'],
         ['/path/to/cwd/apkg/afile.py', '__main__', 'apkg'],
-        ['python -m apkg.afile', '...']
+        ['interpreter -m apkg.afile', '...']
         )
     packedmain2 = (
         ['/path/to/cwd/apkg/__main__.py', '...'], ['', '/usr/lib/pythonX.Y'],
         ['/path/to/cwd/apkg/__main__.py', 'apkg.__main__', 'apkg'],
-        ['python -m apkg', '...']
+        ['interpreter -m apkg', '...']
         )
     packedmain3 = (
         ['/path/to/cwd/apkg/__main__.py', '...'], ['', '/usr/lib/pythonX.Y'],
         ['/path/to/cwd/apkg/__main__.py', '__main__', 'apkg'],
-        ['python -m apkg', '...']
+        ['interpreter -m apkg', '...']
         )
 
     def test_bad_fakemodule(self):
-        back = runner.get_executable
-        runner.get_executable = get_executable
-        try:
-            module = BadModule('/path/to/cwd/afile.py', '__main__')
-            argv = ['afile.py', '...']
-            path = ['', '/usr/lib/pythonX.Y']
-            self.assertEqual(['afile.py', '...'],
-                             runner.fix_argv(argv, path, module))
-        finally:
-            runner.get_executable = back
+        module = BadModule('/path/to/cwd/afile.py', '__main__')
+        argv = ['afile.py', '...']
+        path = ['', '/usr/lib/pythonX.Y']
+        self.assertEqual(['afile.py', '...'],
+                         runner.fix_argv(argv, path, module, get_executable=lambda p: ''))
 
 
 class GetCliTests(unittest.TestCase):
@@ -517,16 +515,16 @@ class RunnerTests(Tests):
                 = MockModule('/path/to/cwd/afile.py', '__main__', '')
             sys.argv = ['afile.py', '...']
             sys.path = [''] + sys.path[1:]
-            runner.get_executable = get_executable
+            runner.get_executable = lambda p: 'python'
             def func(arg=1):
                 raise NotImplementedError
             out = StringIO()
             err = StringIO()
             runner.run(func, exit=False, out=out, err=err)
             self.assertFalse(out.getvalue())
-            self.assertEqual(err.getvalue(),
-                "python -m afile: Bad value for arg: '...'\n"
-                "Usage: python -m afile [arg]\n")
+            self.assertRegex(err.getvalue(),
+                ".* -m afile: Bad value for arg: '...'\n"
+                r"Usage: .* -m afile \[arg\]" "\n")
         finally:
             sys.modules = bmodules
             sys.argv = bargv
