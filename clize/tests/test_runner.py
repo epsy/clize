@@ -58,7 +58,7 @@ class GetExecutableTests(Fixtures):
                 return str(to_path(which, name))
             else:
                 return None
-        ret = runner.get_executable(path, which=which_, to_path=to_path)
+        ret = runner._get_executable(path, which=which_, to_path=to_path)
         self.assertEqual(ret, expected)
 
     none = None, None
@@ -91,15 +91,8 @@ def get_executable_verbatim(path):
 @repeated_test.with_options_matrix(platform=["anythingreally", "win32"], executable=["interpreter"], get_executable=[get_executable_verbatim])
 class FixArgvTests(Fixtures):
     def _test(self, argv, path, main, expect, *, platform, executable, get_executable):
-        def get_executable(path, default):
-            return default
-        _get_executable = runner.get_executable
-        runner.get_executable = get_executable
-        try:
-            module = MockModule(*main)
-            self.assertEqual(expect, runner.fix_argv(argv, path, module, executable=executable, platform=platform))
-        finally:
-            runner.get_executable = _get_executable
+        module = MockModule(*main)
+        self.assertEqual(expect, runner._fix_argv(argv, path, module, executable=executable, platform=platform))
 
     plainfile = (
         ['afile.py', '...'], ['/path/to/cwd', '/usr/lib/pythonX.Y'],
@@ -141,7 +134,7 @@ class FixArgvTests(Fixtures):
         argv = ['afile.py', '...']
         path = ['', '/usr/lib/pythonX.Y']
         self.assertEqual(['afile.py', '...'],
-                         runner.fix_argv(argv, path, module, get_executable=lambda p: ''))
+                         runner._fix_argv(argv, path, module, get_executable=lambda p: ''))
 
 
 class GetCliTests(unittest.TestCase):
@@ -509,13 +502,11 @@ class RunnerTests(Tests):
         bmodules = sys.modules
         bargv = sys.argv
         bpath = sys.path
-        bget_executable = runner.get_executable
         try:
             sys.modules['__main__'] \
                 = MockModule('/path/to/cwd/afile.py', '__main__', '')
             sys.argv = ['afile.py', '...']
             sys.path = [''] + sys.path[1:]
-            runner.get_executable = lambda p: 'python'
             def func(arg=1):
                 raise NotImplementedError
             out = StringIO()
@@ -529,7 +520,6 @@ class RunnerTests(Tests):
             sys.modules = bmodules
             sys.argv = bargv
             sys.path = bpath
-            runner.get_executable = bget_executable
 
     def test_run_out(self):
         bout = sys.stdout

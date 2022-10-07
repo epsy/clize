@@ -290,7 +290,7 @@ class SubcommandDispatcher(object):
         return c
 
 
-def get_executable(path, *, to_path=pathlib.PurePath, which=shutil.which) -> typing.Union[None, str]:
+def _get_executable(path, *, to_path=pathlib.PurePath, which=shutil.which) -> typing.Union[None, str]:
     """Get the shortest invocation for a given command"""
     if not path:
         return None
@@ -322,7 +322,7 @@ def main_module_name(module):
         return None
 
 
-def fix_argv(argv, sys_path, main_module, *, platform=sys.platform, executable=sys.executable, get_executable=get_executable, get_main_module_name=main_module_name):
+def _fix_argv(argv, sys_path, main_module, *, platform=sys.platform, executable=sys.executable, get_executable=_get_executable, get_main_module_name=main_module_name):
     """Tries to restore the given sys.argv to something closer to what the user would've typed"""
     if not sys_path[0]:
         name = get_main_module_name(main_module)
@@ -368,7 +368,7 @@ def run(args=None, catch=(), exit=True, out=None, err=None, *fn, **kwargs):
         # python2.7 -m apackage
         # is used
         module = sys.modules['__main__']
-        args = fix_argv(sys.argv, sys.path, module)
+        args = _fix_argv(sys.argv, sys.path, module)
     if out is None:
         out = sys.stdout
     if err is None:
