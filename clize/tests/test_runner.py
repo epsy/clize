@@ -92,7 +92,7 @@ def get_executable_verbatim(path):
 class FixArgvTests(Fixtures):
     def _test(self, argv, path, main, expect, *, platform, executable, get_executable):
         module = MockModule(*main)
-        self.assertEqual(expect, runner._fix_argv(argv, path, module, executable=executable, platform=platform))
+        self.assertEqual(expect, runner._fix_argv(argv, path, module, executable=executable, platform=platform, get_executable=get_executable))
 
     plainfile = (
         ['afile.py', '...'], ['/path/to/cwd', '/usr/lib/pythonX.Y'],

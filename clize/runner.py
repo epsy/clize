@@ -294,16 +294,12 @@ def _get_executable(path, *, to_path=pathlib.PurePath, which=shutil.which) -> ty
     """Get the shortest invocation for a given command"""
     if not path:
         return None
-    orig_path = path
     path = to_path(path)
-    if path.suffix == 'py':
-        return orig_path
     which_result = which(path.name)
     if which_result and to_path(which_result) == path:
         return path.name
     try:
         rel = path.relative_to(to_path())
-        # rel = os.path.relpath(path)
     except ValueError:
         return str(path)
     return str(rel)
