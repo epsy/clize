@@ -1,4 +1,4 @@
-from . import util
+from clize.tests import util
 
 
 class AssertLinesEqualTests(util.Fixtures):

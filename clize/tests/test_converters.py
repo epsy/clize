@@ -1,7 +1,7 @@
 # clize -- A command-line argument parser for Python
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
-
+import unittest
 from datetime import datetime
 import tempfile
 import shutil
@@ -37,13 +37,19 @@ class ConverterTests(SignatureFixtures):
         converters.datetime, '2014-01-01 12:00', datetime(2014, 1, 1, 12, 0))
 
 
+skip_if_windows = unittest.skipIf(sys.platform.startswith("win"), "Unsupported on Windows")
+
+
 class FileConverterTests(Tests):
     def setUp(self):
         self.temp = tempfile.mkdtemp()
         self.completed = False
 
     def tearDown(self):
-        shutil.rmtree(self.temp)
+        def set_writable_and_retry(func, path, excinfo):
+            os.chmod(path, stat.S_IWUSR)
+            func(path)
+        shutil.rmtree(self.temp, set_writable_and_retry)
 
     def run_conv(self, conv, path):
         sig = support.s('*, par: c', globals={'c': conv})
@@ -175,6 +181,7 @@ class FileConverterTests(Tests):
         self.assertRaises(errors.BadArgumentFormat,
                           self.run_conv, converters.file(mode='w'), path)
 
+    @skip_if_windows
     def test_noperm_dir(self):
         dpath = os.path.join(self.temp, 'adir')
         path = os.path.join(self.temp, 'adir/afile')

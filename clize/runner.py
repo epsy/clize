@@ -1,9 +1,10 @@
 # clize -- A command-line argument parser for Python
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
-
+import pathlib
 import sys
 import os
+import typing
 from functools import partial, update_wrapper
 import itertools
 import shutil
@@ -289,56 +290,49 @@ class SubcommandDispatcher(object):
         return c
 
 
-def fix_argv(argv, path, main):
-    """Properly display ``python -m`` invocations"""
-    if not path[0]:
-        try:
-            name = main_module_name(main)
-        except AttributeError:
-            pass
-        else:
-            argv = argv[:]
-            argv[0] = '{0} -m {1}'.format(
-                get_executable(sys.executable, 'python'), name)
-    else:
-        name = get_executable(argv[0], argv[0])
-        argv = argv[:]
-        argv[0] = name
-    return argv
-
-
-def get_executable(path, default):
+def _get_executable(path, *, to_path=pathlib.PurePath, which=shutil.which) -> typing.Union[None, str]:
+    """Get the shortest invocation for a given command"""
     if not path:
-        return default
-    if path.endswith('.py'):
-        return path
-    basename = os.path.basename(path)
+        return None
+    path = to_path(path)
+    which_result = which(path.name)
+    if which_result and to_path(which_result) == path:
+        return path.name
     try:
-        which = shutil.which
-    except AttributeError:
-        which = None
-    else:
-        if which(basename) == path:
-            return basename
-    try:
-        rel = os.path.relpath(path)
+        rel = path.relative_to(to_path())
     except ValueError:
-        return basename
-    if rel.startswith('../'):
-        if which is None and os.path.isabs(path):
-            return basename
-        return path
-    return rel
+        return str(path)
+    return str(rel)
 
 
 def main_module_name(module):
-    modname = os.path.splitext(os.path.basename(module.__file__))[0]
-    if modname == '__main__':
-        return module.__package__
-    elif not module.__package__:
-        return modname
+    try:
+        modname = os.path.splitext(os.path.basename(module.__file__))[0]
+        if modname == '__main__':
+            return module.__package__
+        elif not module.__package__:
+            return modname
+        else:
+            return module.__package__ + '.' + modname
+    except AttributeError:
+        return None
+
+
+def _fix_argv(argv, sys_path, main_module, *, platform=sys.platform, executable=sys.executable, get_executable=_get_executable, get_main_module_name=main_module_name):
+    """Tries to restore the given sys.argv to something closer to what the user would've typed"""
+    if not sys_path[0]:
+        name = get_main_module_name(main_module)
+        if name is not None:
+            argv = argv[:]
+            argv[0] = f'{get_executable(executable) or "python"} -m {name}'
+    elif platform.startswith("win"):
+        argv = argv[:]
+        argv[0] = f'{get_executable(executable) or "python"} {argv[0]}'
     else:
-        return module.__package__ + '.' + modname
+        name = get_executable(argv[0])
+        argv = argv[:]
+        argv[0] = name
+    return argv
 
 
 @autokwoargs
@@ -370,7 +364,7 @@ def run(args=None, catch=(), exit=True, out=None, err=None, *fn, **kwargs):
         # python2.7 -m apackage
         # is used
         module = sys.modules['__main__']
-        args = fix_argv(sys.argv, sys.path, module)
+        args = _fix_argv(sys.argv, sys.path, module)
     if out is None:
         out = sys.stdout
     if err is None:
