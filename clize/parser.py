@@ -103,6 +103,16 @@ class Parameter(object):
     Mostly only useful for ``*args`` parameters. In other cases, simply don't
     provide a default value."""
 
+    @attrs.define
+    class cli_default:
+        value: typing.Any
+        convert: bool = attrs.field(default=True, kw_only=True)
+
+        def value_after_conversion(self, converter):
+            if self.convert:
+                return converter(self.value)
+            else:
+                return self.value
 
     required = False
     """Is this parameter required?"""
@@ -315,6 +325,7 @@ class ParameterWithValue(Parameter):
     """
 
     def __init__(self, conv=identity, default=util.UNSET,
+                       cli_default=util.UNSET,
                        **kwargs):
         super(ParameterWithValue, self).__init__(**kwargs)
         self.conv = conv
@@ -323,11 +334,15 @@ class ParameterWithValue(Parameter):
         self.default = default
         """The default value used for the parameter, or `.util.UNSET` if there
         is no default value. Usually only used for displaying the help."""
+        self.cli_default = cli_default
+        """The default value used for the parameter in the CLI,
+        or `.util.UNSET` if there is no default value.
+        Converted by ``self.conv`` before insertion."""
 
     @property
     def required(self):
         """Tells if the parameter has no default value."""
-        return self.default is util.UNSET
+        return self.default is util.UNSET and self.cli_default is util.UNSET
 
     def read_argument(self, ba, i):
         """Uses `.get_value`, `.coerce_value` and `.set_value` to process
@@ -367,7 +382,10 @@ class ParameterWithValue(Parameter):
 
     def help_parens(self):
         """Shows the default value in the parameter description."""
-        if self.default is not util.UNSET and self.default is not None:
+        if self.cli_default is not util.UNSET:
+            if self.cli_default.value is not None:
+                yield 'default: ' + str(self.cli_default.value)
+        elif self.default is not util.UNSET and self.default is not None:
             yield 'default: ' + str(self.default)
 
     def post_parse(self, ba):
@@ -377,8 +395,13 @@ class ParameterWithValue(Parameter):
         except AttributeError:
             pass
         else:
-            if self.default != util.UNSET and info['convert_default']:
-                if self in ba.not_provided:
+            if self in ba.not_provided:
+                if self.cli_default is not util.UNSET:
+                    self.set_value(
+                        ba,
+                        self.cli_default.value_after_conversion(partial(self.coerce_value, ba=ba))
+                    )
+                elif self.default is not util.UNSET and info['convert_default']:
                     self.set_value(ba, self.coerce_value(self.default, ba))
 
 
@@ -594,7 +617,9 @@ class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
                 return
             else:
                 if arg is util.UNSET:
-                    if param.default != util.UNSET:
+                    if param.cli_default != util.UNSET:
+                        ba.args.append(param.cli_default.value_after_conversion(partial(self.coerce_value, ba=ba)))
+                    elif param.default != util.UNSET:
                         ba.args.append(param.default)
                     else:
                         raise ValueError(
@@ -909,6 +934,9 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
             aliases.append(alias)
             continue
         if isinstance(thing, ParameterFlag):
+            continue
+        if isinstance(thing, Parameter.cli_default):
+            kwargs['cli_default'] = thing
             continue
         raise ValueError(
             "Unknown annotation {!r}\n"
