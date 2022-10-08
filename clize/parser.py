@@ -108,6 +108,12 @@ class Parameter(object):
         value: typing.Any
         convert: bool = attrs.field(default=True, kw_only=True)
 
+        def value_after_conversion(self, converter):
+            if self.convert:
+                return converter(self.value)
+            else:
+                return self.value
+
     required = False
     """Is this parameter required?"""
 
@@ -328,7 +334,7 @@ class ParameterWithValue(Parameter):
         self.default = default
         """The default value used for the parameter, or `.util.UNSET` if there
         is no default value. Usually only used for displaying the help."""
-        self.cli_default = cli_default  # xcxc handle help
+        self.cli_default = cli_default
         """The default value used for the parameter in the CLI,
         or `.util.UNSET` if there is no default value.
         Converted by ``self.conv`` before insertion."""
@@ -393,9 +399,7 @@ class ParameterWithValue(Parameter):
                 if self.cli_default is not util.UNSET:
                     self.set_value(
                         ba,
-                        self.coerce_value(self.cli_default.value, ba)
-                        if self.cli_default.convert
-                        else self.cli_default.value
+                        self.cli_default.value_after_conversion(partial(self.coerce_value, ba=ba))
                     )
                 elif self.default is not util.UNSET and info['convert_default']:
                     self.set_value(ba, self.coerce_value(self.default, ba))
@@ -613,7 +617,9 @@ class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
                 return
             else:
                 if arg is util.UNSET:
-                    if param.default != util.UNSET:
+                    if param.cli_default != util.UNSET:
+                        ba.args.append(param.cli_default.value_after_conversion(partial(self.coerce_value, ba=ba)))
+                    elif param.default != util.UNSET:
                         ba.args.append(param.default)
                     else:
                         raise ValueError(

@@ -534,6 +534,14 @@ class SigTests(SignatureFixtures):
         param.set_value(ba, 'inserted')
         self.assertEqual(ba.args, ['one', 'inserted'])
 
+    def test_posparam_set_value_after_cli_default(self):
+        param = parser.PositionalParameter(argument_name='two', display_name='two', default="two")
+        sig = support.s('one: ann1 = "src_default", two:ann2="two"', globals={'ann1': Parameter.cli_default("one"), 'ann2': param})
+        csig = parser.CliSignature.from_signature(sig)
+        ba = parser.CliBoundArguments(csig, [], 'func', args=[])
+        param.set_value(ba, 'inserted')
+        self.assertEqual(ba.args, ['one', 'inserted'])
+
     def test_posparam_set_value_after_missing(self):
         param = parser.PositionalParameter(argument_name='two', display_name='two')
         sig = support.s('one, two:par', globals={'par': param})
@@ -601,6 +609,10 @@ class SigTests(SignatureFixtures):
         'par: ann = "default"',
         ann=(conv_not_default, Parameter.cli_default(None, convert=False))
     ), "[par]", (), [None], {})
+
+    cli_default_after_pos = (s(
+        'first="otherdefault", par:conv="src_default"', conv=Parameter.cli_default("default")
+    ), "[first] [par]", (), ["otherdefault", "default"], {})
 
 
 class ExtraParamsTests(Fixtures):
