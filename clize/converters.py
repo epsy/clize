@@ -1,10 +1,11 @@
 # clize -- A command-line argument parser for Python
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
-
+import contextlib
 import sys
 import io
 import os
+import warnings
 from functools import partial
 
 from sigtools.modifiers import autokwoargs
@@ -67,51 +68,53 @@ class _FileOpener(object):
         if self.arg != self.stdio or not self.keep_stdio_open:
             self.f.close()
 
-def _none_guard(cls, maybe_none, *args, **kwargs):
-    if maybe_none is None:
-        return None
-    else:
-        return cls(maybe_none, *args, **kwargs)
+
+@contextlib.contextmanager
+def _silence_convert_default_warning():
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", "The convert_default parameter of value_converter", DeprecationWarning, r"clize\..*")
+        yield
 
 
-@parser.value_converter(name='FILE', convert_default=True)
-@autokwoargs(exceptions=['arg'])
-def file(arg=util.UNSET, stdio='-', keep_stdio_open=False, **kwargs):
-    """Takes a file argument and provides a Python object that opens a file
+with _silence_convert_default_warning():
+    @parser.value_converter(name='FILE', convert_default=True)
+    @autokwoargs(exceptions=['arg'])
+    def file(arg=util.UNSET, stdio='-', keep_stdio_open=False, **kwargs):
+        """Takes a file argument and provides a Python object that opens a file
 
-    ::
+        ::
 
-        def main(in_: file(), out: file(mode='w')):
-            with in_ as infile, out as outfile:
-                outfile.write(infile.read())
+            def main(in_: file(), out: file(mode='w')):
+                with in_ as infile, out as outfile:
+                    outfile.write(infile.read())
 
-    :param stdio: If this value is passed as argument, it will be interpreted
-        as *stdin* or *stdout* depending on the ``mode`` parameter supplied.
-    :param keep_stdio_open: If true, does not close the file if it is *stdin*
-        or *stdout*.
+        :param stdio: If this value is passed as argument, it will be interpreted
+            as *stdin* or *stdout* depending on the ``mode`` parameter supplied.
+        :param keep_stdio_open: If true, does not close the file if it is *stdin*
+            or *stdout*.
 
-    Other arguments will be relayed to `io.open`.
+        Other arguments will be relayed to `io.open`.
 
-    This converter also opens the file or stream designated by the default
-    value::
+        You can specify a default file name using `clize.Parameter.cli_default`::
 
-        def main(inf: file()='-'):
-            with inf as f:
-                print(f)
+            def main(inf: (file(), Parameter.cli_default("-"))):
+                with inf as f:
+                    print(f)
 
-    .. code-block:: console
+        .. code-block:: console
 
-        $ python3 ./main.py
-        <_io.TextIOWrapper name='<stdin>' mode='r' encoding='UTF-8'>
+            $ python3 ./main.py
+            <_io.TextIOWrapper name='<stdin>' mode='r' encoding='UTF-8'>
 
 
-    """
-    if arg is not util.UNSET:
-        return _none_guard(_FileOpener, arg, kwargs, stdio, keep_stdio_open)
-    return parser.value_converter(
-        partial(_none_guard, _FileOpener, kwargs=kwargs,
-                stdio=stdio, keep_stdio_open=keep_stdio_open),
-        name='FILE', convert_default=True)
+        """
+        if arg is not util.UNSET:
+            return _FileOpener(arg, kwargs, stdio, keep_stdio_open)
+        with _silence_convert_default_warning():
+            return parser.value_converter(
+                partial(_FileOpener, kwargs=kwargs,
+                        stdio=stdio, keep_stdio_open=keep_stdio_open),
+                name='FILE', convert_default=True)
 
 
 def _convert_ioerror(arg, exc):

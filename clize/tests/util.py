@@ -51,6 +51,16 @@ class Tests(unittest.TestCase):
             (line.rstrip() for line in actual.split('\n'))))
         self.assertEqual(exp_split, act_split)
 
+    @contextmanager
+    def maybe_expect_warning(self, maybe_warning):
+        if maybe_warning is not None:
+            with self.assertWarns(maybe_warning) as warn_context:
+                yield warn_context
+        else:
+            yield None
+
+
+
 
 support_s_without_annotations_feature = repeated_test.NamedAlternative("no __future__ features", support.s)
 @repeated_test.NamedAlternative("with __future__.annotations")
