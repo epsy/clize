@@ -12,7 +12,7 @@ import repeated_test
 from repeated_test import evaluated
 from sigtools import support, modifiers, specifiers
 
-from clize import parser, errors, util, Clize
+from clize import parser, errors, util, Clize, Parameter
 from clize.tests.util import Fixtures, SignatureFixtures
 
 
@@ -47,7 +47,7 @@ def s(sig_str, **inject):
     def evaluate_sig(self, *, make_signature, **_):
         pre_code = (
             "import pathlib;"
-            "from clize import Clize, Parameter;"
+            "from clize import *;"
             "import typing;"
             "P = Parameter;"
         )
@@ -338,6 +338,26 @@ class FromSigTests(SignatureFixtures):
                 parser.CliSignature.convert_parameter(param)
 
 
+class ParamHelpTests(SignatureFixtures):
+    def _test(self, sig, expected, *, make_signature, desc="ds"):
+        param = list(sig.parameters.values())[0]
+        cparam = parser.CliSignature.convert_parameter(param)
+        f = util.Formatter()
+        with f.columns(indent=2) as cols:
+            actual = cparam.show_help(desc, (), util.Formatter(), cols)
+        self.assertEqual(actual, expected)
+
+    plain_param = s("param"), ("param", "ds")
+    param_default = s("param = 4"), ("param", "ds (type: INT, default: 4)")
+    param_cli_default = s("param: ann", ann=Parameter.cli_default('5')), ("param", "ds (default: 5)")
+    param_cli_default_overrides_default = s("param: ann = '2'", ann=Parameter.cli_default('5')), ("param", "ds (default: 5)")
+
+
+@parser.value_converter()
+def conv_not_default(arg):
+    return f'converted:{arg}'
+
+
 class SigTests(SignatureFixtures):
     def _test(self, sig, str_rep, args, posargs, kwargs, *, make_signature):
         csig = parser.CliSignature.from_signature(sig)
@@ -561,6 +581,21 @@ class SigTests(SignatureFixtures):
         sig = make_signature('first="otherdefault", par:conv="default"', globals={'conv': conv})
         return (sig, '[first] [par]', (), ['otherdefault', 'converted'], {})
 
+    vconverted_convert_cli_default_no_src_default = (s(
+        'par: ann',
+        ann=(conv_not_default, Parameter.cli_default("cli_default"))
+    ), "[par]", (), ["converted:cli_default"], {})
+
+    vconverted_convert_cli_default_src_default = (s(
+        'par: ann = "default"',
+        ann=(conv_not_default, Parameter.cli_default("cli_default"))
+    ), "[par]", (), ["converted:cli_default"], {})
+
+    vconverted_dont_convert_cli_default = (s(
+        'par: ann = "default"',
+        ann=(conv_not_default, Parameter.cli_default("cli_default", convert=False))
+    ), "[par]", (), ["cli_default"], {})
+
 
 class ExtraParamsTests(Fixtures):
     def _test(self, sig_str, extra, args, posargs, kwargs, func):
@@ -639,7 +674,6 @@ class ExtraParamsTests(Fixtures):
         param.extras = extra_params
         csig = parser.CliSignature([param])
         self.assertEqual('[-a] [-b] [-c] one', str(csig))
-
 
 
 class SigErrorTests(Fixtures):
