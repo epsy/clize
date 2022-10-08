@@ -351,6 +351,7 @@ class ParamHelpTests(SignatureFixtures):
     param_default = s("param = 4"), ("param", "ds (type: INT, default: 4)")
     param_cli_default = s("param: ann", ann=Parameter.cli_default('5')), ("param", "ds (default: 5)")
     param_cli_default_overrides_default = s("param: ann = '2'", ann=Parameter.cli_default('5')), ("param", "ds (default: 5)")
+    param_cli_default_none = s("param: ann = '2'", ann=Parameter.cli_default(None, convert=False)), ("param", "ds")
 
 
 @parser.value_converter()
@@ -581,20 +582,25 @@ class SigTests(SignatureFixtures):
         sig = make_signature('first="otherdefault", par:conv="default"', globals={'conv': conv})
         return (sig, '[first] [par]', (), ['otherdefault', 'converted'], {})
 
-    vconverted_convert_cli_default_no_src_default = (s(
+    cli_default_no_src_default = (s(
         'par: ann',
         ann=(conv_not_default, Parameter.cli_default("cli_default"))
     ), "[par]", (), ["converted:cli_default"], {})
 
-    vconverted_convert_cli_default_src_default = (s(
+    cli_default_src_default = (s(
         'par: ann = "default"',
         ann=(conv_not_default, Parameter.cli_default("cli_default"))
     ), "[par]", (), ["converted:cli_default"], {})
 
-    vconverted_dont_convert_cli_default = (s(
+    cli_default_dont_convert = (s(
         'par: ann = "default"',
         ann=(conv_not_default, Parameter.cli_default("cli_default", convert=False))
     ), "[par]", (), ["cli_default"], {})
+
+    cli_default_none = (s(
+        'par: ann = "default"',
+        ann=(conv_not_default, Parameter.cli_default(None, convert=False))
+    ), "[par]", (), [None], {})
 
 
 class ExtraParamsTests(Fixtures):
