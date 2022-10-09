@@ -232,8 +232,7 @@ class HelperParameter(Parameter):
             display_name='<internal>', **kwargs)
 
 
-@modifiers.kwoargs(start='name')
-def value_converter(func=None, name=None, convert_default=False):
+def value_converter(func=None, *, name=None, convert_default=None, convert_default_filter=lambda s: isinstance(s, str)):
     """Callables decorated with this can be used as a value converter.
 
     :param str name: Use this name to designate the parameter value type.
@@ -244,18 +243,31 @@ def value_converter(func=None, name=None, convert_default=False):
         The default is the name of the decorated function or type, modified to
         follow this rule.
 
-    :param bool convert_default: If true, the value converter will be called
+    :param bool convert_default: *Deprecated*: use the `Parameter.cli_default()` annotation instead.
+
+        If true, the value converter will be called
         with the default parameter value if none was supplied. Otherwise, the
         default parameter is used as-is.
 
         Make sure to handle `None` appropriately if you override this.
 
+    :param function convert_convert_default_filter: *Deprecated* Avoid ``convert_default`` completely.
+
+        If ``convert_default`` is true, controls when the converter is called.
+        The converter is used only if the given function returns true.
+
     See :ref:`value converter`.
     """
+    if convert_default is not None:
+        warnings.warn("The convert_default parameter of value_converter is deprecated.  "
+                      "Direct users to use clize.Parameter.cli_default() instead.",
+                      DeprecationWarning,
+                      stacklevel=2)
     def decorate(func):
         info = {
             'name': util.name_type2cli(func) if name is None else name,
             'convert_default': convert_default,
+            'convert_default_filter': convert_default_filter,
         }
         try:
             func._clize__value_converter = info
@@ -390,19 +402,30 @@ class ParameterWithValue(Parameter):
 
     def post_parse(self, ba):
         super(ParameterWithValue, self).post_parse(ba)
-        try:
-            info = self.conv._clize__value_converter
-        except AttributeError:
-            pass
-        else:
-            if self in ba.not_provided:
-                if self.cli_default is not util.UNSET:
-                    self.set_value(
-                        ba,
-                        self.cli_default.value_after_conversion(partial(self.coerce_value, ba=ba))
-                    )
-                elif self.default is not util.UNSET and info['convert_default']:
-                    self.set_value(ba, self.coerce_value(self.default, ba))
+        if self in ba.not_provided:
+            default_value = self.default_value_if_non_source_default(ba)
+            if default_value is not util.UNSET:
+                self.set_value(ba, default_value)
+
+    def default_value_if_non_source_default(self, ba):
+        if self.cli_default is not util.UNSET:
+            return self.cli_default.value_after_conversion(partial(self.coerce_value, ba=ba))
+        if self.default is not util.UNSET:
+            try:
+                info = self.conv._clize__value_converter
+            except AttributeError:
+                pass
+            else:
+                if info['convert_default'] and info['convert_default_filter'](self.default):
+                    return self.conv(self.default)
+        return util.UNSET
+
+    def default_value(self, ba):
+        converted_default = self.default_value_if_non_source_default(ba)
+        if converted_default is not util.UNSET:
+            return converted_default
+        return self.default
+
 
 
 class NamedParameter(Parameter):
@@ -617,10 +640,10 @@ class PositionalParameter(ParameterWithValue, ParameterWithSourceEquivalent):
                 return
             else:
                 if arg is util.UNSET:
-                    if param.cli_default != util.UNSET:
-                        ba.args.append(param.cli_default.value_after_conversion(partial(self.coerce_value, ba=ba)))
-                    elif param.default != util.UNSET:
-                        ba.args.append(param.default)
+                    default_value = param.default_value(ba)
+                    if default_value is not util.UNSET:
+                        ba.args.append(default_value)
+                        # ba.args.append(param.cli_default.value_after_conversion(partial(self.coerce_value, ba=ba)))
                     else:
                         raise ValueError(
                             "Can't set parameters after required parameters")
@@ -966,6 +989,24 @@ def _use_class(pos_cls, varargs_cls, named_cls, varkwargs_cls, kwargs,
             "convert the value, make sure it is decorated "
             "with clize.parser.value_converter()"
         )
+
+    if kwargs['default'] is not util.UNSET:
+        try:
+            info = getattr(kwargs['conv'], "_clize__value_converter")
+        except AttributeError:
+            pass
+        else:
+            if info["convert_default"] and info["convert_default_filter"](kwargs["default"]):
+                warnings.warn(
+                    f"For parameter '{param.name}':  "
+                    "Default argument conversion is deprecated.  "
+                    "Instead, please use clize.Parameter.cli_default(value) "
+                    "when you need a default value that "
+                    "is converted the same way as a value passed in from the command line, "
+                    "as opposed to values passed in from calling the function in Python, "
+                    "which aren't converted by Clize.",
+                    DeprecationWarning
+                )
 
     if named:
         kwargs['aliases'] = aliases

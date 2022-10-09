@@ -1,10 +1,12 @@
 # clize -- A command-line argument parser for Python
 # Copyright (C) 2011-2016 by Yann Kaiser and contributors. See AUTHORS and
 # COPYING for details.
+import contextlib
 import pathlib
 import sys
 import os
 import typing
+import warnings
 from functools import partial, update_wrapper
 import itertools
 import shutil
@@ -213,13 +215,32 @@ class Clize(object):
     @util.property_once
     def signature(self):
         """The `.parser.CliSignature` object used to parse arguments."""
-        return parser.CliSignature.from_signature(
-            self.func_signature,
-            extra=itertools.chain(self._process_alt(self.alt), self.extra))
+        extra = itertools.chain(self._process_alt(self.alt), self.extra)
+        with self._move_warnings_to_func():
+            return parser.CliSignature.from_signature(
+                self.func_signature,
+                extra=extra)
 
     @util.property_once
     def func_signature(self):
         return signature(self.func)
+
+    @contextlib.contextmanager
+    def _move_warnings_to_func(self):
+        try:
+            code = self.func.__code__
+            filename = code.co_filename
+            lineno = code.co_firstlineno
+            module = self.func.__module__
+            module_globals = self.func.__globals__
+        except AttributeError:
+            yield
+        else:
+            with warnings.catch_warnings(record=True) as caught_warnings:
+                yield
+            for warning in caught_warnings:
+                registry = module_globals.setdefault("__warningregistry__", {})
+                warnings.warn_explicit(warning.message, warning.category, filename, lineno, module, registry, module_globals)
 
     def _process_alt(self, alt):
         if self.help_names:

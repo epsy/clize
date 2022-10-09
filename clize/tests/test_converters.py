@@ -12,7 +12,7 @@ from io import StringIO
 
 from sigtools import support, modifiers
 
-from clize import parser, errors, converters
+from clize import parser, errors, converters, Parameter
 from clize.tests.util import Fixtures, SignatureFixtures, Tests
 
 
@@ -149,11 +149,25 @@ class FileConverterTests(Tests):
             self.assertFalse(stderr.getvalue())
         self.assertTrue(self.completed)
 
-    def test_default_value(self):
+    def test_deprecated_default_value(self):
         path = os.path.join(self.temp, 'default')
         open(path, 'w').close()
-        @modifiers.annotate(afile=converters.file())
-        def func(afile=path):
+        def func(afile: converters.file()=path):
+            with afile as f:
+                self.assertEqual(f.name, path)
+                self.assertEqual(f.mode, 'r')
+            self.assertTrue(f.closed)
+            self.completed = True
+        with self.assertWarns(DeprecationWarning):
+            stdout, stderr = self.crun(func, ['test'])
+        self.assertFalse(stdout.getvalue())
+        self.assertFalse(stderr.getvalue())
+        self.assertTrue(self.completed)
+
+    def test_cli_default_value(self):
+        path = os.path.join(self.temp, 'default')
+        open(path, 'w').close()
+        def func(afile: (converters.file(), Parameter.cli_default(path))):
             with afile as f:
                 self.assertEqual(f.name, path)
                 self.assertEqual(f.mode, 'r')
@@ -165,8 +179,7 @@ class FileConverterTests(Tests):
         self.assertTrue(self.completed)
 
     def test_default_none_value(self):
-        @modifiers.annotate(afile=converters.file())
-        def func(afile=None):
+        def func(afile: converters.file() = None):
             self.assertIs(afile, None)
             self.completed = True
         stdout, stderr = self.crun(func, ['test'])

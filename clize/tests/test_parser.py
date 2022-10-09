@@ -9,7 +9,7 @@ import typing
 import warnings
 
 import repeated_test
-from repeated_test import evaluated
+from repeated_test import evaluated, options
 from sigtools import support, modifiers, specifiers
 
 from clize import parser, errors, util, Clize, Parameter
@@ -360,9 +360,11 @@ def conv_not_default(arg):
 
 
 class SigTests(SignatureFixtures):
-    def _test(self, sig, str_rep, args, posargs, kwargs, *, make_signature):
-        csig = parser.CliSignature.from_signature(sig)
-        ba = self.read_arguments(csig, args)
+    def _test(self, sig, str_rep, args, posargs, kwargs, *, make_signature, conversion_warning=None, parsing_warning=None):
+        with self.maybe_expect_warning(conversion_warning):
+            csig = parser.CliSignature.from_signature(sig)
+        with self.maybe_expect_warning(parsing_warning):
+            ba = self.read_arguments(csig, args)
         self.assertEqual(str(csig), str_rep)
         self.assertEqual(ba.args, posargs)
         self.assertEqual(ba.kwargs, kwargs)
@@ -560,35 +562,39 @@ class SigTests(SignatureFixtures):
 
     @evaluated
     def vconverter_convert_value_equals(self, *, make_signature):
-        @parser.value_converter(convert_default=True)
-        def conv(arg):
-            return 'c{}c'.format(arg)
+        with self.assertWarns(DeprecationWarning):
+            @parser.value_converter(convert_default=True)
+            def conv(arg):
+                return 'c{}c'.format(arg)
         sig = make_signature('*, par:conv="default"', globals={'conv': conv})
-        return (sig, '[--par=CONV]', ('--par=A',), [], {'par': 'cAc'})
+        return (sig, '[--par=CONV]', ('--par=A',), [], {'par': 'cAc'}, options(conversion_warning=DeprecationWarning))
 
     @evaluated
     def vconverter_convert_value_spaced(self, *, make_signature):
-        @parser.value_converter(convert_default=True)
-        def conv(arg):
-            return 'c{}c'.format(arg)
+        with self.assertWarns(DeprecationWarning):
+            @parser.value_converter(convert_default=True)
+            def conv(arg):
+                return 'c{}c'.format(arg)
         sig = make_signature('*, par:conv="default"', globals={'conv': conv})
-        return (sig, '[--par=CONV]', ('--par', 'A',), [], {'par': 'cAc'})
+        return (sig, '[--par=CONV]', ('--par', 'A',), [], {'par': 'cAc'}, options(conversion_warning=DeprecationWarning))
 
     @evaluated
     def vconverter_convert_default(self, *, make_signature):
-        @parser.value_converter(convert_default=True)
-        def conv(arg):
-            return 'converted'
+        with self.assertWarns(DeprecationWarning):
+            @parser.value_converter(convert_default=True)
+            def conv(arg):
+                return 'converted'
         sig = make_signature('*, par:conv="default"', globals={'conv': conv})
-        return (sig, '[--par=CONV]', (), [], {'par': 'converted'})
+        return (sig, '[--par=CONV]', (), [], {'par': 'converted'}, options(conversion_warning=DeprecationWarning))
 
     @evaluated
     def vconverter_convert_default_after_pos(self, *, make_signature):
-        @parser.value_converter(convert_default=True)
-        def conv(arg):
-            return 'converted'
+        with self.assertWarns(DeprecationWarning):
+            @parser.value_converter(convert_default=True)
+            def conv(arg):
+                return 'converted'
         sig = make_signature('first="otherdefault", par:conv="default"', globals={'conv': conv})
-        return (sig, '[first] [par]', (), ['otherdefault', 'converted'], {})
+        return (sig, '[first] [par]', (), ['otherdefault', 'converted'], {}, options(conversion_warning=DeprecationWarning))
 
     cli_default_no_src_default = (s(
         'par: ann',
@@ -613,6 +619,11 @@ class SigTests(SignatureFixtures):
     cli_default_after_pos = (s(
         'first="otherdefault", par:conv="src_default"', conv=Parameter.cli_default("default")
     ), "[first] [par]", (), ["otherdefault", "default"], {})
+
+    cli_default_for_default_converter = (s(
+        'par: ann',
+        ann=(int, Parameter.cli_default("1234")),
+    ), "[par]", (), [1234], {})
 
 
 class ExtraParamsTests(Fixtures):
