@@ -76,8 +76,12 @@ def _silence_convert_default_warning():
         yield
 
 
+def _conversion_filter(arg):
+    return isinstance(arg, str)
+
+
 with _silence_convert_default_warning():
-    @parser.value_converter(name='FILE', convert_default=True)
+    @parser.value_converter(name='FILE', convert_default=True, convert_default_filter=_conversion_filter)
     @autokwoargs(exceptions=['arg'])
     def file(arg=util.UNSET, stdio='-', keep_stdio_open=False, **kwargs):
         """Takes a file argument and provides a Python object that opens a file
@@ -114,7 +118,7 @@ with _silence_convert_default_warning():
             return parser.value_converter(
                 partial(_FileOpener, kwargs=kwargs,
                         stdio=stdio, keep_stdio_open=keep_stdio_open),
-                name='FILE', convert_default=True)
+                name='FILE', convert_default=True, convert_default_filter=_conversion_filter)
 
 
 def _convert_ioerror(arg, exc):
