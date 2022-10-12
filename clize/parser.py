@@ -232,7 +232,7 @@ class HelperParameter(Parameter):
             display_name='<internal>', **kwargs)
 
 
-def value_converter(func=None, *, name=None, convert_default=None, convert_default_filter=lambda s: isinstance(s, str)):
+def value_converter(func=None, *, name=None, convert_default=None, convert_default_filter=lambda s: True):
     """Callables decorated with this can be used as a value converter.
 
     :param str name: Use this name to designate the parameter value type.
