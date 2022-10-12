@@ -243,7 +243,7 @@ def value_converter(func=None, *, name=None, convert_default=None, convert_defau
         The default is the name of the decorated function or type, modified to
         follow this rule.
 
-    :param bool convert_default: *Deprecated*: use the `Parameter.cli_default()` annotation instead.
+    :param bool convert_default:
 
         If true, the value converter will be called
         with the default parameter value if none was supplied. Otherwise, the
@@ -251,10 +251,20 @@ def value_converter(func=None, *, name=None, convert_default=None, convert_defau
 
         Make sure to handle `None` appropriately if you override this.
 
-    :param function convert_convert_default_filter: *Deprecated* Avoid ``convert_default`` completely.
+        .. deprecated:: 5.0
+
+            Instruct users to
+            use the `clize.Parameter.cli_default` annotation instead
+            to supply values that are converted by a CLI value converter.
+
+    :param function convert_convert_default_filter:
 
         If ``convert_default`` is true, controls when the converter is called.
         The converter is used only if the given function returns true.
+
+        .. deprecated:: 5.0
+
+            Avoid ``convert_default`` completely.
 
     See :ref:`value converter`.
     """
