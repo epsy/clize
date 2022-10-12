@@ -1,5 +1,3 @@
-.. currentmodule:: clize.parser
-
 .. |colon| replace:: colon |nbsp| (``:``)
 
 .. _reference:
@@ -141,6 +139,33 @@ does not handle strings, unless you specify a converter::
     >>> run(func, exit=False, args=['func', '1/1/2016'])
     2016-01-01 00:00:00
 
+
+.. index:: CLI default value
+.. index:: converted default value
+
+.. _converted default value:
+.. _cli default value:
+
+Specifying a default value that is converted and only used in the CLI
+.....................................................................
+
+.. py:function:: clize.Parameter.cli_default(value, *, convert=True)
+
+    Annotate a parameter with this to have Clize supply a default value,
+    even if there wouldn't be a default value when calling the function normally from Python.
+
+    Unless ``convert`` is ``False``, the value provided will be converted by clize.
+
+    ::
+
+        >>> from clize import run, Parameter
+        >>> def func(par: Parameter.cli_default("4") = 3):
+        ...     return par
+        ...
+        >>> func()
+        3
+        >>> run(func, exit=False, args=['func'])
+        4
 
 .. _force required:
 
@@ -518,7 +543,7 @@ Callables decorated with `clize.parser.parameter_converter` are used
 instead of the :ref:`default converter <default-converter>` to construct a
 CLI parameter for the annotated Python parameter.
 
-The callable can return a `Parameter` instance or `Parameter.IGNORE <clize.Parameter.IGNORE>` to
+The callable can return a `clize.Parameter` instance or `.Parameter.IGNORE` to
 instruct clize to drop the parameter.
 
 ::
@@ -551,48 +576,9 @@ conventions than those described in this reference.
 Parameter instances
 ...................
 
-A `Parameter` instance seen in an annotation will be used to represent that
+A `.Parameter` instance seen in an annotation will be used to represent that
 parameter on the CLI, without any further processing. Using a :ref:`parameter
 converter<parameter converters>` is recommended over this.
-
-
-.. _skip param:
-
-Skipping parameters
-...................
-
-.. autoattribute:: clize.Parameter.IGNORE
-
-    Note that it is dangerous to use this on anything except:
-
-    * On ``*args`` and ``**kwargs``-like parameters,
-    * On keyword parameters with defaults.
-
-    For instance, clize's default converter does not handle ``**kwargs``::
-
-        >>> from clize import run, Parameter
-        >>> def fail(**kwargs):
-        ...     pass
-        ...
-        >>> run(fail, exit=False)
-        Traceback (most recent call last):
-          ...
-        ValueError: This converter cannot convert parameter 'kwargs'.
-
-    However, if we decorate that parameter with `Parameter.IGNORE`, clize
-    ignores it::
-
-        >>> def func(**kwargs:Parameter.IGNORE):
-        ...     pass
-        ...
-        >>> run(func, exit=False)
-        >>> run(func, exit=False, args=['func', '--help'])
-        Usage: func
-
-        Other actions:
-          -h, --help   Show the help
-
-    .. x** fix syntax highlight
 
 
 .. _skip help:
@@ -717,3 +703,47 @@ Inserting arbitrary values
         $ python ins.py eggs
         arg: eggs
         ans: 42
+
+
+.. _skip param:
+
+Skipping parameters
+...................
+
+.. autoattribute:: clize.Parameter.IGNORE
+
+    Note that it is dangerous to use this on anything except:
+
+    * On ``*args`` and ``**kwargs``-like parameters,
+    * On keyword parameters with defaults.
+
+    For instance, clize's default converter does not handle ``**kwargs``::
+
+        >>> from clize import run, Parameter
+        >>> def fail(**kwargs):
+        ...     pass
+        ...
+        >>> run(fail, exit=False)
+        Traceback (most recent call last):
+          ...
+        ValueError: This converter cannot convert parameter 'kwargs'.
+
+    However, if we decorate that parameter with `Parameter.IGNORE`, clize
+    ignores it::
+
+        >>> def func(**kwargs:Parameter.IGNORE):
+        ...     pass
+        ...
+        >>> run(func, exit=False)
+        >>> run(func, exit=False, args=['func', '--help'])
+        Usage: func
+
+        Other actions:
+          -h, --help   Show the help
+
+    If you want Clize to insert a specific value for a parameter,
+    use `clize.parameters.value_inserter`.
+
+    .. x** fix syntax highlight
+
+

@@ -32,7 +32,7 @@ Parser
 .. autoclass:: CliBoundArguments
     :no-undoc-members:
 
-.. autoclass:: Parameter
+.. autoclass:: clize.Parameter
    :show-inheritance:
    :exclude-members: L, I, U, R
 
