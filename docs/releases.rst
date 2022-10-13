@@ -5,6 +5,44 @@
 Release notes
 =============
 
+.. _v5.0:
+.. _v5.0.0:
+
+5.0.0 (2022-10-13)
+------------------
+
+Breaking changes:
+
+* `bytes` annotation (converter) now re-encodes the corresponding parameter back to bytes
+
+Deprecations:
+
+* The ``convert_default`` argument to `~clize.parser.value_converter` is now deprecated.
+  `Parameter.cli_default` is the recommended replacement.
+  To help transition, a new ``convert_default_filter`` option has been added to `~clize.parser.value_converter`,
+  which allows converter authors to filter which values are selected for default conversion,
+  thereby not incurring a deprecation warning for the user.
+
+Updated compatibility:
+
+* Dropped support for Python 2.7, Python 3.5.
+* Verified support for Python 3.10+
+* Compatibility with Docutils 0.21+
+* Improved path support for Windows
+
+Improvements:
+
+* Automatically group identical subcommands as aliases
+* Evaluate deferred annotations from :pep:`563`
+* Basic support for `typing.Annotated`
+* `Parameter.cli_default` allows script writers to specify a default value
+  that will be converted like an argument passed in from the CLI,
+  but not supplied when the function is called from Python.
+
+Process updates:
+
+* Updated Continuous Integration and Delivery to speed up releases and move off of deprecated CI platform.
+
 .. _v4.2:
 
 .. _v4.2.1:
