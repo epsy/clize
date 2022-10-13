@@ -43,7 +43,7 @@ automatically install the right dependencies for you.
 If you still need the list, Clize always requires:
 
 * `sigtools <https://pypi.org/pypi/sigtools/>`_:
-  Utilities to help manipulate function sigatures.
+  Utilities to help manipulate function signatures.
 * `od <https://pypi.org/project/od/>`_: Shorthand for OrderedDict.
 * `attrs <https://pypi.org/project/attrs>`_: Classes without boilerplate.
 * `docutils <https://pypi.org/project/docutils>`_: To parse docstrings.
