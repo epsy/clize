@@ -17,7 +17,7 @@ on:
 
 jobs:
   python-ci:
-    uses: epsy/python-workflows/.github/workflows/python-ci.yaml@ykaiser/python3.6
+    uses: epsy/python-workflows/.github/workflows/python-ci.yaml@ykaiser/python-3.6
     with:
       package-folder: clize
   python-windows-ci:
