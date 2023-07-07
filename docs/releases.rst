@@ -5,6 +5,13 @@
 Release notes
 =============
 
+.. _v5.0.1:
+
+5.0.1 (2023-07-06)
+------------------
+
+* Fixed ``run(..., alt={...})`` not working correctly with dicts
+
 .. _v5.0:
 .. _v5.0.0:
 

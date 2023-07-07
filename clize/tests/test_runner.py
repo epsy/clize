@@ -491,6 +491,32 @@ class RunnerTests(Tests):
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '2\n')
 
+    def test_alt_list(self):
+        def base(): return '0'
+        def func1(): return '1'
+        def func2(): return '2'
+        alt = [func1, func2]
+        self.crun(base, alt=alt, args=['test'])
+        stdout, stderr = self.crun(base, alt=alt, args=['test', '--func1'])
+        self.assertFalse(stderr.getvalue())
+        self.assertEqual(stdout.getvalue(), '1\n')
+        stdout, stderr = self.crun(base, alt=alt, args=['test', '--func2'])
+        self.assertFalse(stderr.getvalue())
+        self.assertEqual(stdout.getvalue(), '2\n')
+
+    def test_alt_dict(self):
+        def base(): return '0'
+        def func1(): return '1'
+        def func2(): return '2'
+        alt = {'1': func1, '2': func2}
+        self.crun(base, alt=alt, args=['test'])
+        stdout, stderr = self.crun(base, alt=alt, args=['test', '-1'])
+        self.assertFalse(stderr.getvalue())
+        self.assertEqual(stdout.getvalue(), '1\n')
+        stdout, stderr = self.crun(base, alt=alt, args=['test', '-2'])
+        self.assertFalse(stderr.getvalue())
+        self.assertEqual(stdout.getvalue(), '2\n')
+
     def test_disable_help(self):
         def func1(): raise NotImplementedError
         stdout, stderr = self.crun(
