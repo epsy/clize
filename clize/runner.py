@@ -78,7 +78,7 @@ class Clize(object):
         update_wrapper(self, fn)
         self.func = fn
         self.owner = owner
-        self.alt = util.maybe_iter(alt)
+        self.alt = util.dict_from_names(alt)
         self.extra = extra
         self.help_names = help_names
         self.help_aliases = [util.name_py2cli(s, kw=True) for s in help_names]
@@ -103,7 +103,7 @@ class Clize(object):
         return (
             self.func,
             self.owner,
-            tuple(self.alt),
+            tuple(self.alt.items()),
             tuple(self.extra),
             tuple(self.help_names),
             tuple(self.help_aliases),
@@ -215,7 +215,7 @@ class Clize(object):
     @util.property_once
     def signature(self):
         """The `.parser.CliSignature` object used to parse arguments."""
-        extra = itertools.chain(self._process_alt(self.alt), self.extra)
+        extra = itertools.chain(self._process_alt(), self.extra)
         with self._move_warnings_to_func():
             return parser.CliSignature.from_signature(
                 self.func_signature,
@@ -242,14 +242,14 @@ class Clize(object):
                 registry = module_globals.setdefault("__warningregistry__", {})
                 warnings.warn_explicit(warning.message, warning.category, filename, lineno, module, registry, module_globals)
 
-    def _process_alt(self, alt):
+    def _process_alt(self):
         if self.help_names:
             p = parser.FallbackCommandParameter(
                 func=self.helper.cli, undocumented=self.hide_help,
                 aliases=self.help_aliases)
             yield p
 
-        for name, func in util.dict_from_names(alt).items():
+        for name, func in self.alt.items():
             func = self.get_cli(func)
             param = parser.AlternateCommandParameter(
                 undocumented=False, func=func,
