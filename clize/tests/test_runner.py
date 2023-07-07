@@ -496,6 +496,7 @@ class RunnerTests(Tests):
         def func1(): return '1'
         def func2(): return '2'
         alt = [func1, func2]
+        self.crun(base, alt=alt, args=['test'])
         stdout, stderr = self.crun(base, alt=alt, args=['test', '--func1'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '1\n')
@@ -508,6 +509,7 @@ class RunnerTests(Tests):
         def func1(): return '1'
         def func2(): return '2'
         alt = {'1': func1, '2': func2}
+        self.crun(base, alt=alt, args=['test'])
         stdout, stderr = self.crun(base, alt=alt, args=['test', '-1'])
         self.assertFalse(stderr.getvalue())
         self.assertEqual(stdout.getvalue(), '1\n')
