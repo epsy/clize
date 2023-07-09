@@ -64,7 +64,9 @@ class Clize(object):
             return super(Clize, cls).__new__(cls)
 
     def __init__(self, fn, owner=None, alt=(), extra=(),
-                 help_names=('help', 'h'), helper_class=None, hide_help=False):
+                 help_names=('help', 'h'), helper_class=None, hide_help=False,
+                 description=None,
+                 ):
         """
         :param sequence alt: Alternate actions the CLI will handle.
         :param help_names: Names to use to trigger the help.
@@ -75,6 +77,14 @@ class Clize(object):
         :param bool hide_help: Mark the parameters used to trigger the help
             as undocumented.
         """
+        if description:
+            raise TypeError(
+                "description= is only accepted when using multiple same-level commands. "
+                "When only one main command is given, "
+                "you can set the description by updating the main command's docstring. See "
+                "https://clize.readthedocs.io/en/stable/basics.html#enhancing-the-help-message "
+                "for more information."
+            )
         update_wrapper(self, fn)
         self.func = fn
         self.owner = owner
@@ -169,18 +179,17 @@ class Clize(object):
         the given object(s).
         """
         try:
-            cli = obj.cli
+            return obj.cli
         except AttributeError:
-            if callable(obj):
-                cli = cls(obj, **kwargs)
-            else:
-                try:
-                    iter(obj)
-                except TypeError:
-                    raise TypeError("Don't know how to build a cli for "
-                                    + repr(obj))
-                cli = SubcommandDispatcher(obj, **kwargs).cli
-        return cli
+            pass
+        if callable(obj):
+            return cls(obj, **kwargs)
+        else:
+            try:
+                iter(obj)
+            except TypeError:
+                raise TypeError(f"Don't know how to build a cli for {obj!r}") from None
+            return SubcommandDispatcher(obj, **kwargs).cli
 
     @property
     def cli(self):
