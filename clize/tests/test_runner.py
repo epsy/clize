@@ -276,6 +276,13 @@ class GetCliTests(unittest.TestCase):
                                    runner.SubcommandDispatcher))
         self.assertEqual(set(sd.cmds_by_name), set(['2', '3']))
 
+    def test_deny_description_on_single(self):
+        def base(): raise NotImplementedError
+        def alt(): raise NotImplementedError
+        with self.assertRaises(TypeError) as cm:
+            runner.Clize.get_cli(base, alt=alt, description="not allowed")
+        self.assertIn("only one main command", str(cm.exception))
+
     def test_as_is(self):
         def func(): raise NotImplementedError
         ru = runner.Clize.get_cli(runner.Clize.as_is(func))
